@@ -117,11 +117,13 @@ export async function logout() {
 }
 /*-----------------------------------------
 |Metodos del observer para la autenticación
--------------------------------------------*/
-/*** 
- * @param{()=>()} callback
- */
++-------------------------------------------*/
+/** 
+* @param {()=>()} callback
+*/
 export function subscribeToAuthState(callback){
+    //TODO Unsubscribe
+
     observers.push(callback);
     notify(callback);
 }

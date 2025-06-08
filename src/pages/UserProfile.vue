@@ -28,6 +28,7 @@ export default {
             this.loadingUser = false;
         } catch (error) {
             console.error(error)
+            //TODO
         }
     },
 }
@@ -77,6 +78,14 @@ export default {
           </div>
         </div>
       </div>
+
+      <hr class="mb-4">
+
+      <RouterLink
+      :to="`/usuario/${user.id}/chat`"
+      class="text-blue-700 underline"
+      >Iniciar chat privado con {{ user.email }}</RouterLink>
+
     </template>
   
     <MainLoader v-else />

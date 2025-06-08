@@ -16,6 +16,7 @@ const routes = [
     { path: '/mi-perfil',             component: MyProfile, meta:{requiresAuth:true},name:'my-profile',},
     { path: '/mi-perfil/editar',      component: MyProfileEdit, meta:{requiresAuth:true},name:'my-profile.edit',},
     { path: '/usuario/:id',           component: UserProfile, meta:{requiresAuth:true},name:'user-profile',},
+    { path: '/usuario/:id/chat',      component: UserProfile, meta:{requiresAuth:true},name:'private-chat',},
 ];
 
 const router = createRouter({
