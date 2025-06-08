@@ -119,9 +119,9 @@ export default {
 
 
 <template>
-    <div class="mx-auto flex flex-col">
+    <div class="mx-auto flex flex-col w-[50%] ">
         
-        <div class="mx-auto overflow-y-auto w-9/12 pb-3">
+        <div class="mx-auto overflow-y-auto w-12/12 py-5">
             
             <h2 class="mb-4 text-xl">Crear publicación</h2>
 
@@ -140,14 +140,13 @@ export default {
 
             </form>
         </div>
-        <div ref="chatContainer" class="mx-auto overflow-y-auto 
-                w-9/12 max-h-[250px] scrollbar-hidden">
+        <div ref="chatContainer pb-5" >
             <h2 class="sr-only">Lista de Mensajes</h2>
             <ul 
                 v-if="!loadingMessages"
-                class="flex flex-col gap-4 divide-y divide-gray-300">
+                class="flex flex-col gap-4 divide-y divide-gray-300 ">
 
-                <li v-for="(message, index) in messages" :key="message.id" class="flex flex-col gap-0.5 py-2">
+                <li v-for="(message, index) in messages" :key="message.id" class="flex flex-col gap-0.5 pb-6 ">
 
                     <!-- Mensaje principal -->
                     <div>

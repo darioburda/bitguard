@@ -53,8 +53,8 @@ export default {
             :autoDismiss="true"
             @dismiss="successMessage = ''"
         />
-
-    <div class="mx-auto max-w-[900px] w-full px-4 sm:px-8 py-10 mt-20 bg-white shadow rounded-xl">
+<div class="h-full overflow-auto">
+    <div class="mx-auto max-w-[900px] w-full px-4 sm:px-8 py-03 mt-20 bg-white shadow rounded-xl">
         <div class="flex items-center gap-6 mb-6">
         <div class="w-28 h-28 bg-gray-300 rounded-full border-4 border-white shadow-md"></div>
         <div class="flex-1">
@@ -94,6 +94,7 @@ export default {
         </div>
         </div>
     </div>
+</div>
 </template>
 
 

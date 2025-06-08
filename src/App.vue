@@ -32,7 +32,8 @@ export default {
 </script>
 
 <template>
-    <div class="flex flex-col min-h-screen bg-gradient-to-b from-[#FFFFFF] to-[#D7DDFF] text-black">
+    <div class="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gradient-to-b from-[#FFFFFF] to-[#D7DDFF] text-black">
+
         <nav class="flex items-center justify-center h-27 gap-8 p-4 bg-gradient-to-b from-[#287AE6] to-[#0C4EA4] text-white">
             <RouterLink to="/" class="inline-block w-22">
                 <img 
@@ -76,11 +77,14 @@ export default {
                 </template>
             </ul>
         </nav>
-        <main class="flex-grow pt-2">
+
+        <main class="overflow-y-auto">
             <div class="container mx-auto">
                 <RouterView />
             </div>
         </main>
+
+
 
     <footer class="bg-gradient-to-b from-[#474747] to-[#000000] text-white py-4 px-4">
             <div class="container mx-auto">

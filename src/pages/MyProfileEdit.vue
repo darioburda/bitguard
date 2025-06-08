@@ -63,63 +63,65 @@ export default {
     },
 };
 </script>
-
 <template>
-    <AlertMessage 
-        v-if="successMessage"
-        :message="successMessage"
-        type="success"
-        :autoDismiss="true"
-        @dismiss="successMessage = ''"
-    />
-    <MainH1>Editar mi perfil</MainH1>
-    <form 
-        action="#"
-        @submit.prevent="handleSubmit"
-    >
-        <div v-if="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 border border-red-400 rounded">
+    <div class="h-full overflow-auto flex justify-center">
+      <div class="w-[50%] px-4 sm:px-8 py-10">
+        <form 
+          action="#"
+          @submit.prevent="handleSubmit"
+        >
+          <div v-if="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 border border-red-400 rounded">
             {{ errorMessage }}
-        </div>
-        <div class="mb-3">
-                <label for="bio" class="block mb-2">Biografia</label>
-                <textarea
-                    v-model="profile.bio"
-                    id="bio"
-                    class="w-full p-2 border border-gray-400 rounded">
-                </textarea>
-        </div>
-        <div class="mb-3">
+          </div>
+  
+          <div class="mb-3">
+            <label for="bio" class="block mb-2">Biografía</label>
+            <textarea
+              v-model="profile.bio"
+              id="bio"
+              class="w-full p-2 border border-gray-400 rounded">
+            </textarea>
+          </div>
+  
+          <div class="mb-3">
             <label for="display_name" class="block mb-2">Nombre de usuario</label>
             <input
-                v-model="profile.display_name"
-                type="text"
-                id="display_name"
-                class="w-full p-2 border border-gray-400 rounded">
-        </div>
-        <div class="mb-3">
-            <label for="sector" class="block mb-2">sector</label>
+              v-model="profile.display_name"
+              type="text"
+              id="display_name"
+              class="w-full p-2 border border-gray-400 rounded">
+          </div>
+  
+          <div class="mb-3">
+            <label for="sector" class="block mb-2">Sector</label>
             <input
-                v-model="profile.sector"
-                type="text"
-                id="sector"
-                class="w-full p-2 border border-gray-400 rounded">
-        </div>
-        <div class="mb-3">
+              v-model="profile.sector"
+              type="text"
+              id="sector"
+              class="w-full p-2 border border-gray-400 rounded">
+          </div>
+  
+          <div class="mb-3">
             <label for="equipo" class="block mb-2">Equipo</label>
             <input
-                v-model="profile.equipo"
-                type="text"
-                id="equipo"
-                class="w-full p-2 border border-gray-400 rounded">
-        </div>
-        <div class="mb-3">
+              v-model="profile.equipo"
+              type="text"
+              id="equipo"
+              class="w-full p-2 border border-gray-400 rounded">
+          </div>
+  
+          <div class="mb-3">
             <label for="rustdesk" class="block mb-2">Rustdesk</label>
             <input
-                v-model="profile.rustdesk"
-                type="text"
-                id="rustdesk"
-                class="w-full p-2 border border-gray-400 rounded">
-        </div>
-            <MainButton type="submit">Actualizar mi perfil</MainButton>
-    </form>
+              v-model="profile.rustdesk"
+              type="text"
+              id="rustdesk"
+              class="w-full p-2 border border-gray-400 rounded">
+          </div>
+  
+          <MainButton type="submit">Actualizar mi perfil</MainButton>
+        </form>
+      </div>
+    </div>
 </template>
+  

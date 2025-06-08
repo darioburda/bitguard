@@ -23,7 +23,7 @@ export async function getGlobalChatLastMessages() {
         .from('global_chat')
         .select()
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(5);
 
     if(error) {
         console.error('[global-chat.js getGlobalChatLastMessages] Error al traer los mensajes: ', error);
