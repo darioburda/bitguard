@@ -7,6 +7,7 @@ import Register from '../pages/Register.vue';
 import MyProfile from '../pages/MyProfile.vue';
 import MyProfileEdit from '../pages/MyProfileEdit.vue';
 import UserProfile from '../pages/userProfile.vue';
+import PrivateChat from '../pages/PrivateChat.vue';
 
 const routes = [
     { path: '/',                      component: Home,name:'home', },
@@ -16,7 +17,7 @@ const routes = [
     { path: '/mi-perfil',             component: MyProfile, meta:{requiresAuth:true},name:'my-profile',},
     { path: '/mi-perfil/editar',      component: MyProfileEdit, meta:{requiresAuth:true},name:'my-profile.edit',},
     { path: '/usuario/:id',           component: UserProfile, meta:{requiresAuth:true},name:'user-profile',},
-    { path: '/usuario/:id/chat',      component: UserProfile, meta:{requiresAuth:true},name:'private-chat',},
+    { path: '/usuario/:id/chat',      component: PrivateChat, meta:{requiresAuth:true},name:'private-chat',},
 ];
 
 const router = createRouter({
