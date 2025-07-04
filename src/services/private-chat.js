@@ -122,34 +122,52 @@ export async function savePrivateChatMessage(sender_id, receiver_id, body) {
     }
 }
 
+let currentPrivateChannel = null;
+
 /**
  * 
  * @param {string} sender_id 
  * @param {string} receiver_id 
- * @param {() => void} callback 
+ * @param {(newMsg: object) => void} callback 
  */
-export async function receivePrivateChatMessages(sender_id, receiver_id, callback) {
-    const chat_id = await getPrivateChatId(sender_id, receiver_id);
+let activePrivateChannels = {};
 
-    const privateChatChannel = supabase.channel('private-chat');
-    privateChatChannel.on(
-        'postgres_changes',
-        {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'private_messages',
-            // Noten que en filter, el tipo de comparación lo prefijamos
-            // al valor después del "=". Por ejemplo, si queremos una
-            // comparación de igualdad, usamos el "eq.".
-            filter: 'chat_id=eq.' + chat_id,
-        },
-        data => {
-            // Ejecutamos el callback con los datos recibidos.
-            callback(data.new);
-        }
+export async function receivePrivateChatMessages(sender_id, receiver_id, callback) {
+  const chat_id = await getPrivateChatId(sender_id, receiver_id);
+  const channelKey = `chat_${chat_id}`;
+
+  // Si ya existe un canal para este chat, desuscribilo primero
+  if (activePrivateChannels[channelKey]) {
+    console.log('[private-chat.js] Cerrando canal anterior...');
+    await activePrivateChannels[channelKey].unsubscribe();
+    delete activePrivateChannels[channelKey];
+  }
+
+  const channel = supabase.channel(channelKey);
+
+  channel
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'private_messages',
+        filter: `chat_id=eq.${chat_id}`,
+      },
+      (data) => {
+        callback(data.new);
+      }
     )
-    privateChatChannel.subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log(`[private-chat.js] Canal ${channelKey} suscripto con éxito`);
+      }
+    });
+
+  activePrivateChannels[channelKey] = channel;
 }
+
+
 
 /**
  * 
