@@ -89,7 +89,7 @@
     </div>
   </div>
 
-  <!-- Botón flotante de chat con logo -->
+  <!-- Botón flotante de chat con logo  -->
   <RouterLink
     to="/chat"
     class="fixed bottom-6 right-6 z-50 bg-[#01C38E] rounded-full shadow-lg hover:bg-[#00a77c] transition-transform w-16 h-16 flex items-center justify-center overflow-hidden transition-opacity duration-[1500ms]"
