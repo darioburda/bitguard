@@ -1,9 +1,39 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.scrollbar-hidden {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+/* Fuente principal */
+body {
+  font-family: 'Montserrat', sans-serif;
 }
-.scrollbar-hidden::-webkit-scrollbar {
-    display: none;
+
+/* Estilos de scrollbar */
+::-webkit-scrollbar {
+  height: 12px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 6px;
+}
+
+@keyframes spin-multiple {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(1080deg); /* 3 vueltas */
+  }
+}
+
+.rotate-on-load {
+  animation: spin-multiple 1.8s ease-in-out;
+}
+
+.floating-icon {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.floating-icon:hover {
+  transform: scale(1.04);     /* agranda levemente */
+  filter: brightness(0.9);    /* oscurece apenas */
 }

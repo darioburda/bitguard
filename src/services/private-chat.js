@@ -1,4 +1,4 @@
-import supabase from "./supabase";
+import { supabase } from './supabase';
 
 // Vamos a cachear localmente los ids de los chats que vamos trayendo.
 // Los ids los vamos a guardar en un objeto, donde la clave de cada id
@@ -22,13 +22,16 @@ async function getPrivateChatId(sender_id, receiver_id) {
 
     let chat_id = privateChatIdsCache[cacheKey];
     if(chat_id) return chat_id;
-
+    // let chat_id;
     chat_id = await fetchPrivateChat(sender_id, receiver_id);
 
     // Si el id no existe aún, entonces creamos la conversación privada.
     if(!chat_id) {
         chat_id = await createPrivateChat(sender_id, receiver_id);
+        // await new Promise(resolve => setTimeout(resolve, 200));
     }
+
+    console.log("Chat ID:", chat_id)
 
     // Guardamos el id obtenido en el caché, y actualizamos localStorage.
     privateChatIdsCache[cacheKey] = chat_id;
@@ -45,6 +48,8 @@ async function getPrivateChatId(sender_id, receiver_id) {
  */
 async function fetchPrivateChat(sender_id, receiver_id) {
     const userIds = [sender_id, receiver_id].sort();
+    console.log(sender_id, receiver_id);
+    console.log(userIds);
 
     const { data, error } = await supabase
         .from('private_chats')
@@ -68,6 +73,8 @@ async function fetchPrivateChat(sender_id, receiver_id) {
  */
 async function createPrivateChat(sender_id, receiver_id) {
     const userIds = [sender_id, receiver_id].sort();
+    console.log(sender_id, receiver_id);
+    console.log(userIds);
 
     const { data, error } = await supabase
         .from('private_chats')
@@ -75,13 +82,18 @@ async function createPrivateChat(sender_id, receiver_id) {
             user_id1: userIds[0],
             user_id2: userIds[1],
         })
-        .select();
+        .select(); // NECESARIO para obtener el ID
 
-    if(error) {
+    if (error) {
         console.error('[private-chat.js createPrivateChat] Error al crear el chat privado: ', error);
         throw error;
     }
 
+    // if (!data || data.length === 0) {
+    //     throw new Error('[private-chat.js createPrivateChat] No se recibió un ID válido del chat');
+    // }
+
+    // console.log('[createPrivateChat] Chat creado con ID:', data[0].id);
     return data[0].id;
 }
 

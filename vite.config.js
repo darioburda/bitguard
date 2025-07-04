@@ -8,16 +8,17 @@
 //     plugins: [vue(), tailwind()],
 // }
 
-
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import tailwind from '@tailwindcss/vite';
-import svgLoader from 'vite-svg-loader';
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import path from 'path'
 
 export default defineConfig({
-  plugins: [
-    vue(),
-    tailwind(),
-    svgLoader()
-  ]
-});
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+})
+
+

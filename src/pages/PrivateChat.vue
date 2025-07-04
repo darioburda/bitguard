@@ -52,23 +52,17 @@ export default {
         },
     },
     async mounted() {
+        // Esperamos a que se cargue correctamente el usuario
         subscribeToAuthState(newUserState => this.userAuth = newUserState);
+
+        // Esperamos a que userAuth.id esté disponible
+        // while (!this.userAuth.id) {
+        //     await new Promise(resolve => setTimeout(resolve, 50));
+        // }
 
         try {
             this.loadingUser = true;
             this.loadingMessages = true;
-
-            receivePrivateChatMessages(
-                this.userAuth.id,
-                this.$route.params.id,
-                async newMessage => {
-                    this.messages.push(newMessage);
-                    
-                    // Movemos el scroll.
-                    await nextTick();
-                    this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
-                }
-            );
 
             this.userChat = await getUserProfileById(this.$route.params.id);
             this.loadingUser = false;
@@ -78,8 +72,17 @@ export default {
                 this.$route.params.id
             );
             this.loadingMessages = false;
-            
-            // Movemos el scroll.
+
+            receivePrivateChatMessages(
+                this.userAuth.id,
+                this.$route.params.id,
+                async newMessage => {
+                    this.messages.push(newMessage);
+                    await nextTick();
+                    this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
+                }
+            );
+
             await nextTick();
             this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
         } catch (error) {
@@ -91,7 +94,7 @@ export default {
 
 <template>
     <template v-if="!loadingUser">
-        <MainH1>Conversación privada con {{ userChat.email }}</MainH1>
+        <MainH1>Chat privado con {{ userChat.email }}</MainH1>
 
         <div 
             ref="chatContainer"
