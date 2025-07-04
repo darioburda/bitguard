@@ -2,7 +2,7 @@ BitGuard Web
 BitGuard es una aplicación web desarrollada con Vue.js y Supabase que brinda una solución integral de gestión IT para PyMEs. Permite administrar usuarios, equipos, configuraciones técnicas, y brindar soporte remoto a través de un chat interno.
 
 Características principales
-Autenticación y perfiles con Supabase Auth y Storage
+Autenticación y perfiles con Supabase Auth y Storagee
 
 Gestión de usuarios con edición, eliminación y asignación de equipos
 
