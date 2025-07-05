@@ -1,7 +1,14 @@
 import { supabase } from './supabase';
 
+const defaultPhotoUrl = 'https://yjqstwwltjefqtsxlbsa.supabase.co/storage/v1/object/public/profile-picture//default-avatar-4.png';
+
 export async function createUserProfile(data) {
-  const { error } = await supabase.from('user_profiles').insert(data);
+  const profileData = {
+    ...data,
+    photo: data.photo || defaultPhotoUrl
+  };
+
+  const { error } = await supabase.from('user_profiles').insert(profileData);
 
   if (error) {
     console.error('[user-profiles.js createUserProfile] Error al crear perfil de usuario: ', error);
@@ -32,7 +39,13 @@ export async function getUserProfileById(id) {
     throw error;
   }
 
-  return data[0];
+  const profile = data[0];
+  if (!profile) return null;
+
+  return {
+    ...profile,
+    photo: profile.photo || defaultPhotoUrl
+  };
 }
 
 export async function getAllUserProfiles() {
@@ -46,7 +59,10 @@ export async function getAllUserProfiles() {
     throw error;
   }
 
-  return data;
+  return data.map(profile => ({
+    ...profile,
+    photo: profile.photo || defaultPhotoUrl
+  }));
 }
 
 export async function getUserProfilesPaginated(limit = 10, page = 1) {
@@ -64,5 +80,11 @@ export async function getUserProfilesPaginated(limit = 10, page = 1) {
     throw error;
   }
 
-  return { data, count };
+  return {
+    data: data.map(profile => ({
+      ...profile,
+      photo: profile.photo || defaultPhotoUrl
+    })),
+    count
+  };
 }

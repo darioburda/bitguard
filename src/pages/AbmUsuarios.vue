@@ -53,80 +53,91 @@
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6"
         >
           <div
-            v-for="usuario in usuariosPaginados"
-            :key="usuario.id"
-            class="relative bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
-          >
-            <div
-              class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
-            >
-              {{ usuario.sector || 'Sin sector' }}
-            </div>
+  v-for="usuario in usuariosPaginados"
+  :key="usuario.id"
+  class="relative bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
+>
+  <!-- Foto de perfil -->
+  <div class="flex items-center gap-4 mb-4">
+    <img
+      :src="usuario.photo"
+      alt="Foto"
+      class="w-16 h-16 rounded-full object-cover ring-2 ring-[#44d6b4] flex-shrink-0"
+    />
+    <div>
+      <h2 class="text-lg font-semibold">{{ usuario.display_name || 'Sin nombre' }}</h2>
+      <p class="text-sm text-gray-500">{{ usuario.email }}</p>
+    </div>
+  </div>
 
-            <div>
-              <h2 class="text-lg font-semibold mb-1">{{ usuario.display_name || 'Sin nombre' }}</h2>
-              <p class="text-sm text-gray-500 mb-2">{{ usuario.email }}</p>
-              <hr class="pb-2" />
+  <!-- Etiqueta de sector -->
+  <div
+    class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
+  >
+    {{ usuario.sector || 'Sin sector' }}
+  </div>
 
-              <div class="text-sm text-gray-700 space-y-1">
-                <div class="flex items-center gap-2">
-                  <strong>Rustdesk:</strong>
-                  <template v-if="usuario.rustdesk">
-                    <a
-                      :href="`rustdesk://${usuario.rustdesk}`"
-                      class="text-blue-600 hover:underline flex items-center gap-1"
-                      title="Conectar vía Rustdesk"
-                    >
-                      <Laptop2Icon class="w-4 h-4" />
-                      {{ usuario.rustdesk }}
-                    </a>
-                  </template>
-                  <template v-else>-</template>
-                </div>
-                <p><strong>Equipo:</strong> {{ usuario.equipo || '-' }}</p>
-                <p><strong>IP PC:</strong> {{ usuario.ip_pc || '-' }}</p>
-                <p><strong>Interno:</strong> {{ usuario.interno_telefono || '-' }}</p>
-                <p><strong>IP Interno:</strong> {{ usuario.ip_telefono || '-' }}</p>
-                <hr />
-                <p><strong>SO:</strong> {{ usuario.sistema_operativo || '-' }}</p>
-                <p><strong>Microprocesador:</strong> {{ usuario.microprocesador || '-' }}</p>
-                <p>
-                  <strong>Memoria:</strong>
-                  {{ usuario.tipo_memoria || '-' }} / {{ usuario.tamano_memoria || '-' }} GB
-                </p>
-                <p>
-                  <strong>Disco:</strong>
-                  {{ usuario.tipo_disco || '-' }} / {{ usuario.tamano_disco || '-' }} GB
-                </p>
-              </div>
-            </div>
+  <!-- Resto del contenido original -->
+  <div class="text-sm text-gray-700 space-y-1">
+    <div class="flex items-center gap-2">
+      <strong>Rustdesk:</strong>
+      <template v-if="usuario.rustdesk">
+        <a
+          :href="`rustdesk://${usuario.rustdesk}`"
+          class="text-blue-600 hover:underline flex items-center gap-1"
+          title="Conectar vía Rustdesk"
+        >
+          <Laptop2Icon class="w-4 h-4" />
+          {{ usuario.rustdesk }}
+        </a>
+      </template>
+      <template v-else>-</template>
+    </div>
+    <p><strong>Equipo:</strong> {{ usuario.equipo || '-' }}</p>
+    <p><strong>IP PC:</strong> {{ usuario.ip_pc || '-' }}</p>
+    <p><strong>Interno:</strong> {{ usuario.interno_telefono || '-' }}</p>
+    <p><strong>IP Interno:</strong> {{ usuario.ip_telefono || '-' }}</p>
+    <hr />
+    <p><strong>SO:</strong> {{ usuario.sistema_operativo || '-' }}</p>
+    <p><strong>Microprocesador:</strong> {{ usuario.microprocesador || '-' }}</p>
+    <p>
+      <strong>Memoria:</strong>
+      {{ usuario.tipo_memoria || '-' }} / {{ usuario.tamano_memoria || '-' }} GB
+    </p>
+    <p>
+      <strong>Disco:</strong>
+      {{ usuario.tipo_disco || '-' }} / {{ usuario.tamano_disco || '-' }} GB
+    </p>
+  </div>
 
-            <div class="mt-4 flex justify-between items-center">
-              <div
-                class="text-xs font-bold px-2 py-1 rounded-full"
-                :class="usuario.is_admin ? 'bg-[#474747] text-white' : 'bg-[#01C38E] text-white'"
-              >
-                {{ usuario.is_admin ? 'ADMIN' : 'USER' }}
-              </div>
+  <!-- Rol y acciones -->
+  <div class="mt-4 flex justify-between items-center">
+    <div
+      class="text-xs font-bold px-2 py-1 rounded-full"
+      :class="usuario.is_admin ? 'bg-[#474747] text-white' : 'bg-[#01C38E] text-white'"
+    >
+      {{ usuario.is_admin ? 'ADMIN' : 'USER' }}
+    </div>
 
-              <div class="flex gap-4">
-                <RouterLink
-                  :to="{ name: 'editar-usuario', params: { id: usuario.id } }"
-                  class="text-blue-600 hover:underline text-sm flex items-center gap-1"
-                >
-                  <PencilIcon class="w-4 h-4" />
-                  Editar
-                </RouterLink>
-                <button
-                  @click="abrirModal(usuario)"
-                  class="text-red-600 hover:underline text-sm flex items-center gap-1"
-                >
-                  <Trash2Icon class="w-4 h-4" />
-                  Borrar
-                </button>
-              </div>
-            </div>
-          </div>
+    <div class="flex gap-4">
+      <RouterLink
+        :to="{ name: 'editar-usuario', params: { id: usuario.id } }"
+        class="text-blue-600 hover:underline text-sm flex items-center gap-1"
+      >
+        <PencilIcon class="w-4 h-4" />
+        Editar
+      </RouterLink>
+      <button
+        @click="abrirModal(usuario)"
+        class="text-red-600 hover:underline text-sm flex items-center gap-1"
+      >
+        <Trash2Icon class="w-4 h-4" />
+        Borrar
+      </button>
+    </div>
+  </div>
+</div>
+
         </div>
       </div>
 

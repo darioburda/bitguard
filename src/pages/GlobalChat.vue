@@ -260,7 +260,7 @@ export default {
   <div class="flex w-full" style="height: calc(100vh - 112px); overflow-x: hidden;">
     <aside class="w-1/4 bg-white border-r border-gray-300 p-4 overflow-y-auto" style="height: 100%; max-height: calc(100vh - 112px);">
       <h2 class="text-lg font-semibold mb-4">Contactos</h2>
-      <ul class="space-y-2">
+      <ul class="space-y-5">
         <li>
           <button
             @click="handleGlobalChat"
@@ -275,20 +275,24 @@ export default {
           </button>
         </li>
 
-        <li class="text-xs text-gray-500 uppercase mt-4">Privados</li>
+        <!-- <li class="text-xs text-gray-500 uppercase mt-4">Contactos</li> -->
         <li v-for="u in users" :key="u.id">
           <button
             @click="handleSelectUser(u)"
-            :class="[
-              'text-sm text-left w-full hover:underline',
-              selectedUser?.id === u.id
-                ? 'text-green-600 font-bold'
-                : 'text-gray-700'
-            ]"
+            class="flex items-center gap-3 w-full text-left hover:underline"
+            :class="selectedUser?.id === u.id ? 'text-green-600 font-bold' : 'text-gray-700'"
           >
-            {{ u.display_name || u.email }}
+            <div class="w-11 h-11 flex-shrink-0">
+              <img
+                :src="u.photo"
+                alt="Foto de perfil"
+                class="p-0 w-full h-full object-cover rounded-full ring-2 ring-[#05A378]"
+              />
+            </div>
+            <span class="truncate">{{ u.display_name || u.email }}</span>
           </button>
         </li>
+
       </ul>
     </aside>
 
