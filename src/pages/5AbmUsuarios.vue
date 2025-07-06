@@ -14,7 +14,9 @@
       />
 
       <!-- Encabezado + Filtros -->
-      <div class="py-4 mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 flex-wrap px-4 sm:px-0">
+      <div
+        class="py-4 mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 flex-wrap px-4 sm:px-0"
+      >
         <h1 class="text-2xl font-bold flex-shrink-0">Gestión de Usuarios</h1>
 
         <input
@@ -24,66 +26,57 @@
           class="w-full sm:w-[300px] px-4 py-2 border rounded-md shadow-sm"
         />
 
-      <select
-        v-model="empresaSeleccionada"
-        class="w-full sm:w-[200px] px-4 py-2 border rounded-md shadow-sm"
+        <select
+          v-model="sectorSeleccionado"
+          class="w-full sm:w-[200px] px-4 py-2 border rounded-md shadow-sm"
         >
-        <option value="">Todas las empresas</option>
-        <option v-for="empresa in empresasDisponibles" :key="empresa" :value="empresa">
-          {{ empresa }}
-        </option>
-      </select>
-      <select
-        v-model="sectorSeleccionado"
-        class="w-full sm:w-[200px] px-4 py-2 border rounded-md shadow-sm"
-      >
-        <option value="">Todos los sectores</option>
-        <option v-for="sector in sectoresDisponibles" :key="sector" :value="sector">
-          {{ sector }}
-        </option>
-      </select>
-      
+          <option value="">Todos los sectores</option>
+          <option v-for="sector in sectoresDisponibles" :key="sector" :value="sector">
+            {{ sector }}
+          </option>
+        </select>
+
         <MainButton to="/usuarios/agregar" class="sm:ml-auto">Agregar Usuario</MainButton>
       </div>
 
       <!-- Lista de usuarios -->
       <div>
-        <div v-if="usuariosPaginados.length === 0" class="text-center text-gray-600 text-lg py-10">
+        <div
+          v-if="usuariosPaginados.length === 0"
+          class="text-center text-gray-600 text-lg py-10"
+        >
           No se encontraron usuarios que coincidan con la búsqueda.
         </div>
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6">
+        <div
+          v-else
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6"
+        >
           <div
             v-for="usuario in usuariosPaginados"
             :key="usuario.id"
-            class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
+            class="relative bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px] overflow-hidden"
           >
-            <BadgeRol
-              v-if="usuario.is_admin || usuario.empresa_nombre"
-              :value="usuario.is_admin ? 'ADMIN' : usuario.empresa_nombre"
-              class="top-2 left-2"
-            />
+            <!-- Badge de rol -->
+            <BadgeRol v-if="usuario.is_admin" value="ADMIN" />
 
-            <div
-              class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
-            >
-              {{ usuario.sector || 'Sin sector' }}
-            </div>
-
-            <div class="flex items-center gap-4 mb-4 mt-4">
+            <!-- Foto y nombre -->
+            <div class="flex items-center gap-4 mb-4">
               <img
                 :src="usuario.photo"
-                alt="Foto de perfil"
+                alt="Foto"
                 class="w-14 h-14 rounded-full object-cover ring-2 ring-[#44d6b4] flex-shrink-0"
               />
               <div>
                 <h2 class="text-lg font-semibold">{{ usuario.display_name || 'Sin nombre' }}</h2>
                 <p class="text-sm text-gray-500">{{ usuario.email }}</p>
+                <div class="mt-1">
+                  <BadgeSector :value="usuario.sector" />
+                </div>
               </div>
             </div>
 
-            <hr class="pb-2" />
-
+            <!-- Datos -->
             <div class="text-sm text-gray-700 space-y-1">
               <div class="flex items-center gap-2">
                 <strong>Rustdesk:</strong>
@@ -110,82 +103,45 @@
               <p><strong>Disco:</strong> {{ usuario.tipo_disco || '-' }} / {{ usuario.tamano_disco || '-' }} GB</p>
             </div>
 
-            <div class="mt-4 flex gap-4">
-              <RouterLink
-                :to="{ name: 'editar-usuario', params: { id: usuario.id } }"
-                class="text-blue-600 hover:underline text-sm flex items-center gap-1"
-              >
-                <PencilIcon class="w-4 h-4" />
-                Editar
-              </RouterLink>
-              <button
-                @click="abrirModal(usuario)"
-                class="text-red-600 hover:underline text-sm flex items-center gap-1"
-              >
-                <Trash2Icon class="w-4 h-4" />
-                Borrar
-              </button>
+            <!-- Acciones -->
+            <div class="mt-4 flex justify-between items-center">
+              <div class="flex gap-4">
+                <RouterLink
+                  :to="{ name: 'editar-usuario', params: { id: usuario.id } }"
+                  class="text-blue-600 hover:underline text-sm flex items-center gap-1"
+                >
+                  <PencilIcon class="w-4 h-4" />
+                  Editar
+                </RouterLink>
+                <button
+                  @click="abrirModal(usuario)"
+                  class="text-red-600 hover:underline text-sm flex items-center gap-1"
+                >
+                  <Trash2Icon class="w-4 h-4" />
+                  Borrar
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Modal -->
-      <div
-        v-if="usuarioAEliminar"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4"
-      >
-        <div class="bg-white border border-red-500 rounded-lg shadow-lg w-full max-w-[500px] p-6">
-          <h2 class="text-lg font-bold text-red-600 mb-4">Confirmar Eliminación</h2>
-          <p class="mb-6 break-words">
-            ¿Estás seguro de que querés eliminar al usuario
-            <strong>{{ usuarioAEliminar.display_name || usuarioAEliminar.email }}</strong>?
-          </p>
-          <div class="flex justify-end gap-4">
-            <button @click="eliminarConfirmado" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-              Eliminar
-            </button>
-            <button @click="cerrarModal" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Paginación -->
-      <div class="mt-8 flex justify-between items-center text-sm">
-        <button
-          @click="paginaAnterior"
-          :disabled="paginaActual === 1"
-          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-        >
-          ← Anterior
-        </button>
-        <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
-        <button
-          @click="siguientePagina"
-          :disabled="paginaActual === totalPaginas"
-          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-        >
-          Siguiente →
-        </button>
-      </div>
     </template>
-  </div>
 
-  <RouterLink
-    to="/chat"
-    class="fixed bottom-6 right-6 z-50 bg-[#01C38E] rounded-full shadow-lg hover:bg-[#00a77c] transition-transform w-16 h-16 flex items-center justify-center overflow-hidden transition-opacity duration-[1500ms]"
-    :class="{ 'opacity-0 pointer-events-none': !mostrarBoton, 'opacity-100': mostrarBoton }"
-    title="Abrir Chat"
-  >
-    <img
-      :src="chatbitLogo"
-      alt="Chatbit"
-      class="object-contain w-14 h-14 p-0 floating-icon"
-      :class="{ 'rotate-on-load': mostrarAnimacion }"
-    />
-  </RouterLink>
+    <!-- Botón flotante de chat -->
+    <RouterLink
+      to="/chat"
+      class="fixed bottom-6 right-6 z-50 bg-[#01C38E] rounded-full shadow-lg hover:bg-[#00a77c] transition-transform w-16 h-16 flex items-center justify-center overflow-hidden transition-opacity duration-[1500ms]"
+      :class="{ 'opacity-0 pointer-events-none': !mostrarBoton, 'opacity-100': mostrarBoton }"
+      title="Abrir Chat"
+    >
+      <img
+        :src="chatbitLogo"
+        alt="Chatbit"
+        class="object-contain w-14 h-14 p-0 floating-icon"
+        :class="{ 'rotate-on-load': mostrarAnimacion }"
+      />
+    </RouterLink>
+  </div>
 </template>
 
 <script>
@@ -196,6 +152,7 @@ import MainButton from '../components/MainButton.vue';
 import MainLoader from '../components/MainLoader.vue';
 import AlertMessage from '../components/AlertMessage.vue';
 import BadgeRol from '../components/BadgeRol.vue';
+import BadgeSector from '../components/BadgeSector.vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import chatbitLogo from '@/assets/chatbit.png';
 
@@ -208,8 +165,9 @@ export default {
     MainButton,
     MainLoader,
     AlertMessage,
+    RouterLink,
     BadgeRol,
-    RouterLink
+    BadgeSector
   },
   setup() {
     const route = useRoute();
@@ -218,11 +176,13 @@ export default {
     const loading = ref(true);
     const feedback = ref('');
     const usuarioAEliminar = ref(null);
+
     const paginaActual = ref(1);
     const usuariosPorPagina = 1000;
+
     const busqueda = ref('');
     const sectorSeleccionado = ref('');
-    const empresaSeleccionada = ref('');
+
     const mostrarBoton = ref(false);
     const mostrarAnimacion = ref(false);
 
@@ -231,21 +191,16 @@ export default {
       return [...new Set(sectores)];
     });
 
-    const empresasDisponibles = computed(() => {
-      const empresas = usuarios.value.map(u => u.empresa_nombre).filter(Boolean);
-      return [...new Set(empresas)];
-    });
-
-    const usuariosFiltrados = computed(() =>
-      usuarios.value.filter(u => {
+    const usuariosFiltrados = computed(() => {
+      return usuarios.value.filter(u => {
         const coincideBusqueda =
           u.display_name?.toLowerCase().includes(busqueda.value.toLowerCase()) ||
           u.email?.toLowerCase().includes(busqueda.value.toLowerCase());
-        const coincideSector = !sectorSeleccionado.value || u.sector === sectorSeleccionado.value;
-        const coincideEmpresa = !empresaSeleccionada.value || u.empresa_nombre === empresaSeleccionada.value;
-        return coincideBusqueda && coincideSector && coincideEmpresa;
-      })
-    );
+        const coincideSector =
+          !sectorSeleccionado.value || u.sector === sectorSeleccionado.value;
+        return coincideBusqueda && coincideSector;
+      });
+    });
 
     const totalPaginas = computed(() =>
       Math.ceil(usuariosFiltrados.value.length / 12)
@@ -301,16 +256,18 @@ export default {
           }
           await cargarUsuarios();
         } else {
-          feedback.value = data.error?.includes('foreign key constraint')
-            ? '❌ No se pudo eliminar el usuario porque tiene publicaciones activas.'
-            : '❌ Error: ' + data.error;
+          if (data.error?.includes('foreign key constraint')) {
+            feedback.value = '❌ No se pudo eliminar el usuario porque tiene publicaciones activas.';
+          } else {
+            feedback.value = '❌ Error: ' + data.error;
+          }
         }
       } catch (err) {
         feedback.value = '❌ Error inesperado: ' + err.message;
       }
     };
 
-    watch([busqueda, sectorSeleccionado, empresaSeleccionada], () => {
+    watch([busqueda, sectorSeleccionado], () => {
       paginaActual.value = 1;
     });
 
@@ -323,11 +280,15 @@ export default {
 
       cargarUsuarios();
 
+      // Animación botón flotante
       setTimeout(() => {
         mostrarAnimacion.value = false;
         void document.querySelector('.floating-icon')?.offsetWidth;
         mostrarAnimacion.value = true;
-        setTimeout(() => (mostrarAnimacion.value = false), 1800);
+
+        setTimeout(() => {
+          mostrarAnimacion.value = false;
+        }, 1800);
       }, 1800);
 
       setTimeout(() => {
@@ -350,12 +311,11 @@ export default {
       busqueda,
       sectorSeleccionado,
       sectoresDisponibles,
-      empresaSeleccionada,
-      empresasDisponibles,
-      chatbitLogo,
       mostrarBoton,
-      mostrarAnimacion
+      mostrarAnimacion,
+      chatbitLogo
     };
   }
 };
 </script>
+

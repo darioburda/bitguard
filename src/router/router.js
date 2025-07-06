@@ -43,6 +43,25 @@ const routes = [
     component: () => import('@/pages/AgregarUsuario.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
+    {
+  path: '/abm-empresas',
+  name: 'AbmEmpresas',
+  component: () => import('@/pages/AbmEmpresas.vue'),
+  meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/empresas/agregar',
+    name: 'AgregarEmpresa',
+    component: () => import('@/pages/AgregarEmpresa.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/empresas/:id/editar',
+    name: 'editar-empresa',
+    component: () => import('@/pages/EditarEmpresa.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+
 ];
 
 const router = createRouter({

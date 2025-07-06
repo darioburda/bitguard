@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-const defaultPhotoUrl = 'https://yjqstwwltjefqtsxlbsa.supabase.co/storage/v1/object/public/profile-picture//default-avatar-4.png';
+const defaultPhotoUrl = 'https://yjqstwwltjefqtsxlbsa.supabase.co/storage/v1/object/public/profile-picture//default-avatar-2.png'
 
 export async function createUserProfile(data) {
   const profileData = {
@@ -31,7 +31,28 @@ export async function updateUserProfile(id, data) {
 export async function getUserProfileById(id) {
   const { data, error } = await supabase
     .from('user_profiles')
-    .select()
+    .select(`
+      id,
+      email,
+      bio,
+      display_name,
+      sector,
+      equipo,
+      rustdesk,
+      ip_pc,
+      interno_telefono,
+      ip_telefono,
+      sistema_operativo,
+      microprocesador,
+      tipo_memoria,
+      tamano_memoria,
+      tipo_disco,
+      tamano_disco,
+      notas,
+      is_admin,
+      empresa_id,
+      photo
+    `)
     .eq('id', id);
 
   if (error) {
@@ -47,6 +68,7 @@ export async function getUserProfileById(id) {
     photo: profile.photo || defaultPhotoUrl
   };
 }
+
 
 export async function getAllUserProfiles() {
   const { data, error } = await supabase
@@ -71,7 +93,12 @@ export async function getUserProfilesPaginated(limit = 10, page = 1) {
 
   const { data, error, count } = await supabase
     .from('user_profiles')
-    .select('*', { count: 'exact' })
+    .select(`
+      *,
+      empresas (
+        nombre
+      )
+    `, { count: 'exact' })
     .order('display_name', { ascending: true })
     .range(from, to);
 
@@ -83,8 +110,10 @@ export async function getUserProfilesPaginated(limit = 10, page = 1) {
   return {
     data: data.map(profile => ({
       ...profile,
+      empresa_nombre: profile.empresas?.nombre || null,
       photo: profile.photo || defaultPhotoUrl
     })),
     count
   };
 }
+
