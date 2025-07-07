@@ -96,9 +96,13 @@ export async function getUserProfilesPaginated(limit = 10, page = 1) {
     .select(`
       *,
       empresas (
-        nombre
+        nombre,
+        planes (
+          nombre
+        )
       )
-    `, { count: 'exact' })
+`, { count: 'exact' })
+
     .order('display_name', { ascending: true })
     .range(from, to);
 
@@ -108,12 +112,14 @@ export async function getUserProfilesPaginated(limit = 10, page = 1) {
   }
 
   return {
-    data: data.map(profile => ({
-      ...profile,
-      empresa_nombre: profile.empresas?.nombre || null,
-      photo: profile.photo || defaultPhotoUrl
-    })),
-    count
-  };
+  data: data.map(profile => ({
+    ...profile,
+    empresa_nombre: profile.empresas?.nombre || null,
+    empresa_plan_nombre: profile.empresas?.planes?.nombre || null, // 🔥 ESTA LÍNEA ES CLAVE
+    photo: profile.photo || defaultPhotoUrl
+  })),
+  count
+};
+
 }
 

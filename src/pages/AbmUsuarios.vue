@@ -24,25 +24,26 @@
           class="w-full sm:w-[300px] px-4 py-2 border rounded-md shadow-sm"
         />
 
-      <select
-        v-model="empresaSeleccionada"
-        class="w-full sm:w-[200px] px-4 py-2 border rounded-md shadow-sm"
+        <select
+          v-model="empresaSeleccionada"
+          class="w-full sm:w-[200px] px-4 py-2 border rounded-md shadow-sm"
         >
-        <option value="">Todas las empresas</option>
-        <option v-for="empresa in empresasDisponibles" :key="empresa" :value="empresa">
-          {{ empresa }}
-        </option>
-      </select>
-      <select
-        v-model="sectorSeleccionado"
-        class="w-full sm:w-[200px] px-4 py-2 border rounded-md shadow-sm"
-      >
-        <option value="">Todos los sectores</option>
-        <option v-for="sector in sectoresDisponibles" :key="sector" :value="sector">
-          {{ sector }}
-        </option>
-      </select>
-      
+          <option value="">Todas las empresas</option>
+          <option v-for="empresa in empresasDisponibles" :key="empresa" :value="empresa">
+            {{ empresa }}
+          </option>
+        </select>
+
+        <select
+          v-model="sectorSeleccionado"
+          class="w-full sm:w-[200px] px-4 py-2 border rounded-md shadow-sm"
+        >
+          <option value="">Todos los sectores</option>
+          <option v-for="sector in sectoresDisponibles" :key="sector" :value="sector">
+            {{ sector }}
+          </option>
+        </select>
+
         <MainButton to="/usuarios/agregar" class="sm:ml-auto">Agregar Usuario</MainButton>
       </div>
 
@@ -65,7 +66,7 @@
             />
 
             <div
-              class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
+              class="absolute bottom-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
             >
               {{ usuario.sector || 'Sin sector' }}
             </div>
@@ -110,6 +111,7 @@
               <p><strong>Disco:</strong> {{ usuario.tipo_disco || '-' }} / {{ usuario.tamano_disco || '-' }} GB</p>
             </div>
 
+            <!-- Acciones -->
             <div class="mt-4 flex gap-4">
               <RouterLink
                 :to="{ name: 'editar-usuario', params: { id: usuario.id } }"
@@ -126,6 +128,14 @@
                 Borrar
               </button>
             </div>
+
+            <!-- Badge del plan contratado -->
+            <BadgePlan
+              v-if="usuario.empresa_plan_nombre"
+              :value="usuario.empresa_plan_nombre"
+              class="absolute top-3 right-3"
+            />
+
           </div>
         </div>
       </div>
@@ -196,6 +206,7 @@ import MainButton from '../components/MainButton.vue';
 import MainLoader from '../components/MainLoader.vue';
 import AlertMessage from '../components/AlertMessage.vue';
 import BadgeRol from '../components/BadgeRol.vue';
+import BadgePlan from '../components/BadgePlan.vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import chatbitLogo from '@/assets/chatbit.png';
 
@@ -209,6 +220,7 @@ export default {
     MainLoader,
     AlertMessage,
     BadgeRol,
+    BadgePlan,
     RouterLink
   },
   setup() {
@@ -260,6 +272,7 @@ export default {
       try {
         loading.value = true;
         const { data } = await getUserProfilesPaginated(usuariosPorPagina, 1);
+        console.log("Usuarios paginados:", data);
         usuarios.value = data;
       } catch (error) {
         console.error('Error cargando usuarios:', error);

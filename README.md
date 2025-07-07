@@ -97,3 +97,11 @@ Desarrollado por:
 Darío Burda
 
 Nicolás Burda
+
+
+📐 ¿Cómo sería la estructura básica de una tabla tickets?
+id	empresa_id	tipo	descripcion	tecnico	horas_usadas	fue_visita	estado	fecha
+uuid	FK a empresa	"remoto"/"on-site"	texto libre	nombre técnico o FK a user	2	true	"cerrado"	timestamp
+
+Y cuando se cierra el ticket, se actualiza automáticamente el contador del plan de la empresa asociada.
+
