@@ -72,6 +72,16 @@ export default {
         </RouterLink>
       </li>
       <li>
+        <RouterLink
+          v-if="user.is_admin"
+          to="/abm-tickets"
+          class="px-4 py-2 text-white hover:underline"
+        >
+          ABM Tickets
+        </RouterLink>
+      </li>
+
+      <li>
         <RouterLink to="/publicaciones" class="hover:text-[#00FFC3] transition-all hover:scale-110">Publicaciones</RouterLink>
       </li>
       <li>

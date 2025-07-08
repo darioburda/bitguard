@@ -70,6 +70,35 @@ Editar
 
 ---
 
+🆘 Gestión de tickets de soporte
+ABM completo de tickets con listado, creación, edición y eliminación
+
+Cada ticket registra:
+
+Empresa solicitante
+
+Usuario que solicita soporte
+
+Técnico asignado (opcional)
+
+Descripción obligatoria
+
+Tipo de soporte (Remoto o Presencial)
+
+Fecha de creación y estado (abierto, cerrado, etc.)
+
+Los tickets se ordenan por fecha y muestran nombres claros (empresa, usuario, técnico)
+
+Validación de campos y selección dinámica de usuarios disponibles
+
+Redirección automática al ABM de tickets tras crear uno nuevo
+
+Preparado para futuras métricas de consumo de soporte (visitas, horas)
+
+
+
+---
+
 ## ⚙️ Scripts útiles
 
 ```bash

@@ -48,8 +48,21 @@
       <p><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
       <p><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
       <p><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
-      <p><strong>Visitas consumidas:</strong> {{ empresa.visitas_consumidas ?? 0 }}</p>
-      <p><strong>Horas consumidas:</strong> {{ empresa.horas_consumidas ?? 0 }}</p>
+      <p>
+        <strong>Visitas:</strong>
+        {{ empresa.visitas_consumidas ?? 0 }} /
+        {{ empresa.visitas_incluidas ?? '-' }}
+      </p>
+
+      <p v-if="empresa.visitas_restantes !== null">
+        <strong>Visitas restantes:</strong>
+        {{ empresa.visitas_restantes }}
+      </p>
+      <p v-if="empresa.minutos_restantes !== null">
+        <strong>Soporte restante:</strong>
+        {{ Math.floor(empresa.minutos_restantes / 60) }}h
+        {{ empresa.minutos_restantes % 60 }}m
+      </p>
     </div>
 
     <!-- Acciones -->

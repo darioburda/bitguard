@@ -11,9 +11,9 @@ export const getEmpresas = async () => {
       direccion,
       cuit,
       visitas_consumidas,
-      horas_consumidas,
+      minutos_consumidos,
       plan_id,
-      planes(nombre)
+      planes(nombre, minutos_incluidos, visitas_incluidas)
     `)
     .order('nombre', { ascending: true });
 
@@ -21,7 +21,15 @@ export const getEmpresas = async () => {
 
   const empresas = data.map(e => ({
     ...e,
-    plan_nombre: e.planes?.nombre || null
+    plan_nombre: e.planes?.nombre || null,
+    minutos_incluidos: e.planes?.minutos_incluidos || 0,
+    visitas_incluidas: e.planes?.visitas_incluidas || 0,
+    minutos_restantes: e.planes?.minutos_incluidos != null
+      ? e.planes.minutos_incluidos - e.minutos_consumidos
+      : null,
+    visitas_restantes: e.planes?.visitas_incluidas != null
+      ? e.planes.visitas_incluidas - e.visitas_consumidas
+      : null
   }));
 
   return empresas;
@@ -39,7 +47,7 @@ export const getEmpresaById = async (id) => {
       direccion,
       cuit,
       visitas_consumidas,
-      horas_consumidas,
+      minutos_consumidos,
       plan_id
     `)
     .eq('id', id)
@@ -48,7 +56,6 @@ export const getEmpresaById = async (id) => {
   if (error) throw error;
   return data;
 };
-
 
 export const updateEmpresa = async (id, updates) => {
   const { error } = await supabase
@@ -62,7 +69,6 @@ export const updateEmpresa = async (id, updates) => {
   }
 };
 
-
 export const crearEmpresa = async (nuevaEmpresa) => {
   const { error } = await supabase
     .from('empresas')
@@ -70,9 +76,6 @@ export const crearEmpresa = async (nuevaEmpresa) => {
 
   if (error) throw error;
 };
-
-
-
 
 export const getAllEmpresas = getEmpresas; // Alias por consistencia
 

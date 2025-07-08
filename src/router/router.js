@@ -61,6 +61,25 @@ const routes = [
     component: () => import('@/pages/EditarEmpresa.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
+  {
+    path: '/abm-tickets',
+    name: 'AbmTickets',
+    component: () => import('@/pages/AbmTickets.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+      path: '/tickets/crear',
+      name: 'CrearTicket',
+      component: () => import('@/pages/CrearTicket.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+  path: '/tickets/:id/editar',
+  name: 'editar-ticket',
+  component: () => import('@/pages/EditarTicket.vue'),
+  props: true
+}
+
 
 ];
 
