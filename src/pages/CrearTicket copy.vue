@@ -14,78 +14,42 @@
         </select>
       </div>
 
-      <!-- Usuario solicitante con autocomplete -->
-      <div class="relative">
+      <!-- Usuario solicitante con búsqueda -->
+      <div>
         <label class="block mb-1 font-semibold">Usuario solicitante</label>
 
+        <!-- Barra de búsqueda -->
         <input
           type="text"
           v-model="busquedaUsuario"
           placeholder="Buscar por nombre o email..."
-          class="w-full border px-4 py-2 rounded"
-          :disabled="usuarios.length === 0"
-          @focus="mostrarSugerencias = true"
-          @blur="ocultarConDelay"
+          class="w-full mb-2 border px-4 py-2 rounded"
+          :disabled="usuariosFiltrados.length === 0"
         />
 
-        <!-- Sugerencias -->
-        <ul
-          v-if="mostrarSugerencias && busquedaUsuario && usuariosFiltrados.length > 0"
-          class="absolute z-10 w-full bg-white border border-gray-300 rounded shadow max-h-52 overflow-auto"
+        <!-- Select -->
+        <select
+          v-model="ticket.usuario_id"
+          class="w-full border px-4 py-2 rounded"
+          :disabled="usuariosFiltrados.length === 0"
         >
-          <li
+          <option disabled value="">Selecciona un usuario</option>
+          <option
             v-for="u in usuariosFiltrados"
             :key="u.id"
-            @mousedown.prevent="seleccionarUsuario(u)"
-            class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+            :value="u.id"
           >
             {{ u.display_name ? `${u.display_name} - ${u.email}` : u.email }}
-          </li>
-        </ul>
-
-        <!-- No encontrado -->
-        <p
-          v-if="mostrarSugerencias && busquedaUsuario && usuariosFiltrados.length === 0"
-          class="mt-2 text-sm text-red-600"
-        >
-          ❗ Usuario no encontrado. Verificá el nombre o email.
-        </p>
-
-        <!-- Usuario seleccionado -->
-        <div v-if="usuarioSeleccionado" class="text-sm text-gray-600 mt-1">
-          Usuario seleccionado: <strong>{{ usuarioSeleccionado }}</strong>
-        </div>
-
-        <!-- Botón para mostrar select -->
-        <button
-          type="button"
-          class="mt-3 text-sm text-blue-600 underline"
-          @click="mostrarSelectUsuarios = !mostrarSelectUsuarios"
-        >
-          {{ mostrarSelectUsuarios ? 'Ocultar listado completo' : '¿No recordás el nombre? Mostrar lista completa' }}
-        </button>
-
-        <!-- Select completo (opcional) -->
-        <div v-if="mostrarSelectUsuarios" class="mt-2">
-          <select
-            class="w-full border px-4 py-2 rounded"
-            @change="seleccionarDesdeSelect($event)"
-            :value="ticket.usuario_id"
-          >
-            <option value="">Selecciona un usuario</option>
-            <option v-for="u in usuarios" :key="u.id" :value="u.id">
-              {{ u.display_name ? `${u.display_name} - ${u.email}` : u.email }}
-            </option>
-          </select>
-        </div>
+          </option>
+        </select>
       </div>
 
       <!-- Tipo de soporte -->
       <div>
         <label class="block mb-1 font-semibold">Tipo</label>
         <select v-model="ticket.tipo" class="w-full border px-4 py-2 rounded">
-          <option value="Remoto">Remoto</option>
-          <option value="Presencial">Presencial</option>
+          <option value="remoto">Remoto</option>
+          <option value="presencial">Presencial</option>
         </select>
       </div>
 
@@ -137,13 +101,10 @@ export default {
     const tecnicos = ref([]);
     const feedback = ref('');
     const busquedaUsuario = ref('');
-    const usuarioSeleccionado = ref('');
-    const mostrarSugerencias = ref(false);
-    const mostrarSelectUsuarios = ref(false);
 
     const ticket = ref({
       empresa_id: '',
-      tipo: 'Remoto',
+      tipo: 'remoto',
       descripcion: '',
       usuario_id: '',
       tecnico_id: '',
@@ -183,60 +144,28 @@ export default {
       );
       ticket.value.usuario_id = '';
       busquedaUsuario.value = '';
-      usuarioSeleccionado.value = '';
     };
 
     const usuariosFiltrados = computed(() => {
       const texto = busquedaUsuario.value.toLowerCase();
-      return usuarios.value
-        .filter(
-          (u) =>
-            (u.display_name && u.display_name.toLowerCase().includes(texto)) ||
-            u.email.toLowerCase().includes(texto)
-        )
-        .slice(0, 10);
+      return usuarios.value.filter(
+        (u) =>
+          (u.display_name && u.display_name.toLowerCase().includes(texto)) ||
+          u.email.toLowerCase().includes(texto)
+      );
     });
-
-    const seleccionarUsuario = (usuario) => {
-      ticket.value.usuario_id = usuario.id;
-      usuarioSeleccionado.value = usuario.display_name || usuario.email;
-      busquedaUsuario.value = usuario.display_name || usuario.email;
-      mostrarSugerencias.value = false;
-      mostrarSelectUsuarios.value = false;
-    };
-
-    const seleccionarDesdeSelect = (e) => {
-      const id = e.target.value;
-      const usuario = usuarios.value.find(u => u.id === id);
-      if (usuario) {
-        seleccionarUsuario(usuario);
-      }
-    };
-
-    const ocultarConDelay = () => {
-      setTimeout(() => {
-        mostrarSugerencias.value = false;
-      }, 200);
-    };
 
     watch(() => ticket.value.empresa_id, filtrarUsuariosPorEmpresa);
     onMounted(cargarDatos);
 
     return {
       empresas,
-      usuarios,
       usuariosFiltrados,
       tecnicos,
       ticket,
       feedback,
-      busquedaUsuario,
-      usuarioSeleccionado,
-      mostrarSugerencias,
-      mostrarSelectUsuarios,
-      seleccionarUsuario,
-      seleccionarDesdeSelect,
-      ocultarConDelay,
       submitForm,
+      busquedaUsuario,
     };
   },
 };

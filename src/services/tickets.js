@@ -70,13 +70,29 @@ export const getTicketsPorEmpresa = async (empresaId) => {
 export const getTicketById = async (id) => {
   const { data, error } = await supabase
     .from('tickets')
-    .select('*')
+    .select(`
+      id,
+      tipo,
+      descripcion,
+      fue_visita,
+      estado,
+      tecnico_id,
+      usuario_id,
+      minutos_usados
+    `)
     .eq('id', id)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('[getTicketById] Error:', error);
+    throw error;
+  }
+
+//   console.log('[getTicketById] Data:', data); // 👈 importante para verificar
   return data;
 };
+
+
 
 // 4. Actualizar ticket (ej: cerrarlo)
 export const actualizarTicket = async (id, updates) => {

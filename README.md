@@ -15,6 +15,7 @@
 - ✅ Publicaciones con imágenes y comentarios
 - ✅ Vista responsive adaptada a mobile y desktop
 - ✅ Feedback visual con SweetAlert2 y animaciones personalizadas
+- ✅ Validaciones específicas en edición de tickets (estado, técnico, minutos usados)
 
 ---
 
@@ -38,16 +39,16 @@ src/
 ├── assets/ # Imágenes y recursos estáticos
 ├── components/ # Componentes reutilizables (botones, alerts, loaders, etc.)
 ├── pages/ # Vistas principales (Home, Login, ABM, etc.)
-├── modules/ # Vistas agrupadas por temática (opcional)
+├── modules/ # Vistas agrupadas por temática
 │ ├── home/ # Vista de bienvenida
-│ ├── publicaciones/# Publicaciones + comentarios + edición
+│ ├── publicaciones/ # Publicaciones + comentarios + edición
 │ ├── usuarios/ # ABM, perfiles, edición y roles
 │ └── pedidos/ # Vista de pedidos por rol (admin, vendedor)
 ├── services/ # Conexión con Supabase (auth, publicaciones, empresas, etc.)
 ├── styles/ # SCSS global, variables y animaciones
 └── router/ # Definición de rutas con protección por rol
 
-yaml
+markdown
 Copiar
 Editar
 
@@ -56,7 +57,7 @@ Editar
 ## 🔐 Seguridad y control de acceso
 
 - Las rutas están protegidas según el estado de sesión y el rol (`is_admin`)
-- Las vistas de administración (`abm-usuarios`, `abm-empresas`) solo son accesibles por administradores
+- Las vistas de administración (`abm-usuarios`, `abm-empresas`, `abm-tickets`) solo son accesibles por administradores
 - Las rutas sensibles verifican autenticación en tiempo real con `subscribeToAuthState`
 
 ---
@@ -64,38 +65,47 @@ Editar
 ## 🧩 Gestión de empresas y planes
 
 - Las empresas tienen campos: `nombre`, `email_contacto`, `telefono`, `direccion`, `cuit`, `plan_id`, `visitas_consumidas`, `horas_consumidas`
-- Desde el panel de administración se pueden agregar, editar y eliminar empresas
 - Las empresas están vinculadas a un plan (`plan_id`) que define su soporte contratado
-- Se planea usar esta relación para **descontar horas y visitas** automáticamente a través de tickets
+- Desde el panel de administración se pueden agregar, editar y eliminar empresas
+- Se descuenta automáticamente tiempo y visitas desde el plan cuando se resuelven tickets
 
 ---
 
-🆘 Gestión de tickets de soporte
+## 🆘 Gestión de tickets de soporte
+
 ABM completo de tickets con listado, creación, edición y eliminación
 
 Cada ticket registra:
 
-Empresa solicitante
+- Empresa solicitante
+- Usuario que solicita soporte
+- Técnico asignado (obligatorio si está en proceso o cerrado)
+- Descripción obligatoria
+- Tipo de soporte (`Remoto` o `Presencial`)
+- Minutos utilizados para resolverlo (`minutos_usados`)
+- Indicador `fue_visita` (booleano)
+- Estado (`abierto`, `en_proceso`, `cerrado`)
+- Fecha de creación y última actualización
 
-Usuario que solicita soporte
+### 🔎 Validaciones al editar un ticket:
 
-Técnico asignado (opcional)
+- Si el ticket se marca como **en proceso** o **cerrado**, debe tener **técnico asignado**
+- Si el ticket se marca como **cerrado**, se exige ingresar **minutos utilizados**
+- Al guardar, se actualiza automáticamente el campo `actualizado`
 
-Descripción obligatoria
+---
 
-Tipo de soporte (Remoto o Presencial)
+### 🗨️ [Próxima mejora] Comentarios internos por ticket
 
-Fecha de creación y estado (abierto, cerrado, etc.)
+Se implementará un sistema de comentarios por cada ticket, donde técnicos podrán:
 
-Los tickets se ordenan por fecha y muestran nombres claros (empresa, usuario, técnico)
-
-Validación de campos y selección dinámica de usuarios disponibles
-
-Redirección automática al ABM de tickets tras crear uno nuevo
-
-Preparado para futuras métricas de consumo de soporte (visitas, horas)
-
-
+- Dejar **notas de avance** o aclaraciones en cada edición
+- El usuario que creó el ticket podrá ver estas actualizaciones en tiempo real
+- Cada comentario quedará guardado con:
+  - Autor
+  - Fecha
+  - Texto del comentario
+- Se usará una tabla `ticket_comentarios` para almacenar el historial
 
 ---
 
@@ -120,17 +130,11 @@ npm run dev
 
 📥 Subida de documentos técnicos a Supabase Storage
 
+💬 Sistema de comentarios técnicos por ticket
+
 👥 Autores
 Desarrollado por:
 
 Darío Burda
 
 Nicolás Burda
-
-
-📐 ¿Cómo sería la estructura básica de una tabla tickets?
-id	empresa_id	tipo	descripcion	tecnico	horas_usadas	fue_visita	estado	fecha
-uuid	FK a empresa	"remoto"/"on-site"	texto libre	nombre técnico o FK a user	2	true	"cerrado"	timestamp
-
-Y cuando se cierra el ticket, se actualiza automáticamente el contador del plan de la empresa asociada.
-
