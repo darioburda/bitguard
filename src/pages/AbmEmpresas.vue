@@ -25,64 +25,63 @@
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6">
-  <div
-    v-for="empresa in empresas"
-    :key="empresa.id"
-    class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
-  >
-    <!-- Badge del plan -->
-    <div
-      class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
-    >
-      {{ empresa.plan_nombre || 'Sin plan' }}
-    </div>
+        <div
+          v-for="empresa in empresas"
+          :key="empresa.id"
+          class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
+        >
+          <!-- Badge del plan -->
+          <div
+            class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
+          >
+            {{ empresa.plan_nombre || 'Sin plan' }}
+          </div>
 
-    <!-- Nombre + Email -->
-    <div class="mb-4">
-      <h2 class="text-lg font-semibold">{{ empresa.nombre }}</h2>
-      <p class="text-sm text-gray-500">{{ empresa.email_contacto || 'Sin email' }}</p>
-    </div>
+          <!-- Nombre + Email -->
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold">{{ empresa.nombre }}</h2>
+            <p class="text-sm text-gray-500">{{ empresa.email_contacto || 'Sin email' }}</p>
+          </div>
 
-    <!-- Info completa -->
-    <div class="text-sm text-gray-700 space-y-1">
-      <p><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
-      <p><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
-      <p><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
-      <p>
-        <strong>Visitas:</strong>
-        {{ empresa.visitas_consumidas ?? 0 }} /
-        {{ empresa.visitas_incluidas ?? '-' }}
-      </p>
+          <!-- Info completa -->
+          <div class="text-sm text-gray-700 space-y-1">
+            <p><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
+            <p><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
+            <p><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
+            <p>
+              <strong>Visitas:</strong>
+              {{ empresa.visitas_consumidas ?? 0 }} /
+              {{ empresa.visitas_incluidas ?? '-' }}
+            </p>
 
-      <p v-if="empresa.visitas_restantes !== null">
-        <strong>Visitas restantes:</strong>
-        {{ empresa.visitas_restantes }}
-      </p>
-      <p v-if="empresa.minutos_restantes !== null">
-        <strong>Soporte restante:</strong>
-        {{ Math.floor(empresa.minutos_restantes / 60) }}h
-        {{ empresa.minutos_restantes % 60 }}m
-      </p>
-    </div>
+            <p v-if="empresa.visitas_restantes !== null">
+              <strong>Visitas restantes:</strong>
+              {{ empresa.visitas_restantes }}
+            </p>
+            <p v-if="empresa.minutos_restantes !== null">
+              <strong>Soporte restante:</strong>
+              {{ Math.floor(empresa.minutos_restantes / 60) }}h
+              {{ empresa.minutos_restantes % 60 }}m
+            </p>
+          </div>
 
-    <!-- Acciones -->
-    <div class="mt-4 flex gap-4">
-      <RouterLink
-        :to="{ name: 'editar-empresa', params: { id: empresa.id } }"
-        class="text-blue-600 hover:underline text-sm"
-      >
-        Editar
-      </RouterLink>
-      <button
-        @click="eliminarEmpresa(empresa)"
-        class="text-red-600 hover:underline text-sm"
-      >
-        Borrar
-      </button>
-    </div>
-  </div>
-</div>
-
+          <!-- Acciones -->
+          <div class="mt-4 flex gap-4">
+            <RouterLink
+              :to="{ name: 'editar-empresa', params: { id: empresa.id } }"
+              class="text-blue-600 hover:underline text-sm"
+            >
+              Editar
+            </RouterLink>
+            <button
+              @click="eliminarEmpresa(empresa)"
+              class="text-red-600 hover:underline text-sm"
+            >
+              Borrar
+            </button>
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -133,6 +132,12 @@ export default {
     };
 
     onMounted(() => {
+      const storedMsg = sessionStorage.getItem('empresa_feedback');
+      if (storedMsg) {
+        feedback.value = storedMsg;
+        sessionStorage.removeItem('empresa_feedback');
+      }
+
       cargarEmpresas();
     });
 

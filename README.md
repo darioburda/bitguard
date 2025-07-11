@@ -8,14 +8,15 @@
 
 - ✅ Autenticación y perfiles con Supabase Auth y Storage
 - ✅ Gestión de usuarios con edición, eliminación, filtros y paginación
-- ✅ Gestión de empresas con asignación de planes
+- ✅ Gestión de empresas con asignación de planes y validaciones específicas
+- ✅ Validaciones detalladas en formularios (nombre obligatorio, email válido, formato de CUIT)
 - ✅ Campos técnicos personalizables por usuario (equipo, IP, RAM, SO, microprocesador, etc.)
 - ✅ Control de visitas y horas consumidas por empresa
 - ✅ Chat global y privado en tiempo real
 - ✅ Publicaciones con imágenes y comentarios
 - ✅ Vista responsive adaptada a mobile y desktop
-- ✅ Feedback visual con SweetAlert2 y animaciones personalizadas
-- ✅ Validaciones específicas en edición de tickets (estado, técnico, minutos usados)
+- ✅ Feedback visual con SweetAlert2 y AlertMessage
+- ✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)
 
 ---
 
@@ -39,10 +40,11 @@ src/
 ├── assets/ # Imágenes y recursos estáticos
 ├── components/ # Componentes reutilizables (botones, alerts, loaders, etc.)
 ├── pages/ # Vistas principales (Home, Login, ABM, etc.)
-├── modules/ # Vistas agrupadas por temática
+├── modules/
 │ ├── home/ # Vista de bienvenida
 │ ├── publicaciones/ # Publicaciones + comentarios + edición
 │ ├── usuarios/ # ABM, perfiles, edición y roles
+│ ├── empresas/ # ABM y validaciones de empresas
 │ └── pedidos/ # Vista de pedidos por rol (admin, vendedor)
 ├── services/ # Conexión con Supabase (auth, publicaciones, empresas, etc.)
 ├── styles/ # SCSS global, variables y animaciones
@@ -65,7 +67,11 @@ Editar
 ## 🧩 Gestión de empresas y planes
 
 - Las empresas tienen campos: `nombre`, `email_contacto`, `telefono`, `direccion`, `cuit`, `plan_id`, `visitas_consumidas`, `horas_consumidas`
-- Las empresas están vinculadas a un plan (`plan_id`) que define su soporte contratado
+- Validaciones específicas:
+  - El nombre es obligatorio
+  - Si se ingresa un email, debe tener formato válido
+  - El CUIT debe tener formato `XX-XXXXXXXX-X`
+  - El plan debe seleccionarse obligatoriamente
 - Desde el panel de administración se pueden agregar, editar y eliminar empresas
 - Se descuenta automáticamente tiempo y visitas desde el plan cuando se resuelven tickets
 

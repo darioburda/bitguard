@@ -6,10 +6,9 @@
 
     <template v-else>
       <AlertMessage
-        v-if="feedback"
+        v-if="feedback && feedbackType === 'error'"
         :message="feedback"
-        type="success"
-        auto-dismiss
+        type="error"
         @dismiss="feedback = ''"
       />
 
@@ -18,8 +17,9 @@
       <div class="bg-white shadow rounded-xl p-6 space-y-4 max-w-2xl mx-auto">
         <!-- Nombre -->
         <div>
-          <label class="block font-semibold mb-1">Nombre</label>
+          <label for="nombre" class="block font-semibold mb-1">Nombre</label>
           <input
+            id="nombre"
             v-model="empresa.nombre"
             type="text"
             class="w-full px-4 py-2 border rounded-md"
@@ -28,18 +28,21 @@
 
         <!-- Email -->
         <div>
-          <label class="block font-semibold mb-1">Email de contacto</label>
+          <label for="email_contacto" class="block font-semibold mb-1">Email de contacto</label>
           <input
+            id="email_contacto"
             v-model="empresa.email_contacto"
             type="email"
             class="w-full px-4 py-2 border rounded-md"
+            placeholder="correo@dominio.com"
           />
         </div>
 
         <!-- Teléfono -->
         <div>
-          <label class="block font-semibold mb-1">Teléfono</label>
+          <label for="telefono" class="block font-semibold mb-1">Teléfono</label>
           <input
+            id="telefono"
             v-model="empresa.telefono"
             type="text"
             class="w-full px-4 py-2 border rounded-md"
@@ -48,8 +51,9 @@
 
         <!-- Dirección -->
         <div>
-          <label class="block font-semibold mb-1">Dirección</label>
+          <label for="direccion" class="block font-semibold mb-1">Dirección</label>
           <input
+            id="direccion"
             v-model="empresa.direccion"
             type="text"
             class="w-full px-4 py-2 border rounded-md"
@@ -58,49 +62,27 @@
 
         <!-- CUIT -->
         <div>
-          <label class="block font-semibold mb-1">CUIT</label>
+          <label for="cuit" class="block font-semibold mb-1">CUIT</label>
           <input
+            id="cuit"
             v-model="empresa.cuit"
+            @input="formatearCUIT"
             type="text"
             class="w-full px-4 py-2 border rounded-md"
-          />
-        </div>
-
-        <!-- Visitas -->
-        <div>
-          <label class="block font-semibold mb-1">Visitas consumidas</label>
-          <input
-            v-model.number="empresa.visitas_consumidas"
-            type="number"
-            min="0"
-            class="w-full px-4 py-2 border rounded-md"
-          />
-        </div>
-
-        <!-- Horas -->
-        <div>
-          <label class="block font-semibold mb-1">Horas consumidas</label>
-          <input
-            v-model.number="empresa.horas_consumidas"
-            type="number"
-            min="0"
-            class="w-full px-4 py-2 border rounded-md"
+            placeholder="20-12345678-1"
           />
         </div>
 
         <!-- Plan -->
         <div>
-          <label class="block font-semibold mb-1">Plan asignado</label>
+          <label for="plan_id" class="block font-semibold mb-1">Plan asignado</label>
           <select
+            id="plan_id"
             v-model="empresa.plan_id"
             class="w-full px-4 py-2 border rounded-md"
           >
             <option disabled value="">Selecciona un plan</option>
-            <option
-              v-for="plan in planes"
-              :key="plan.id"
-              :value="plan.id"
-            >
+            <option v-for="plan in planes" :key="plan.id" :value="plan.id">
               {{ plan.nombre }}
             </option>
           </select>
@@ -119,6 +101,7 @@
     </template>
   </div>
 </template>
+
 
 <script>
 import { ref, onMounted } from 'vue';
@@ -143,13 +126,14 @@ export default {
       direccion: '',
       cuit: '',
       visitas_consumidas: 0,
-      horas_consumidas: 0,
-      plan_id: ''
+      minutos_consumidos: 0,
+      plan_id: '',
     });
 
     const planes = ref([]);
     const loading = ref(false);
     const feedback = ref('');
+    const feedbackType = ref('success'); // 'success' o 'error'
 
     const cargarPlanes = async () => {
       try {
@@ -159,19 +143,61 @@ export default {
       }
     };
 
-    const guardarEmpresa = async () => {
-      try {
-        loading.value = true;
-        await crearEmpresa(empresa.value);
-        feedback.value = '✅ Empresa creada correctamente';
-        setTimeout(() => router.push('/abm-empresas'), 1500);
-      } catch (error) {
-        console.error('Error al crear empresa:', error);
-        feedback.value = '❌ No se pudo crear la empresa';
-      } finally {
-        loading.value = false;
+    const formatearCUIT = () => {
+      let digits = empresa.value.cuit.replace(/\D/g, '');
+      if (digits.length > 2 && digits.length <= 10) {
+        empresa.value.cuit = digits.replace(/^(\d{2})(\d+)/, '$1-$2');
+      } else if (digits.length > 10) {
+        empresa.value.cuit = digits.replace(/^(\d{2})(\d{8})(\d)/, '$1-$2-$3');
+      } else {
+        empresa.value.cuit = digits;
       }
     };
+
+    const guardarEmpresa = async () => {
+    feedback.value = '';
+    feedbackType.value = 'error';
+
+    if (!empresa.value.nombre.trim()) {
+      feedback.value = '❌ Debes cargar el nombre de empresa';
+      return;
+    }
+
+    if (empresa.value.email_contacto.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(empresa.value.email_contacto)) {
+        feedback.value = '❌ El email de contacto no tiene un formato válido';
+        return;
+      }
+    }
+
+    if (!empresa.value.plan_id) {
+      feedback.value = '❌ Debes elegir un plan para la empresa';
+      return;
+    }
+
+    if (empresa.value.cuit.trim()) {
+      const cuitRegex = /^\d{2}-\d{8}-\d{1}$/;
+      if (!cuitRegex.test(empresa.value.cuit)) {
+        feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X';
+        return;
+      }
+    }
+
+    try {
+      loading.value = true;
+      await crearEmpresa(empresa.value);
+      feedbackType.value = 'success';
+      sessionStorage.setItem('empresa_feedback', '✅ Empresa creada correctamente');
+      router.push('/abm-empresas');
+    } catch (error) {
+      console.error('Error al crear empresa:', error);
+      feedback.value = '❌ No se pudo crear la empresa';
+    } finally {
+      loading.value = false;
+    }
+  };
+
 
     onMounted(() => {
       cargarPlanes();
@@ -182,9 +208,10 @@ export default {
       planes,
       loading,
       feedback,
+      feedbackType,
       guardarEmpresa,
+      formatearCUIT,
     };
-  }
+  },
 };
 </script>
-
