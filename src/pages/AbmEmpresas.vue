@@ -31,17 +31,27 @@
           class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
         >
           <!-- Badge del plan -->
-          <div
-            class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
-          >
-            {{ empresa.plan_nombre || 'Sin plan' }}
-          </div>
+          <BadgePlan
+            :value="empresa.plan_nombre || 'Sin plan'"
+            class="top-2 left-2"
+          />
 
-          <!-- Nombre + Email -->
-          <div class="mb-4">
+        
+          <!-- Encabezado con nombre, email y tortita -->
+        <div class="pt-5 flex justify-between items-start mb-4 gap-4">
+          <div>
             <h2 class="text-lg font-semibold">{{ empresa.nombre }}</h2>
             <p class="text-sm text-gray-500">{{ empresa.email_contacto || 'Sin email' }}</p>
           </div>
+          <SoporteChart
+            class="w-20 h-20 flex-shrink-0"
+            :usados="empresa.minutos_consumidos ?? 0"
+            :restantes="empresa.minutos_restantes ?? 0"
+          />
+        </div>
+
+
+
 
           <!-- Info completa -->
           <div class="text-sm text-gray-700 space-y-1">
@@ -74,7 +84,7 @@
               Editar
             </RouterLink>
             <button
-              @click="eliminarEmpresa(empresa)"
+              @click="abrirModalEliminar(empresa)"
               class="text-red-600 hover:underline text-sm"
             >
               Borrar
@@ -83,6 +93,34 @@
         </div>
       </div>
     </template>
+
+    <!-- Modal de confirmación de eliminación -->
+    <div
+      v-if="empresaAEliminar"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4"
+    >
+      <div class="bg-white border border-red-500 rounded-lg shadow-lg w-full max-w-[500px] p-6">
+        <h2 class="text-lg font-bold text-red-600 mb-4">Confirmar Eliminación</h2>
+        <p class="mb-6 break-words">
+          ¿Estás seguro de que querés eliminar la empresa
+          <strong>{{ empresaAEliminar.nombre }}</strong>?
+        </p>
+        <div class="flex justify-end gap-4">
+          <button
+            @click="eliminarEmpresaConfirmada"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Eliminar
+          </button>
+          <button
+            @click="cerrarModalEliminar"
+            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -93,6 +131,10 @@ import { getAllEmpresas, deleteEmpresaById } from '@/services/empresas';
 import MainLoader from '@/components/MainLoader.vue';
 import AlertMessage from '@/components/AlertMessage.vue';
 import MainButton from '@/components/MainButton.vue';
+import BadgePlan from '@/components/BadgePlan.vue';
+import SoporteChart from '@/components/SoporteChart.vue';
+
+
 
 export default {
   name: 'AbmEmpresas',
@@ -101,11 +143,14 @@ export default {
     AlertMessage,
     MainButton,
     RouterLink,
+    BadgePlan,
+    SoporteChart,
   },
   setup() {
     const empresas = ref([]);
     const loading = ref(true);
     const feedback = ref('');
+    const empresaAEliminar = ref(null);
 
     const cargarEmpresas = async () => {
       loading.value = true;
@@ -119,15 +164,23 @@ export default {
       }
     };
 
-    const eliminarEmpresa = async (empresa) => {
-      if (confirm(`¿Estás seguro de eliminar la empresa "${empresa.nombre}"?`)) {
-        try {
-          await deleteEmpresaById(empresa.id);
-          feedback.value = '✅ Empresa eliminada correctamente';
-          cargarEmpresas();
-        } catch (error) {
-          feedback.value = '❌ No se pudo eliminar la empresa';
-        }
+    const abrirModalEliminar = (empresa) => {
+      empresaAEliminar.value = empresa;
+    };
+
+    const cerrarModalEliminar = () => {
+      empresaAEliminar.value = null;
+    };
+
+    const eliminarEmpresaConfirmada = async () => {
+      const id = empresaAEliminar.value?.id;
+      cerrarModalEliminar();
+      try {
+        await deleteEmpresaById(id);
+        feedback.value = '✅ Empresa eliminada correctamente';
+        await cargarEmpresas();
+      } catch (error) {
+        feedback.value = '❌ No se pudo eliminar la empresa';
       }
     };
 
@@ -145,7 +198,10 @@ export default {
       empresas,
       loading,
       feedback,
-      eliminarEmpresa,
+      empresaAEliminar,
+      abrirModalEliminar,
+      cerrarModalEliminar,
+      eliminarEmpresaConfirmada,
     };
   }
 };

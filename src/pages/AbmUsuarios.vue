@@ -59,17 +59,18 @@
             :key="usuario.id"
             class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
           >
-            <BadgeRol
-              v-if="usuario.is_admin || usuario.empresa_nombre"
-              :value="usuario.is_admin ? 'ADMIN' : usuario.empresa_nombre"
+            
+            <BadgePlan
+              :value="usuario.is_admin ? 'ADMIN' : (usuario.empresa_plan_nombre || 'Default')"
               class="top-2 left-2"
             />
 
-            <div
+
+            <!-- <div
               class="absolute bottom-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-[#F0F2FF] text-[#474747] border border-[#01C38E]"
             >
               {{ usuario.sector || 'Sin sector' }}
-            </div>
+            </div> -->
 
             <div class="flex items-center gap-4 mb-4 mt-4">
               <img
@@ -79,8 +80,18 @@
               />
               <div>
                 <h2 class="text-lg font-semibold">{{ usuario.display_name || 'Sin nombre' }}</h2>
+                
+                
+                <!-- Email debajo -->
                 <p class="text-sm text-gray-500">{{ usuario.email }}</p>
+                <!-- Sector con ícono, destacado -->
+                <p class="text-sm pt-1 text-[#474747] font-semibold flex items-center gap-1">
+                  <UsersIcon class="w-4 h-4" />
+                  {{ usuario.sector || 'Sin sector' }}
+                </p>
               </div>
+
+
             </div>
 
             <hr class="pb-2" />
@@ -129,10 +140,10 @@
               </button>
             </div>
 
-            <!-- Badge del plan contratado -->
-            <BadgePlan
-              v-if="usuario.empresa_plan_nombre"
-              :value="usuario.empresa_plan_nombre"
+            <!-- Badge empresa -->
+            <BadgeEmpresa
+              v-if="usuario.empresa_nombre"
+              :value="usuario.empresa_nombre"
               class="absolute top-3 right-3"
             />
 
@@ -201,14 +212,15 @@
 <script>
 import { onMounted, ref, computed, watch } from 'vue';
 import { getUserProfilesPaginated } from '../services/user-profiles';
-import { Laptop2Icon, PencilIcon, Trash2Icon } from 'lucide-vue-next';
+import { Laptop2Icon, PencilIcon, Trash2Icon, Building2Icon, FactoryIcon, UsersIcon } from 'lucide-vue-next';
 import MainButton from '../components/MainButton.vue';
 import MainLoader from '../components/MainLoader.vue';
 import AlertMessage from '../components/AlertMessage.vue';
-import BadgeRol from '../components/BadgeRol.vue';
+import BadgeEmpresa from '../components/BadgeEmpresa.vue';
 import BadgePlan from '../components/BadgePlan.vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import chatbitLogo from '@/assets/chatbit.png';
+
 
 export default {
   name: 'AbmUsuarios',
@@ -216,10 +228,14 @@ export default {
     Laptop2Icon,
     PencilIcon,
     Trash2Icon,
+    Building2Icon,
+    Building2Icon,
+    FactoryIcon,
+    UsersIcon,
     MainButton,
     MainLoader,
     AlertMessage,
-    BadgeRol,
+    BadgeEmpresa,
     BadgePlan,
     RouterLink
   },

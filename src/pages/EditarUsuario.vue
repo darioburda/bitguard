@@ -204,16 +204,16 @@ export default {
     };
 
     const cargarEmpresas = async () => {
-  try {
-    const { data } = await getEmpresas();
-    console.log('👀 Empresas desde Supabase:', data);
-    empresas.value = data;
-    console.log('✅ Empresas cargadas:', empresas.value);
+    try {
+      const lista = await getEmpresas(); // ✅ Obtiene las empresas desde Supabase
+      empresas.value = lista;
 
-  } catch (e) {
-    console.error('❌ Error al cargar empresas:', e);
-  }
-};
+      console.log('✅ Empresas cargadas:', empresas.value);
+    } catch (e) {
+      console.error('❌ Error al cargar empresas:', e);
+    }
+  };
+
 
 
     const guardarCambios = async () => {

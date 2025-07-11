@@ -12,6 +12,7 @@
 - ✅ Validaciones detalladas en formularios (nombre obligatorio, email válido, formato de CUIT)
 - ✅ Campos técnicos personalizables por usuario (equipo, IP, RAM, SO, microprocesador, etc.)
 - ✅ Control de visitas y horas consumidas por empresa
+- ✅ Visualización gráfica del consumo de soporte con `vue-chartjs`
 - ✅ Chat global y privado en tiempo real
 - ✅ Publicaciones con imágenes y comentarios
 - ✅ Vista responsive adaptada a mobile y desktop
@@ -30,6 +31,7 @@
 | **Realtime**      | Supabase Realtime Channels                                                   |
 | **Storage**       | Supabase Buckets (`profile-picture`, `post-image`)                          |
 | **Estilo**        | Tailwind + clases personalizadas                                             |
+| **Gráficos**      | vue-chartjs + chart.js                                                       |
 | **Animaciones**   | SweetAlert2, animaciones CSS (`spin`, `fade-in`, `hover`, etc.)              |
 
 ---
@@ -74,6 +76,7 @@ Editar
   - El plan debe seleccionarse obligatoriamente
 - Desde el panel de administración se pueden agregar, editar y eliminar empresas
 - Se descuenta automáticamente tiempo y visitas desde el plan cuando se resuelven tickets
+- Se visualiza una **gráfica de torta** con minutos usados y restantes
 
 ---
 
