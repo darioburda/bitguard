@@ -16,6 +16,7 @@
 - ✅ Chat global y privado en tiempo real
 - ✅ Publicaciones con imágenes y comentarios
 - ✅ Vista responsive adaptada a mobile y desktop
+- ✅ Vista personalizada para usuarios no admin con datos de su empresa, compañeros y tickets propios
 - ✅ Feedback visual con SweetAlert2 y AlertMessage
 - ✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)
 
@@ -76,7 +77,7 @@ Editar
   - El plan debe seleccionarse obligatoriamente
 - Desde el panel de administración se pueden agregar, editar y eliminar empresas
 - Se descuenta automáticamente tiempo y visitas desde el plan cuando se resuelven tickets
-- Se visualiza una **gráfica de torta** con minutos usados y restantes
+- Se visualiza una **gráfica de torta** con minutos usados y restantes (basado en `minutos_incluidos` y `visitas_incluidas` del plan)
 
 ---
 
@@ -101,6 +102,18 @@ Cada ticket registra:
 - Si el ticket se marca como **en proceso** o **cerrado**, debe tener **técnico asignado**
 - Si el ticket se marca como **cerrado**, se exige ingresar **minutos utilizados**
 - Al guardar, se actualiza automáticamente el campo `actualizado`
+
+---
+
+## 👤 Vista para usuarios no administradores
+
+Cada usuario que accede sin permisos de administrador puede ver:
+
+- Su información técnica y personal (`MyProfile.vue`)
+- Datos de su empresa (nombre, plan contratado, soporte restante)
+- Listado de compañeros de empresa con foto, nombre, mail e interno
+- Sus tickets de soporte (con estado, tipo y fecha)
+- Acceso directo al chat desde cualquier vista
 
 ---
 
