@@ -141,7 +141,14 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
-    const empresa = ref(null);
+    const empresa = ref({
+      nombre: '',
+      email_contacto: '',
+      telefono: '',
+      direccion: '',
+      cuit: '',
+      plan_id: null
+    });
     const loading = ref(true);
     const planes = ref([]);
     const feedback = ref('');
@@ -153,7 +160,8 @@ export default {
 
     const cargarEmpresa = async () => {
       try {
-        empresa.value = await getEmpresaById(route.params.id);
+        Object.assign(empresa.value, await getEmpresaById(route.params.id));
+
       } catch (error) {
         console.error('Error al cargar empresa:', error);
       } finally {
@@ -170,7 +178,9 @@ export default {
     };
 
     const formatearCUIT = () => {
-      let digits = empresa.value.cuit.replace(/\D/g, '');
+      if (!empresa.value.cuit) return;
+let digits = empresa.value.cuit.replace(/\D/g, '');
+
       if (digits.length > 2 && digits.length <= 10) {
         empresa.value.cuit = digits.replace(/^(\d{2})(\d+)/, '$1-$2');
       } else if (digits.length > 10) {
@@ -209,26 +219,26 @@ export default {
         return;
       }
 
-      if (empresa.value.email_contacto.trim()) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(empresa.value.email_contacto)) {
-          feedback.value = '❌ El email de contacto no tiene un formato válido';
-          return;
-        }
-      }
+      if (empresa.value.email_contacto && empresa.value.email_contacto.trim()) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(empresa.value.email_contacto)) {
+    feedback.value = '❌ El email de contacto no tiene un formato válido';
+    return;
+  }
+}
 
       if (!empresa.value.plan_id) {
         feedback.value = '❌ Debes elegir un plan para la empresa';
         return;
       }
 
-      if (empresa.value.cuit.trim()) {
-        const cuitRegex = /^\d{2}-\d{8}-\d{1}$/;
-        if (!cuitRegex.test(empresa.value.cuit)) {
-          feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X';
-          return;
-        }
-      }
+      if (empresa.value.cuit && empresa.value.cuit.trim()) {
+  const cuitRegex = /^\d{2}-\d{8}-\d{1}$/;
+  if (!cuitRegex.test(empresa.value.cuit)) {
+    feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X';
+    return;
+  }
+}
 
       try {
         await updateEmpresa(empresa.value.id, empresa.value);

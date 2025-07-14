@@ -38,27 +38,49 @@
 
         
           <!-- Encabezado con nombre, email y tortita -->
-        <div class="pt-5 flex justify-between items-start mb-4 gap-4">
+        <div class="pt-5 flex justify-between items-start mb-2 gap-4">
           <div>
             <h2 class="text-lg font-semibold">{{ empresa.nombre }}</h2>
-            <p class="text-sm text-gray-500">{{ empresa.email_contacto || 'Sin email' }}</p>
+            <p class="text-sm text-gray-500 pb-1">{{ empresa.email_contacto || 'Sin email' }}</p>
+            <p class="text-sm"><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
+            <p class="text-sm"><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
+            <p class="text-sm"><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
           </div>
-          <SoporteChart
-            class="w-20 h-20 flex-shrink-0"
-            :usados="empresa.minutos_consumidos ?? 0"
-            :restantes="empresa.minutos_restantes ?? 0"
-          />
+          
         </div>
+
+       <div class="flex flex-col items-center gap-4 my-2">
+          <div class="flex flex-col items-center">
+            <span class="text-xs text-gray-500 mb-1">Soporte</span>
+            <SoporteChart
+              class="w-[140px] h-[140px]"
+              :usados="empresa.minutos_consumidos ?? 0"
+              :restantes="empresa.minutos_restantes ?? 0"
+            />
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-xs text-gray-500 mb-1">Visitas</span>
+            <VisitasChart
+              class="w-[64px] h-[64px]"
+              :visitasConsumidas="empresa.visitas_consumidas ?? 0"
+              :visitasTotales="empresa.visitas_incluidas ?? 0"
+            />
+          </div>
+        </div>
+
+
+
+        
 
 
 
 
           <!-- Info completa -->
-          <div class="text-sm text-gray-700 space-y-1">
-            <p><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
+          <!-- <div class="text-sm text-gray-700 space-y-1"> -->
+            <!-- <p><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
             <p><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
-            <p><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
-            <p>
+            <p><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p> -->
+            <!-- <p>
               <strong>Visitas:</strong>
               {{ empresa.visitas_consumidas ?? 0 }} /
               {{ empresa.visitas_incluidas ?? '-' }}
@@ -67,16 +89,18 @@
             <p v-if="empresa.visitas_restantes !== null">
               <strong>Visitas restantes:</strong>
               {{ empresa.visitas_restantes }}
-            </p>
-            <p v-if="empresa.minutos_restantes !== null">
+            </p> -->
+            <!-- <p v-if="empresa.minutos_restantes !== null">
               <strong>Soporte restante:</strong>
               {{ Math.floor(empresa.minutos_restantes / 60) }}h
               {{ empresa.minutos_restantes % 60 }}m
-            </p>
-          </div>
+            </p> -->
+            
+          <!-- </div> -->
+          
 
           <!-- Acciones -->
-          <div class="mt-4 flex gap-4">
+          <div class="mt-3 flex gap-4">
             <RouterLink
               :to="{ name: 'editar-empresa', params: { id: empresa.id } }"
               class="text-blue-600 hover:underline text-sm"
@@ -90,6 +114,7 @@
               Borrar
             </button>
           </div>
+          
         </div>
       </div>
     </template>
@@ -133,6 +158,8 @@ import AlertMessage from '@/components/AlertMessage.vue';
 import MainButton from '@/components/MainButton.vue';
 import BadgePlan from '@/components/BadgePlan.vue';
 import SoporteChart from '@/components/SoporteChart.vue';
+import VisitasChart from '@/components/VisitasChart.vue';
+
 
 
 
@@ -145,6 +172,7 @@ export default {
     RouterLink,
     BadgePlan,
     SoporteChart,
+    VisitasChart,
   },
   setup() {
     const empresas = ref([]);
