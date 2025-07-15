@@ -14,18 +14,23 @@
         </RouterLink>
       </div>
 
-      <div class="relative bg-white shadow rounded-xl p-6">
-        <BadgeSector
-          v-if="user.sector"
-          :value="user.sector"
-          class="absolute top-3 right-3"
+      <div class="relative bg-white shadow rounded-2xl p-6 overflow-hidden">
+
+        <BadgePlan
+          v-if="empresa?.plan?.nombre"
+          :value="empresa.plan.nombre"
+          class="absolute top-2 left-2"
         />
 
-        <div v-if="empresa?.plan?.nombre" class="mb-4">
-          <BadgePlan :value="empresa.plan.nombre" />
-        </div>
+        
+
 
         <div class="flex items-center gap-6 mb-6">
+          <BadgeSector
+          v-if="user.sector"
+          :value="user.sector"
+          class="absolute top-3 right-3 mt-4"
+        />
           <div class="relative w-28 h-28">
             <img
               v-if="user.photo"

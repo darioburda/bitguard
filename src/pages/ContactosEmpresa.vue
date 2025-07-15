@@ -9,22 +9,30 @@
 
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
-          v-for="u in companeros"
-          :key="u.id"
-          class="bg-white shadow rounded-lg p-4 flex gap-4 items-start"
-        >
-          <img
-            :src="u.photo || defaultPhotoUrl"
-            alt="Foto"
-            class="w-14 h-14 rounded-full object-cover border"
-          />
-          <div class="text-sm">
-            <p class="font-semibold text-base">{{ u.display_name }}</p>
-            <p class="text-gray-500">{{ u.email }}</p>
-            <p class="text-gray-500">Interno: {{ u.interno_telefono || '—' }}</p>
-            <p class="text-gray-500">Sector: {{ u.sector || '—' }}</p>
-          </div>
-        </div>
+  v-for="u in companeros"
+  :key="u.id"
+  class="bg-white shadow rounded-lg p-4 min-w-[280px] overflow-hidden flex flex-col gap-4"
+>
+  <!-- Fila superior: badge alineado a la derecha -->
+  <div class="flex justify-end">
+    <BadgeSector v-if="u.sector" :value="u.sector" />
+  </div>
+
+  <!-- Fila inferior: imagen y datos -->
+  <div class="flex gap-4 items-start">
+    <img
+      :src="u.photo || defaultPhotoUrl"
+      alt="Foto"
+      class="w-20 h-20 rounded-full object-cover border"
+    />
+    <div class="text-sm">
+      <p class="font-semibold text-base">{{ u.display_name }}</p>
+      <p class="text-gray-500">{{ u.email }}</p>
+      <p class="text-gray-500">Interno: {{ u.interno_telefono || '—' }}</p>
+    </div>
+  </div>
+</div>
+
       </div>
     </template>
   </div>
@@ -33,13 +41,14 @@
 <script>
 import { supabase } from '@/services/supabase';
 import MainLoader from '@/components/MainLoader.vue';
+import BadgeSector from '@/components/BadgeSector.vue';
 
 const defaultPhotoUrl =
   'https://yjqstwwltjefqtsxlbsa.supabase.co/storage/v1/object/public/profile-picture//default-avatar-2.png';
 
 export default {
   name: 'ContactosEmpresa',
-  components: { MainLoader },
+  components: { MainLoader, BadgeSector },
   data() {
     return {
       loading: true,
