@@ -15,11 +15,11 @@ export default {
   data() {
     return {
       profile: {
-        bio: '',
         display_name: '',
         sector: '',
         equipo: '',
         rustdesk: '',
+        interno_telefono: ''
       },
       editing: false,
       successMessage: '',
@@ -32,7 +32,6 @@ export default {
       try {
         this.editing = true;
         await updateAuthProfile({
-          bio: this.profile.bio,
           display_name: this.profile.display_name
         });
         this.editing = false;
@@ -50,11 +49,11 @@ export default {
   mounted() {
     subscribeToAuthState(newUserData => {
       this.profile = {
-        bio: newUserData.bio,
         display_name: newUserData.display_name,
         sector: newUserData.sector,
         equipo: newUserData.equipo,
         rustdesk: newUserData.rustdesk,
+        interno_telefono: newUserData.interno_telefono
       };
     });
   },
@@ -70,15 +69,6 @@ export default {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div class="mb-3 col-span-full">
-            <label for="bio" class="block mb-2 font-semibold">Biografía</label>
-            <textarea
-              v-model="profile.bio"
-              id="bio"
-              class="w-full p-2 border border-gray-400 rounded resize-none h-24 text-sm"
-            ></textarea>
-          </div>
-
           <div class="mb-3">
             <label for="display_name" class="block mb-2 font-semibold">Nombre completo</label>
             <input
@@ -86,6 +76,17 @@ export default {
               type="text"
               id="display_name"
               class="w-full p-2 border border-gray-400 rounded text-sm"
+            >
+          </div>
+
+          <div class="mb-3">
+            <label for="interno_telefono" class="block mb-2 font-semibold">Interno</label>
+            <input
+              v-model="profile.interno_telefono"
+              type="text"
+              id="interno_telefono"
+              class="w-full p-2 border border-gray-400 rounded text-sm bg-gray-100"
+              disabled
             >
           </div>
 

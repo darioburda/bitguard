@@ -81,6 +81,12 @@ export default {
         </RouterLink>
       </li>
 
+      <li v-if="!user.is_admin">
+        <RouterLink to="/empresa/contactos" class="hover:text-[#00FFC3] transition-all hover:scale-110">
+          Contactos
+        </RouterLink>
+      </li>
+
       <li>
         <RouterLink to="/publicaciones" class="hover:text-[#00FFC3] transition-all hover:scale-110">Publicaciones</RouterLink>
       </li>

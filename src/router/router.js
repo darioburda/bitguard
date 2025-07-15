@@ -10,6 +10,7 @@ import UserProfile from '../pages/UserProfile.vue';
 import PrivateChat from '../pages/PrivateChat.vue';
 import Publicaciones from '../pages/Publicaciones.vue';
 import MyProfileEditFoto from '../pages/MyProfileEditFoto.vue';
+// import ContactosEmpresa from '../pages/ContactosEmpresa.vue';
 
 const routes = [
   { path: '/', component: Home, name: 'home' },
@@ -19,10 +20,13 @@ const routes = [
   { path: '/publicaciones', component: Publicaciones, meta: { requiresAuth: true }, name: 'publicaciones' },
   { path: '/chat', component: GlobalChat, meta: { requiresAuth: true }, name: 'global-chat' },
   { path: '/mi-perfil', component: MyProfile, meta: { requiresAuth: true }, name: 'my-profile' },
+  { path: '/empresa/contactos', name: 'ContactosEmpresa', component: () => import('@/pages/ContactosEmpresa.vue'), meta: { requiresAuth: true }},
   { path: '/mi-perfil/editar', component: MyProfileEdit, meta: { requiresAuth: true }, name: 'my-profile.edit' },
   { path: '/mi-perfil/editar/imagen', component: MyProfileEditFoto, meta: { requiresAuth: true }, name: 'my-profile.edit.foto' },
   { path: '/usuario/:id', component: UserProfile, meta: { requiresAuth: true }, name: 'user-profile' },
   { path: '/usuario/:id/chat', component: PrivateChat, meta: { requiresAuth: true }, name: 'private-chat' },
+ 
+
 
   // Rutas solo para admins
   {

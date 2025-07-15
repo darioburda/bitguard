@@ -19,6 +19,9 @@
 - ✅ Vista personalizada para usuarios no admin con datos de su empresa, compañeros y tickets propios
 - ✅ Feedback visual con SweetAlert2 y AlertMessage
 - ✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)
+- ✅ Visualización del plan de empresa en cada card de usuario (`BadgePlan`)
+- ✅ El campo `bio` fue eliminado del perfil; se muestra el campo `interno_telefono` como **no editable**
+- ✅ En `MyProfile.vue` ya no se permite enlazar a Rustdesk directamente, sólo visible en ABM por admins
 
 ---
 
@@ -48,7 +51,8 @@ src/
 │ ├── publicaciones/ # Publicaciones + comentarios + edición
 │ ├── usuarios/ # ABM, perfiles, edición y roles
 │ ├── empresas/ # ABM y validaciones de empresas
-│ └── pedidos/ # Vista de pedidos por rol (admin, vendedor)
+│ ├── pedidos/ # Vista de pedidos por rol (admin, vendedor)
+│ └── tickets/ # ABM de soporte técnico
 ├── services/ # Conexión con Supabase (auth, publicaciones, empresas, etc.)
 ├── styles/ # SCSS global, variables y animaciones
 └── router/ # Definición de rutas con protección por rol
@@ -61,73 +65,71 @@ Editar
 
 ## 🔐 Seguridad y control de acceso
 
-- Las rutas están protegidas según el estado de sesión y el rol (`is_admin`)
-- Las vistas de administración (`abm-usuarios`, `abm-empresas`, `abm-tickets`) solo son accesibles por administradores
-- Las rutas sensibles verifican autenticación en tiempo real con `subscribeToAuthState`
+- Rutas protegidas según el estado de sesión y el rol (`is_admin`)
+- Vistas administrativas sólo accesibles para usuarios con permisos (`abm-usuarios`, `abm-empresas`, `abm-tickets`)
+- Las rutas sensibles se verifican en tiempo real mediante `subscribeToAuthState`
 
 ---
 
 ## 🧩 Gestión de empresas y planes
 
-- Las empresas tienen campos: `nombre`, `email_contacto`, `telefono`, `direccion`, `cuit`, `plan_id`, `visitas_consumidas`, `horas_consumidas`
-- Validaciones específicas:
-  - El nombre es obligatorio
-  - Si se ingresa un email, debe tener formato válido
-  - El CUIT debe tener formato `XX-XXXXXXXX-X`
-  - El plan debe seleccionarse obligatoriamente
-- Desde el panel de administración se pueden agregar, editar y eliminar empresas
-- Se descuenta automáticamente tiempo y visitas desde el plan cuando se resuelven tickets
-- Se visualiza una **gráfica de torta** con minutos usados y restantes (basado en `minutos_incluidos` y `visitas_incluidas` del plan)
+- Las empresas tienen los campos:
+  - `nombre`, `email_contacto`, `telefono`, `direccion`, `cuit`, `plan_id`
+  - `visitas_consumidas`, `horas_consumidas`, `updated_at`
+- Validaciones:
+  - Nombre obligatorio
+  - Email con formato válido
+  - CUIT con formato `XX-XXXXXXXX-X`
+  - Plan obligatorio
+- Visualización con gráfica de torta (`vue-chartjs`) que muestra:
+  - Horas y visitas consumidas
+  - Porcentaje restante
+  - Tiempo total incluido por plan
 
 ---
 
 ## 🆘 Gestión de tickets de soporte
 
-ABM completo de tickets con listado, creación, edición y eliminación
+- ABM completo de tickets: listado, creación, edición, eliminación
+- Cada ticket registra:
+  - Empresa solicitante
+  - Usuario que solicita soporte
+  - Técnico asignado (opcional al inicio)
+  - Tipo (`Remoto` o `Presencial`)
+  - Minutos utilizados
+  - `fue_visita` (booleano)
+  - Estado: `abierto`, `en_proceso`, `cerrado`
+  - Fecha de creación y actualización
 
-Cada ticket registra:
+### 🔎 Validaciones al editar tickets
 
-- Empresa solicitante
-- Usuario que solicita soporte
-- Técnico asignado (obligatorio si está en proceso o cerrado)
-- Descripción obligatoria
-- Tipo de soporte (`Remoto` o `Presencial`)
-- Minutos utilizados para resolverlo (`minutos_usados`)
-- Indicador `fue_visita` (booleano)
-- Estado (`abierto`, `en_proceso`, `cerrado`)
-- Fecha de creación y última actualización
-
-### 🔎 Validaciones al editar un ticket:
-
-- Si el ticket se marca como **en proceso** o **cerrado**, debe tener **técnico asignado**
-- Si el ticket se marca como **cerrado**, se exige ingresar **minutos utilizados**
-- Al guardar, se actualiza automáticamente el campo `actualizado`
+- `técnico_id` obligatorio si el estado es `en_proceso` o `cerrado`
+- `minutos_usados` obligatorio si el estado es `cerrado`
+- Al guardar, se actualiza el campo `actualizado`
 
 ---
 
 ## 👤 Vista para usuarios no administradores
 
-Cada usuario que accede sin permisos de administrador puede ver:
-
-- Su información técnica y personal (`MyProfile.vue`)
-- Datos de su empresa (nombre, plan contratado, soporte restante)
-- Listado de compañeros de empresa con foto, nombre, mail e interno
-- Sus tickets de soporte (con estado, tipo y fecha)
-- Acceso directo al chat desde cualquier vista
+- `MyProfile.vue`: muestra solo la información del usuario logueado
+  - Nombre, mail, equipo, IP, SO, memoria, etc.
+  - Campo `interno_telefono` visible y no editable
+  - Badge de Plan de su empresa
+  - Ya **no** se muestra el enlace a Rustdesk
+- `ContactosEmpresa.vue`: lista de compañeros de su misma empresa
+  - Foto, nombre, mail, sector e interno
 
 ---
 
-### 🗨️ [Próxima mejora] Comentarios internos por ticket
+## 🗨️ Próxima mejora: Comentarios internos por ticket
 
-Se implementará un sistema de comentarios por cada ticket, donde técnicos podrán:
-
-- Dejar **notas de avance** o aclaraciones en cada edición
-- El usuario que creó el ticket podrá ver estas actualizaciones en tiempo real
-- Cada comentario quedará guardado con:
+- Comentarios visibles solo por el usuario y los técnicos
+- Guardado en tabla `ticket_comentarios`
+- Cada comentario incluirá:
   - Autor
   - Fecha
-  - Texto del comentario
-- Se usará una tabla `ticket_comentarios` para almacenar el historial
+  - Texto
+- Mostrados en tiempo real dentro de cada ticket
 
 ---
 
@@ -142,17 +144,17 @@ npm run dev
 🔭 Próximas funcionalidades
 🔧 Separación de equipos IT como entidad independiente del usuario
 
-🧰 Gestión de tickets e incidentes técnicos por usuario y empresa
-
 ⏳ Planes de soporte por horas con contador regresivo y control automático
 
-⏱ Registro automático de sesiones remotas (integración futura con RustDesk)
+🧰 Gestión de tickets por usuario y empresa
 
-📍 Asignación de vendedores y locales en pedidos (etapa 2)
+💬 Comentarios técnicos por ticket
 
 📥 Subida de documentos técnicos a Supabase Storage
 
-💬 Sistema de comentarios técnicos por ticket
+📍 Asignación de vendedores y locales en pedidos
+
+⏱ Registro automático de sesiones remotas (futura integración con RustDesk)
 
 👥 Autores
 Desarrollado por:
