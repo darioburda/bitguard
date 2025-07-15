@@ -61,12 +61,14 @@
           <div class="flex flex-col items-center">
             <span class="text-xs text-gray-500 mb-1">Visitas</span>
             <VisitasChart
-              class="w-[64px] h-[64px]"
+              class="w-[80px] h-[80px]"
               :visitasConsumidas="empresa.visitas_consumidas ?? 0"
               :visitasTotales="empresa.visitas_incluidas ?? 0"
             />
           </div>
         </div>
+
+        
 
 
 

@@ -1,6 +1,6 @@
 # BitGuard Web
 
-**BitGuard** es una aplicación web desarrollada con **Vue.js** y **Supabase** que brinda una solución integral de gestión IT para PyMEs. Permite administrar usuarios, equipos, configuraciones técnicas, y brindar soporte remoto a través de un **chat interno en tiempo real**.
+**BitGuard** es una aplicación web desarrollada con **Vue.js** y **Supabase** que brinda una solución integral de gestión IT para PyMEs. Permite administrar usuarios, equipos, configuraciones técnicas y brindar soporte remoto a través de un **chat interno en tiempo real**.
 
 ---
 
@@ -17,26 +17,26 @@
 - ✅ Publicaciones con imágenes y comentarios
 - ✅ Vista responsive adaptada a mobile y desktop
 - ✅ Vista personalizada para usuarios no admin con datos de su empresa, compañeros y tickets propios
-- ✅ Feedback visual con SweetAlert2 y AlertMessage
+- ✅ Feedback visual con SweetAlert2 y componente `AlertMessage`
 - ✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)
 - ✅ Visualización del plan de empresa en cada card de usuario (`BadgePlan`)
-- ✅ El campo `bio` fue eliminado del perfil; se muestra el campo `interno_telefono` como **no editable**
-- ✅ En `MyProfile.vue` ya no se permite enlazar a Rustdesk directamente, sólo visible en ABM por admins
+- ✅ Eliminación del campo `bio`; se muestra `interno_telefono` como **no editable**
+- ✅ En `MyProfile.vue` ya no se permite enlazar a RustDesk directamente, solo visible en ABM por admins
 
 ---
 
 ## 🧱 Tecnologías utilizadas
 
-| Categoría         | Herramientas                                                                 |
-|-------------------|------------------------------------------------------------------------------|
-| **Frontend**      | Vue 3 + Vite + TailwindCSS                                                   |
-| **Backend**       | Supabase (Auth, Database, Storage, Edge Functions)                          |
-| **Base de datos** | PostgreSQL (gestionado desde Supabase)                                       |
-| **Realtime**      | Supabase Realtime Channels                                                   |
-| **Storage**       | Supabase Buckets (`profile-picture`, `post-image`)                          |
-| **Estilo**        | Tailwind + clases personalizadas                                             |
-| **Gráficos**      | vue-chartjs + chart.js                                                       |
-| **Animaciones**   | SweetAlert2, animaciones CSS (`spin`, `fade-in`, `hover`, etc.)              |
+| Categoría         | Herramientas                                                              |
+|-------------------|---------------------------------------------------------------------------|
+| **Frontend**      | Vue 3 + Vite + TailwindCSS                                                |
+| **Backend**       | Supabase (Auth, Database, Storage, Edge Functions)                        |
+| **Base de datos** | PostgreSQL (gestionado desde Supabase)                                    |
+| **Realtime**      | Supabase Realtime Channels                                                |
+| **Storage**       | Supabase Buckets (`profile-picture`, `post-image`)                        |
+| **Estilo**        | Tailwind + clases personalizadas                                          |
+| **Gráficos**      | vue-chartjs + chart.js                                                    |
+| **Animaciones**   | SweetAlert2, animaciones CSS (`spin`, `fade-in`, `hover`, etc.)           |
 
 ---
 
@@ -66,7 +66,7 @@ Editar
 ## 🔐 Seguridad y control de acceso
 
 - Rutas protegidas según el estado de sesión y el rol (`is_admin`)
-- Vistas administrativas sólo accesibles para usuarios con permisos (`abm-usuarios`, `abm-empresas`, `abm-tickets`)
+- Vistas administrativas solo accesibles para usuarios con permisos (`abm-usuarios`, `abm-empresas`, `abm-tickets`)
 - Las rutas sensibles se verifican en tiempo real mediante `subscribeToAuthState`
 
 ---
@@ -121,15 +121,14 @@ Editar
 
 ---
 
-## 🗨️ Próxima mejora: Comentarios internos por ticket
+## 🔭 Próximas funcionalidades
 
-- Comentarios visibles solo por el usuario y los técnicos
-- Guardado en tabla `ticket_comentarios`
-- Cada comentario incluirá:
-  - Autor
-  - Fecha
-  - Texto
-- Mostrados en tiempo real dentro de cada ticket
+- 🔧 Separación de equipos IT como entidad independiente del usuario
+- ⏳ Planes de soporte por horas con contador regresivo y control automático
+- 💬 Comentarios técnicos por ticket en tabla `ticket_comentarios`
+- 📥 Subida de documentos técnicos a Supabase Storage
+- 📍 Asignación de vendedores y locales en pedidos
+- ⏱ Registro automático de sesiones remotas (futura integración con RustDesk)
 
 ---
 
@@ -141,21 +140,6 @@ git clone https://github.com/tu-usuario/bitguard.git
 cd bitguard
 npm install
 npm run dev
-🔭 Próximas funcionalidades
-🔧 Separación de equipos IT como entidad independiente del usuario
-
-⏳ Planes de soporte por horas con contador regresivo y control automático
-
-🧰 Gestión de tickets por usuario y empresa
-
-💬 Comentarios técnicos por ticket
-
-📥 Subida de documentos técnicos a Supabase Storage
-
-📍 Asignación de vendedores y locales en pedidos
-
-⏱ Registro automático de sesiones remotas (futura integración con RustDesk)
-
 👥 Autores
 Desarrollado por:
 

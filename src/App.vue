@@ -87,9 +87,9 @@ export default {
         </RouterLink>
       </li>
 
-      <li>
+      <!-- <li>
         <RouterLink to="/publicaciones" class="hover:text-[#00FFC3] transition-all hover:scale-110">Publicaciones</RouterLink>
-      </li>
+      </li> -->
       <li>
         <RouterLink to="/mi-perfil" class="hover:text-[#00FFC3] transition-all hover:scale-110">Perfil</RouterLink>
       </li>

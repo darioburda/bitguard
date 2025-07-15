@@ -90,3 +90,52 @@ export const deleteEmpresaById = async (id) => {
     throw error;
   }
 };
+
+
+export const getEmpresaConResumen = async (id) => {
+  // Obtener empresa base
+  const { data: empresa, error } = await supabase
+    .from('empresas')
+    .select('id, nombre, email_contacto, telefono, direccion, cuit, plan_id')
+    .eq('id', id)
+    .single();
+
+  if (error || !empresa) throw error || new Error('Empresa no encontrada');
+
+  // Obtener plan
+  if (empresa.plan_id) {
+    const { data: plan, error: planError } = await supabase
+      .from('planes')
+      .select('nombre, minutos_incluidos, visitas_incluidas')
+      .eq('id', empresa.plan_id)
+      .single();
+    if (planError) throw planError;
+    empresa.plan = plan;
+  }
+
+  // Calcular métricas desde tickets cerrados
+  const { data: tickets, error: ticketsError } = await supabase
+    .from('tickets')
+    .select('minutos_usados, fue_visita')
+    .eq('empresa_id', id)
+    .eq('estado', 'cerrado');
+
+  if (ticketsError) throw ticketsError;
+
+  let minutos = 0;
+  let visitas = 0;
+
+  for (const ticket of tickets || []) {
+    minutos += ticket.minutos_usados ?? 0;
+    if (ticket.fue_visita) visitas += 1;
+  }
+
+  empresa.minutos_consumidos = minutos;
+  empresa.visitas_consumidas = visitas;
+
+  return {
+  ...empresa,
+  plan: empresa.plan || { nombre: '', minutos_incluidos: 0, visitas_incluidas: 0 }
+};
+
+};
