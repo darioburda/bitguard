@@ -12,6 +12,7 @@ import Publicaciones from '../pages/Publicaciones.vue';
 import MyProfileEditFoto from '../pages/MyProfileEditFoto.vue';
 // import ContactosEmpresa from '../pages/ContactosEmpresa.vue';
 
+
 const routes = [
   { path: '/', component: Home, name: 'home' },
   { path: '/ingresar', component: Login, name: 'login' },
@@ -20,6 +21,10 @@ const routes = [
   { path: '/publicaciones', component: Publicaciones, meta: { requiresAuth: true }, name: 'publicaciones' },
   { path: '/chat', component: GlobalChat, meta: { requiresAuth: true }, name: 'global-chat' },
   { path: '/mi-perfil', component: MyProfile, meta: { requiresAuth: true }, name: 'my-profile' },
+  { path: '/mis-tickets', name: 'MisTickets',
+  component: () => import('@/pages/MisTickets.vue'),
+  meta: { requiresAuth: true },
+},
   { path: '/empresa/contactos', name: 'ContactosEmpresa', component: () => import('@/pages/ContactosEmpresa.vue'), meta: { requiresAuth: true }},
   { path: '/mi-perfil/editar', component: MyProfileEdit, meta: { requiresAuth: true }, name: 'my-profile.edit' },
   { path: '/mi-perfil/editar/imagen', component: MyProfileEditFoto, meta: { requiresAuth: true }, name: 'my-profile.edit.foto' },
@@ -75,7 +80,7 @@ const routes = [
       path: '/tickets/crear',
       name: 'CrearTicket',
       component: () => import('@/pages/CrearTicket.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiresAdmin: true},
   },
   {
   path: '/tickets/:id/editar',

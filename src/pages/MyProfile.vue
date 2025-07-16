@@ -113,21 +113,7 @@
         </div>
       </div>
 
-      <!-- Tickets -->
-      <div v-if="tickets.length" class="mt-10">
-        <h2 class="text-xl font-semibold mb-4">Tus Tickets</h2>
-        <ul class="space-y-3">
-          <li v-for="ticket in tickets" :key="ticket.id" class="bg-white shadow p-4 rounded-lg text-sm">
-            <div class="flex justify-between">
-              <div>
-                <p class="font-semibold">{{ ticket.descripcion }}</p>
-                <p class="text-gray-500">Estado: {{ ticket.estado }} · {{ ticket.tipo_soporte }}</p>
-              </div>
-              <span class="text-xs text-gray-400">{{ formatDate(ticket.created_at) }}</span>
-            </div>
-          </li>
-        </ul>
-      </div>
+      
 
       <!-- Botón flotante de chat -->
       <RouterLink
