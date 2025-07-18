@@ -70,9 +70,9 @@
       <div>
         <label class="block mb-1 font-semibold">Estado</label>
         <select v-model="ticket.estado" class="w-full border px-4 py-2 rounded">
-          <option value="abierto">Abierto</option>
-          <option value="en_proceso">En proceso</option>
-          <option value="cerrado">Cerrado</option>
+          <option value="Abierto">Abierto</option>
+          <option value="Activo">Activo</option>
+          <option value="Cerrado">Cerrado</option>
         </select>
       </div>
 
@@ -102,7 +102,7 @@ export default {
       tipo: '',
       descripcion: '',
       fue_visita: false,
-      estado: 'abierto',
+      estado: 'Abierto',
       tecnico_id: '',
       minutos_usados: 0,
     });
@@ -118,7 +118,7 @@ export default {
         tipo: data.tipo || 'Remoto',
         descripcion: data.descripcion || '',
         fue_visita: data.fue_visita || false,
-        estado: data.estado || 'abierto',
+        estado: data.estado || 'Abierto',
         tecnico_id: data.tecnico_id || '',
         usuario_id: data.usuario_id,
         minutos_usados: data.minutos_usados || 0,
@@ -138,14 +138,14 @@ export default {
     const estado = ticket.value.estado;
 
     // Si el estado es 'en_proceso' o 'cerrado', exigir técnico
-    if ((estado === 'en_proceso' || estado === 'cerrado') &&
+    if ((estado === 'Activo' || estado === 'Cerrado') &&
         (!ticket.value.tecnico_id || ticket.value.tecnico_id === '')) {
       feedback.value = '❌ Debes asignar un técnico para continuar.';
       return;
     }
 
     // Si el estado es 'cerrado', exigir minutos usados
-    if (estado === 'cerrado' &&
+    if (estado === 'Cerrado' &&
         (!ticket.value.minutos_usados || ticket.value.minutos_usados <= 0)) {
       feedback.value = '❌ Debes ingresar los minutos utilizados para cerrar el ticket.';
       return;

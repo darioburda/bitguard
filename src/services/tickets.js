@@ -44,7 +44,8 @@ export const crearTicket = async (ticketData) => {
     .insert([{
       ...ticketData,
       fecha: new Date().toISOString(),
-      estado: 'abierto',
+      estado: ticketData.estado || 'Abierto',
+
       actualizado: new Date().toISOString(),
     }]);
 

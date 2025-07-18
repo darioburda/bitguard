@@ -34,23 +34,17 @@
           class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
         >
           <!-- Estado -->
-          <div
-            class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full"
-            :class="{
-              'bg-green-100 text-green-700': ticket.estado === 'cerrado',
-              'bg-yellow-100 text-yellow-700': ticket.estado === 'abierto'
-            }"
-          >
-            {{ ticket.estado }}
+          <BadgeEstado :value="ticket.estado" class="top-2 left-2" />
+          <div class="absolute top-3 right-3">
+            <BadgeTicket :tipo="ticket.tipo" :id="ticket.id" />
           </div>
 
-          <!-- Título y descripción -->
-          <div class="mb-2">
-            <h2 class="text-lg font-semibold mb-1">{{ ticket.tipo }}</h2>
-            <p class="text-sm text-gray-700">{{ ticket.descripcion }}</p>
+          <!-- Descripción -->
+          <div class="mb-2 mt-6">
+            <h2 class="text-base font-semibold text-gray-800">{{ ticket.descripcion }}</h2>
           </div>
 
-          <!-- Info adicional -->
+          <!-- Info -->
           <div class="text-sm text-gray-600 mt-2 space-y-1">
             <p><strong>Empresa:</strong> {{ ticket.empresa_nombre }}</p>
             <p><strong>Solicitante:</strong> {{ ticket.usuario_nombre }}</p>
@@ -59,7 +53,14 @@
           </div>
 
           <!-- Acciones -->
-          <div class="mt-4 flex gap-4">
+          <div class="mt-4 flex flex-wrap gap-4">
+            <MainButton
+              v-if="ticket.estado === 'Abierto'"
+              @click="abrirModalTomar(ticket)"
+              class="flex items-center gap-2"
+            >
+              <Hand class="w-5 h-5" /> Tomar
+            </MainButton>
             <RouterLink
               :to="{ name: 'editar-ticket', params: { id: ticket.id } }"
               class="text-blue-600 hover:underline text-sm"
@@ -67,7 +68,7 @@
               Editar
             </RouterLink>
             <button
-              @click="eliminarTicket(ticket.id)"
+              @click="confirmarEliminar(ticket.id)"
               class="text-red-600 hover:underline text-sm"
             >
               Borrar
@@ -76,16 +77,29 @@
         </div>
       </div>
     </template>
+
+    <!-- Modal Confirmar Tomar Ticket -->
+    <ModalConfirmar
+      :visible="modalVisible"
+      :nombre="ticketSeleccionado?.descripcion || ''"
+      @cancelar="modalVisible = false"
+      @confirmar="tomarTicket"
+    />
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getAllTickets, eliminarTicket as eliminarTicketService } from '@/services/tickets';
+import { getAllTickets, eliminarTicket as eliminarTicketService, actualizarTicket } from '@/services/tickets';
+import { supabase } from '@/services/supabase';
 import MainLoader from '@/components/MainLoader.vue';
 import AlertMessage from '@/components/AlertMessage.vue';
 import MainButton from '@/components/MainButton.vue';
+import BadgeTicket from '@/components/BadgeTicket.vue';
+import BadgeEstado from '@/components/BadgeEstado.vue';
+import ModalConfirmar from '@/components/ModalConfirmar.vue';
+import { Monitor, Hand  } from 'lucide-vue-next';
 
 export default {
   name: 'AbmTickets',
@@ -93,12 +107,19 @@ export default {
     MainLoader,
     AlertMessage,
     MainButton,
+    BadgeTicket,
+    BadgeEstado,
+    ModalConfirmar,
+    Monitor,
+    Hand 
   },
   setup() {
     const tickets = ref([]);
     const loading = ref(true);
     const feedback = ref('');
     const router = useRouter();
+    const modalVisible = ref(false);
+    const ticketSeleccionado = ref(null);
 
     const cargarTickets = async () => {
       try {
@@ -123,14 +144,40 @@ export default {
       }
     };
 
+    const confirmarEliminar = (id) => {
+      eliminarTicket(id);
+    };
+
+    const abrirModalTomar = (ticket) => {
+      ticketSeleccionado.value = ticket;
+      modalVisible.value = true;
+    };
+
+    const tomarTicket = async () => {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user || !user.user?.id) throw new Error('Usuario no autenticado');
+
+        await actualizarTicket(ticketSeleccionado.value.id, {
+          tecnico_id: user.user.id,
+          estado: 'Activo'
+        });
+
+        feedback.value = '✅ Ticket tomado con éxito';
+        modalVisible.value = false;
+        await cargarTickets();
+      } catch (error) {
+        console.error('Error al tomar ticket:', error);
+        feedback.value = '❌ No se pudo tomar el ticket';
+      }
+    };
+
     const formatDate = (fecha) => {
       const date = new Date(fecha);
       return date.toLocaleString();
     };
 
-    onMounted(() => {
-      cargarTickets();
-    });
+    onMounted(cargarTickets);
 
     return {
       tickets,
@@ -138,7 +185,11 @@ export default {
       feedback,
       eliminarTicket,
       formatDate,
+      modalVisible,
+      ticketSeleccionado,
+      abrirModalTomar,
+      tomarTicket,
     };
-  },
+  }
 };
 </script>

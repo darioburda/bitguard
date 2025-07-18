@@ -154,6 +154,7 @@ export default {
         const payload = {
           ...ticket.value,
           tecnico_id: ticket.value.tecnico_id || null,
+          estado: ticket.value.tecnico_id ? 'Activo' : 'Abierto'
         };
         await crearTicket(payload);
         feedback.value = '✅ Ticket creado correctamente';
