@@ -14,9 +14,27 @@
       />
 
       <!-- Encabezado -->
-      <div class="py-4 mb-6 flex justify-between items-center">
+      <div class="py-4 mb-6 flex justify-between items-center flex-wrap gap-4">
         <h1 class="text-2xl font-bold">Gestión de Tickets</h1>
-        <MainButton to="/tickets/crear">Crear Ticket</MainButton>
+        <div class="flex items-center gap-4">
+          <MainButton to="/tickets/crear">Crear Ticket</MainButton>
+
+          <MainButton
+            v-if="ticketsSeleccionados.size === 1"
+            class="bg-blue-500 hover:bg-blue-600"
+            @click="irAEditar"
+          >
+            Editar Ticket
+          </MainButton>
+
+          <MainButton
+            v-if="ticketsSeleccionados.size > 0"
+            class="bg-red-500 hover:bg-red-600"
+            @click="eliminarTicketsSeleccionados"
+          >
+            Borrar Tickets
+          </MainButton>
+        </div>
       </div>
 
       <!-- Lista de tickets -->
@@ -33,11 +51,32 @@
           :key="ticket.id"
           class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
         >
-          <!-- Estado -->
+          <!-- Badge Estado -->
           <BadgeEstado :value="ticket.estado" class="top-2 left-2" />
+
+          <!-- Badge tipo (clickeable si Abierto) -->
           <div class="absolute top-3 right-3">
-            <BadgeTicket :tipo="ticket.tipo" :id="ticket.id" />
+            <template v-if="ticket.estado === 'Abierto'">
+              <button
+                @click="abrirModalTomar(ticket)"
+                title="Tomar Ticket"
+                class="focus:outline-none"
+              >
+                <BadgeTicket :tipo="ticket.tipo" :id="ticket.id" class="cursor-pointer hover:opacity-80" />
+              </button>
+            </template>
+            <template v-else>
+              <BadgeTicket :tipo="ticket.tipo" :id="ticket.id" />
+            </template>
           </div>
+
+          <!-- Checkbox en esquina inferior izquierda -->
+          <input
+            type="checkbox"
+            class="absolute bottom-3 left-3 w-5 h-5 accent-[#01C38E]"
+            :checked="ticketsSeleccionados.has(ticket.id)"
+            @change="toggleSeleccion(ticket.id)"
+          />
 
           <!-- Descripción -->
           <div class="mb-2 mt-6">
@@ -45,34 +84,11 @@
           </div>
 
           <!-- Info -->
-          <div class="text-sm text-gray-600 mt-2 space-y-1">
+          <div class="mb-5 text-sm text-gray-600 mt-2 space-y-1">
             <p><strong>Empresa:</strong> {{ ticket.empresa_nombre }}</p>
             <p><strong>Solicitante:</strong> {{ ticket.usuario_nombre }}</p>
             <p><strong>Técnico:</strong> {{ ticket.tecnico_nombre }}</p>
             <p><strong>Fecha:</strong> {{ formatDate(ticket.fecha) }}</p>
-          </div>
-
-          <!-- Acciones -->
-          <div class="mt-4 flex flex-wrap gap-4">
-            <MainButton
-              v-if="ticket.estado === 'Abierto'"
-              @click="abrirModalTomar(ticket)"
-              class="flex items-center gap-2"
-            >
-              <Hand class="w-5 h-5" /> Tomar
-            </MainButton>
-            <RouterLink
-              :to="{ name: 'editar-ticket', params: { id: ticket.id } }"
-              class="text-blue-600 hover:underline text-sm"
-            >
-              Editar
-            </RouterLink>
-            <button
-              @click="confirmarEliminar(ticket.id)"
-              class="text-red-600 hover:underline text-sm"
-            >
-              Borrar
-            </button>
           </div>
         </div>
       </div>
@@ -99,7 +115,7 @@ import MainButton from '@/components/MainButton.vue';
 import BadgeTicket from '@/components/BadgeTicket.vue';
 import BadgeEstado from '@/components/BadgeEstado.vue';
 import ModalConfirmar from '@/components/ModalConfirmar.vue';
-import { Monitor, Hand  } from 'lucide-vue-next';
+import { Monitor, Hand } from 'lucide-vue-next';
 
 export default {
   name: 'AbmTickets',
@@ -111,15 +127,16 @@ export default {
     BadgeEstado,
     ModalConfirmar,
     Monitor,
-    Hand 
+    Hand
   },
   setup() {
     const tickets = ref([]);
     const loading = ref(true);
     const feedback = ref('');
-    const router = useRouter();
     const modalVisible = ref(false);
     const ticketSeleccionado = ref(null);
+    const ticketsSeleccionados = ref(new Set());
+    const router = useRouter();
 
     const cargarTickets = async () => {
       try {
@@ -128,24 +145,36 @@ export default {
         console.error('Error al cargar tickets:', error);
       } finally {
         loading.value = false;
+        ticketsSeleccionados.value.clear();
       }
     };
 
-    const eliminarTicket = async (id) => {
-      if (confirm('¿Estás seguro de eliminar este ticket?')) {
+    const toggleSeleccion = (id) => {
+      if (ticketsSeleccionados.value.has(id)) {
+        ticketsSeleccionados.value.delete(id);
+      } else {
+        ticketsSeleccionados.value.add(id);
+      }
+    };
+
+    const eliminarTicketsSeleccionados = async () => {
+      if (confirm(`¿Eliminar ${ticketsSeleccionados.value.size} ticket(s)?`)) {
         try {
-          await eliminarTicketService(id);
-          feedback.value = '✅ Ticket eliminado correctamente';
+          for (const id of ticketsSeleccionados.value) {
+            await eliminarTicketService(id);
+          }
+          feedback.value = '✅ Tickets eliminados correctamente';
           await cargarTickets();
         } catch (error) {
-          console.error('Error al eliminar ticket:', error);
-          feedback.value = '❌ No se pudo eliminar el ticket';
+          console.error('Error al eliminar tickets:', error);
+          feedback.value = '❌ No se pudieron eliminar los tickets';
         }
       }
     };
 
-    const confirmarEliminar = (id) => {
-      eliminarTicket(id);
+    const irAEditar = () => {
+      const id = [...ticketsSeleccionados.value][0];
+      router.push({ name: 'editar-ticket', params: { id } });
     };
 
     const abrirModalTomar = (ticket) => {
@@ -183,12 +212,15 @@ export default {
       tickets,
       loading,
       feedback,
-      eliminarTicket,
       formatDate,
       modalVisible,
       ticketSeleccionado,
       abrirModalTomar,
       tomarTicket,
+      ticketsSeleccionados,
+      toggleSeleccion,
+      eliminarTicketsSeleccionados,
+      irAEditar,
     };
   }
 };
