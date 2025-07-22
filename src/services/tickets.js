@@ -67,7 +67,7 @@ export const getTicketsPorEmpresa = async (empresaId) => {
   return data;
 };
 
-// 3. Obtener ticket por ID
+// 3. Obtener ticket por ID con relaciones
 export const getTicketById = async (id) => {
   const { data, error } = await supabase
     .from('tickets')
@@ -77,9 +77,11 @@ export const getTicketById = async (id) => {
       descripcion,
       fue_visita,
       estado,
-      tecnico_id,
-      usuario_id,
-      minutos_usados
+      fecha,
+      minutos_usados,
+      empresas ( nombre ),
+      user_profiles!tickets_usuario_id_fkey ( display_name ),
+      tecnico:user_profiles!tickets_tecnico_id_fkey ( display_name )
     `)
     .eq('id', id)
     .single();
@@ -89,9 +91,14 @@ export const getTicketById = async (id) => {
     throw error;
   }
 
-//   console.log('[getTicketById] Data:', data); // 👈 importante para verificar
-  return data;
+  return {
+    ...data,
+    empresa_nombre: data.empresas?.nombre || 'Sin empresa',
+    usuario_nombre: data.user_profiles?.display_name || 'Desconocido',
+    tecnico_nombre: data.tecnico?.display_name || 'No asignado'
+  };
 };
+
 
 
 

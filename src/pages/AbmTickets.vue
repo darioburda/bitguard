@@ -54,21 +54,38 @@
           <!-- Badge Estado -->
           <BadgeEstado :value="ticket.estado" class="top-2 left-2" />
 
-          <!-- Badge tipo (clickeable si Abierto) -->
-          <div class="absolute top-3 right-3">
-            <template v-if="ticket.estado === 'Abierto'">
-              <button
-                @click="abrirModalTomar(ticket)"
-                title="Tomar Ticket"
-                class="focus:outline-none"
-              >
-                <BadgeTicket :tipo="ticket.tipo" :id="ticket.id" class="cursor-pointer hover:opacity-80" />
-              </button>
-            </template>
-            <template v-else>
-              <BadgeTicket :tipo="ticket.tipo" :id="ticket.id" />
-            </template>
-          </div>
+        <!-- Badge tipo con estética NEW si está Abierto, clickeable o no según estado -->
+        <div class="absolute top-3 right-3">
+          <template v-if="ticket.estado === 'Abierto'">
+            <button
+              @click="abrirModalTomar(ticket)"
+              title="Tomar Ticket"
+              class="focus:outline-none"
+            >
+              <div class="flex items-center gap-1 cursor-pointer hover:opacity-80">
+                <span class="text-[10px] font-bold text-[#474747] px-0 py-[1px] rounded-sm tracking-wide">
+                  NEW
+                </span>
+                <BadgeTicket
+                  :tipo="ticket.tipo"
+                  :id="ticket.id"
+                  variant="activo"
+                />
+              </div>
+            </button>
+          </template>
+
+          <template v-else>
+            <RouterLink
+              :to="{ name: 'editar-ticket', params: { id: ticket.id } }"
+              title="Ver y editar ticket"
+            >
+              <BadgeTicket :tipo="ticket.tipo" :id="ticket.id" class="hover:opacity-80 cursor-pointer" />
+            </RouterLink>
+          </template>
+        </div>
+
+
 
           <!-- Checkbox en esquina inferior izquierda -->
           <input
@@ -115,7 +132,6 @@ import MainButton from '@/components/MainButton.vue';
 import BadgeTicket from '@/components/BadgeTicket.vue';
 import BadgeEstado from '@/components/BadgeEstado.vue';
 import ModalConfirmar from '@/components/ModalConfirmar.vue';
-import { Monitor, Hand } from 'lucide-vue-next';
 
 export default {
   name: 'AbmTickets',
@@ -125,9 +141,7 @@ export default {
     MainButton,
     BadgeTicket,
     BadgeEstado,
-    ModalConfirmar,
-    Monitor,
-    Hand
+    ModalConfirmar
   },
   setup() {
     const tickets = ref([]);

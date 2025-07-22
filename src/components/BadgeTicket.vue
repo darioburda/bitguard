@@ -1,11 +1,14 @@
 <template>
   <div
     class="text-xs font-semibold px-3 py-[2px] rounded-full border shadow-sm flex items-center gap-1"
-    :class="['bg-[#F0F2FF]', 'text-[#474747]', 'border-[#01C38E]']"
+    :class="variant === 'activo'
+      ? ['bg-[#706F6F]', 'text-[#facc15]', 'border-[#facc15]']
+      : ['bg-[#F0F2FF]', 'text-[#474747]', 'border-[#01C38E]']"
   >
     <component
       :is="tipo === 'Remoto' ? Monitor : MapPin"
-      class="w-4 h-4 text-[#474747]"
+      class="w-4 h-4"
+      :class="variant === 'activo' ? 'text-[#facc15]' : 'text-[#474747]'"
     />
     #{{ id.slice(-8) }}
   </div>
@@ -22,6 +25,10 @@ defineProps({
   id: {
     type: String,
     required: true
+  },
+  variant: {
+    type: String,
+    default: ''
   }
 });
 </script>
