@@ -1,8 +1,9 @@
 <template>
   <div
+    v-if="id"
     class="text-xs font-semibold px-3 py-[2px] rounded-full border shadow-sm flex items-center gap-1"
     :class="variant === 'activo'
-      ? ['bg-[#706F6F]', 'text-[#facc15]', 'border-[#facc15]']
+      ? ['bg-[#474747]', 'text-[#facc15]', 'border-[#facc15]']
       : ['bg-[#F0F2FF]', 'text-[#474747]', 'border-[#01C38E]']"
   >
     <component
@@ -24,7 +25,8 @@ defineProps({
   },
   id: {
     type: String,
-    required: true
+    required: false, // ya no es obligatorio
+    default: ''
   },
   variant: {
     type: String,

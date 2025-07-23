@@ -68,7 +68,7 @@ export const getTicketsPorEmpresa = async (empresaId) => {
 };
 
 // 3. Obtener ticket por ID con relaciones
-export const getTicketById = async (id) => {
+export async function getTicketById(id) {
   const { data, error } = await supabase
     .from('tickets')
     .select(`
@@ -79,25 +79,23 @@ export const getTicketById = async (id) => {
       estado,
       fecha,
       minutos_usados,
+      usuario_id,
+      tecnico_id,
       empresas ( nombre ),
-      user_profiles!tickets_usuario_id_fkey ( display_name ),
-      tecnico:user_profiles!tickets_tecnico_id_fkey ( display_name )
+      user_profiles!tickets_usuario_id_fkey ( display_name, email ),
+      tecnico:user_profiles!tickets_tecnico_id_fkey ( display_name, email )
     `)
     .eq('id', id)
     .single();
 
   if (error) {
-    console.error('[getTicketById] Error:', error);
+    console.error('[getTicketById] Error al obtener ticket:', error);
     throw error;
   }
 
-  return {
-    ...data,
-    empresa_nombre: data.empresas?.nombre || 'Sin empresa',
-    usuario_nombre: data.user_profiles?.display_name || 'Desconocido',
-    tecnico_nombre: data.tecnico?.display_name || 'No asignado'
-  };
-};
+  return data;
+}
+
 
 
 
@@ -130,3 +128,47 @@ export const eliminarTicket = async (id) => {
     throw error;
   }
 };
+
+// 6. Crear actualización de ticket
+export const crearActualizacionTicket = async ({ ticket_id, tecnico_id, descripcion }) => {
+  const { error } = await supabase
+    .from('ticket_updates')
+    .insert([
+      {
+        ticket_id,
+        tecnico_id,
+        descripcion,
+        created_at: new Date().toISOString(),
+      }
+    ]);
+
+  if (error) {
+    console.error('[crearActualizacionTicket] Error:', error);
+    throw error;
+  }
+};
+
+// 7. Obtener actualizaciones de un ticket
+export const getActualizacionesPorTicketId = async (ticketId) => {
+  const { data, error } = await supabase
+    .from('ticket_updates')
+    .select(`
+      id,
+      descripcion,
+      created_at,
+      tecnico:user_profiles ( display_name )
+    `)
+    .eq('ticket_id', ticketId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('[getActualizacionesPorTicketId] Error:', error);
+    throw error;
+  }
+
+  return data.map(a => ({
+    ...a,
+    tecnico_nombre: a.tecnico?.display_name || 'Técnico desconocido'
+  }));
+};
+
