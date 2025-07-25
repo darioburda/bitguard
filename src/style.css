@@ -37,3 +37,25 @@ body {
   transform: scale(1.04);     /* agranda levemente */
   filter: brightness(0.9);    /* oscurece apenas */
 }
+
+
+/* Estilo para el tooltip de Chart.js */
+.chartjs-tooltip {
+  transition: opacity 0.15s ease, width 0.15s ease, height 0.15s ease;
+  white-space: nowrap;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  overflow: hidden;
+  width: auto;
+  height: auto;
+}
+
+
+.chartjs-tooltip .tooltip-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-radius: 2px;
+}

@@ -1,166 +1,187 @@
-# BitGuard Web
+BitGuard Web
+BitGuard es una aplicación web desarrollada con Vue.js y Supabase que brinda una solución integral de gestión IT para PyMEs. Permite administrar usuarios, equipos, configuraciones técnicas y brindar soporte remoto a través de un chat interno en tiempo real.
 
-**BitGuard** es una aplicación web desarrollada con **Vue.js** y **Supabase** que brinda una solución integral de gestión IT para PyMEs. Permite administrar usuarios, equipos, configuraciones técnicas y brindar soporte remoto a través de un **chat interno en tiempo real**.
+✨ Características principales
+✅ Autenticación y perfiles con Supabase Auth y Storage
 
----
+✅ Gestión de usuarios con edición, eliminación, filtros y paginación
 
-## ✨ Características principales
+✅ Gestión de empresas con asignación de planes y validaciones específicas
 
-- ✅ Autenticación y perfiles con Supabase Auth y Storage  
-- ✅ Gestión de usuarios con edición, eliminación, filtros y paginación  
-- ✅ Gestión de empresas con asignación de planes y validaciones específicas  
-- ✅ Validaciones detalladas en formularios (nombre obligatorio, email válido, formato de CUIT)  
-- ✅ Campos técnicos personalizables por usuario (equipo, IP, RAM, SO, microprocesador, etc.)  
-- ✅ Control de visitas y horas consumidas por empresa  
-- ✅ Visualización gráfica del consumo de soporte con `vue-chartjs`  
-- ✅ Chat global y privado en tiempo real  
-- ✅ Publicaciones con imágenes y comentarios  
-- ✅ Vista responsive adaptada a mobile y desktop  
-- ✅ Vista personalizada para usuarios no admin con datos de su empresa, compañeros y tickets propios  
-- ✅ Feedback visual con SweetAlert2 y componente `AlertMessage`  
-- ✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)  
-- ✅ Visualización del plan de empresa en cada card de usuario (`BadgePlan`)  
-- ✅ Eliminación del campo `bio`; se muestra `interno_telefono` como **no editable**  
-- ✅ En `MyProfile.vue` ya no se permite enlazar a RustDesk directamente, solo visible en ABM por admins  
-- ✅ Nuevo botón **"Tomar Ticket"** con icono de mano e integración con modal de confirmación  
-- ✅ Estado intermedio `Activo` para tickets tomados por un técnico  
+✅ Validaciones detalladas en formularios (nombre obligatorio, email válido, formato de CUIT)
 
----
+✅ Campos técnicos personalizables por usuario (equipo, IP, RAM, SO, microprocesador, etc.)
 
-## 🧱 Tecnologías utilizadas
+✅ Control de visitas y horas consumidas por empresa
 
-| Categoría         | Herramientas                                                               |
-|-------------------|----------------------------------------------------------------------------|
-| **Frontend**      | Vue 3 + Vite + TailwindCSS                                                 |
-| **Backend**       | Supabase (Auth, Database, Storage, Edge Functions)                         |
-| **Base de datos** | PostgreSQL (gestionado desde Supabase)                                     |
-| **Realtime**      | Supabase Realtime Channels                                                 |
-| **Storage**       | Supabase Buckets (`profile-picture`, `post-image`)                         |
-| **Estilo**        | Tailwind + clases personalizadas                                           |
-| **Gráficos**      | `vue-chartjs` + `chart.js`                                                 |
-| **Animaciones**   | SweetAlert2, animaciones CSS (spin, fade-in, hover, etc.)                  |
+✅ Visualización gráfica del consumo de soporte con gráficos tipo torta y tooltips personalizados
 
----
+✅ Seguimiento de minutos consumidos, restantes y excedidos con alertas visuales (color violeta)
 
-## 📁 Estructura del proyecto (parcial)
+✅ Chat global y privado en tiempo real
 
-src/
-├── assets/ # Imágenes y recursos estáticos
-├── components/ # Componentes reutilizables (botones, alerts, loaders, etc.)
-├── pages/ # Vistas principales (Home, Login, ABM, etc.)
-├── modules/
-│ ├── home/ # Vista de bienvenida
-│ ├── publicaciones/ # Publicaciones + comentarios + edición
-│ ├── usuarios/ # ABM, perfiles, edición y roles
-│ ├── empresas/ # ABM y validaciones de empresas
-│ ├── pedidos/ # Vista de pedidos por rol (admin, vendedor)
-│ └── tickets/ # ABM de soporte técnico
-├── services/ # Conexión con Supabase (auth, publicaciones, empresas, etc.)
-├── styles/ # SCSS global, variables y animaciones
-└── router/ # Definición de rutas con protección por rol
+✅ Publicaciones con imágenes y comentarios
 
-markdown
+✅ Vista responsive adaptada a mobile y desktop
+
+✅ Vista personalizada para usuarios no admin con datos de su empresa, compañeros y tickets propios
+
+✅ Feedback visual con SweetAlert2 y componente AlertMessage
+
+✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)
+
+✅ Visualización del plan de empresa en cada card de usuario (BadgePlan)
+
+✅ Eliminación del campo bio; se muestra interno_telefono como no editable
+
+✅ En MyProfile.vue ya no se permite enlazar a RustDesk directamente, solo visible en ABM por admins
+
+✅ Nuevo botón "Tomar Ticket" con icono de mano e integración con modal de confirmación
+
+✅ Estado intermedio Activo para tickets tomados por un técnico
+
+🧱 Tecnologías utilizadas
+Categoría	Herramientas
+Frontend	Vue 3 + Vite + TailwindCSS
+Backend	Supabase (Auth, Database, Storage, Edge Functions)
+Base de datos	PostgreSQL (gestionado desde Supabase)
+Realtime	Supabase Realtime Channels
+Storage	Supabase Buckets (profile-picture, post-image)
+Estilo	Tailwind + clases personalizadas
+Gráficos	vue-chartjs + chart.js
+Animaciones	SweetAlert2, animaciones CSS (spin, fade-in, hover, etc.)
+
+📁 Estructura del proyecto (parcial)
+bash
 Copiar
-Editar
+src/
+├── assets/                # Imágenes y recursos estáticos
+├── components/            # Componentes reutilizables (botones, alerts, loaders, etc.)
+├── pages/                 # Vistas principales (Home, Login, ABM, etc.)
+├── modules/
+│   ├── home/              # Vista de bienvenida
+│   ├── publicaciones/     # Publicaciones + comentarios + edición
+│   ├── usuarios/          # ABM, perfiles, edición y roles
+│   ├── empresas/          # ABM y validaciones de empresas
+│   ├── pedidos/           # Vista de pedidos por rol (admin, vendedor)
+│   └── tickets/           # ABM de soporte técnico
+├── services/              # Conexión con Supabase (auth, publicaciones, empresas, etc.)
+├── styles/                # SCSS global, variables y animaciones
+└── router/                # Definición de rutas con protección por rol
+🔐 Seguridad y control de acceso
+Rutas protegidas según el estado de sesión y el rol (is_admin)
 
----
+Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets)
 
-## 🔐 Seguridad y control de acceso
+Las rutas sensibles se verifican en tiempo real mediante subscribeToAuthState
 
-- Rutas protegidas según el estado de sesión y el rol (`is_admin`)  
-- Vistas administrativas accesibles solo para usuarios con permisos (`abm-usuarios`, `abm-empresas`, `abm-tickets`)  
-- Las rutas sensibles se verifican en tiempo real mediante `subscribeToAuthState`  
+🧩 Gestión de empresas y planes
+Las empresas incluyen los siguientes campos:
 
----
+nombre, email_contacto, telefono, direccion, cuit, plan_id
 
-## 🧩 Gestión de empresas y planes
+visitas_consumidas, minutos_consumidos, minutos_excedidos, updated_at
 
-Las empresas incluyen los siguientes campos:  
-- `nombre`, `email_contacto`, `telefono`, `direccion`, `cuit`, `plan_id`  
-- `visitas_consumidas`, `horas_consumidas`, `updated_at`
+Validaciones:
+Nombre obligatorio
 
-### Validaciones:
+Email con formato válido
 
-- Nombre obligatorio  
-- Email con formato válido  
-- CUIT con formato `XX-XXXXXXXX-X`  
-- Plan obligatorio  
+CUIT con formato XX-XXXXXXXX-X
 
-### Visualización:
+Plan obligatorio
 
-- Gráfica tipo torta (`vue-chartjs`) mostrando:  
-  - Horas y visitas consumidas  
-  - Porcentaje restante  
-  - Tiempo total incluido por plan  
+Visualización:
+Gráfica tipo torta (vue-chartjs) mostrando:
 
----
+Minutos usados, restantes y excedidos (color violeta para excedidos)
 
-## 🆘 Gestión de tickets de soporte
+Porcentaje restante
 
-- ABM completo de tickets: listado, creación, edición y eliminación  
-- Cada ticket registra:  
-  - Empresa solicitante  
-  - Usuario que solicita soporte  
-  - Técnico asignado (opcional al inicio)  
-  - Tipo (Remoto o Presencial)  
-  - Minutos utilizados  
-  - `fue_visita` (booleano)  
-  - Estado: `Abierto`, `Activo`, `Cerrado`  
-  - Fecha de creación y actualización  
+Tiempo total incluido por plan
 
-### ✅ Funcionalidades destacadas
+Tooltips personalizados que se posicionan dinámicamente según el cursor
 
-- Botón **"Tomar"** con ícono de mano (`Hand`)  
-- Modal de confirmación con título "Confirmar Asignación"  
-- Asignación automática del técnico logueado al tomar el ticket  
-- Actualización del estado del ticket a **Activo**  
-- Visual feedback tras la toma exitosa  
+🆘 Gestión de tickets de soporte
+ABM completo de tickets: listado, creación, edición y eliminación
 
-### 🔎 Validaciones al editar tickets
+Cada ticket registra:
 
-- `tecnico_id` obligatorio si el estado es `Activo` o `Cerrado`  
-- `minutos_usados` obligatorio si el estado es `Cerrado`  
-- Se actualiza automáticamente la fecha de modificación  
+Empresa solicitante
 
----
+Usuario que solicita soporte
 
-## 👤 Vista para usuarios no administradores
+Técnico asignado (opcional al inicio)
 
-### `MyProfile.vue`
+Tipo (Remoto o Presencial)
 
-- Muestra solo los datos del usuario logueado:  
-  - Nombre, email, equipo, IP, SO, memoria, etc.  
-  - `interno_telefono` visible (no editable)  
-  - Badge del plan de su empresa  
-  - **No se muestra** el enlace a RustDesk  
+Minutos utilizados
 
-### `ContactosEmpresa.vue`
+fue_visita (booleano)
 
-- Lista de compañeros de la misma empresa:  
-  - Foto, nombre, email, sector e interno  
+Estado: Abierto, Activo, Cerrado
 
----
+Fecha de creación y actualización
 
-## 🔭 Próximas funcionalidades
+Funcionalidades destacadas
+Botón "Tomar" con ícono de mano (Hand)
 
-- 🔧 Separación de equipos IT como entidad independiente del usuario  
-- ⏳ Planes de soporte por horas con contador regresivo y control automático  
-- 💬 Comentarios técnicos por ticket en tabla `ticket_comentarios`  
-- 📥 Subida de documentos técnicos a Supabase Storage  
-- 📍 Asignación de vendedores y locales en pedidos  
-- ⏱ Registro automático de sesiones remotas (futura integración con RustDesk)  
+Modal de confirmación con título "Confirmar Asignación"
 
----
+Asignación automática del técnico logueado al tomar el ticket
 
-## ⚙️ Scripts útiles
+Actualización del estado del ticket a Activo
 
-```bash
+Validaciones al editar tickets (tecnico_id obligatorio si está activo o cerrado, minutos_usados obligatorio si está cerrado)
+
+Actualización automática de fecha de modificación
+
+👤 Vista para usuarios no administradores
+MyProfile.vue
+Muestra solo los datos del usuario logueado:
+
+Nombre, email, equipo, IP, SO, memoria, etc.
+
+interno_telefono visible (no editable)
+
+Badge del plan de su empresa
+
+No se muestra enlace a RustDesk
+
+ContactosEmpresa.vue
+Lista de compañeros de la misma empresa:
+
+Foto, nombre, email, sector e interno
+
+🔭 Próximas funcionalidades
+Separación de equipos IT como entidad independiente del usuario
+
+Planes de soporte por horas con contador regresivo y control automático
+
+Comentarios técnicos por ticket en tabla ticket_comentarios
+
+Subida de documentos técnicos a Supabase Storage
+
+Asignación de vendedores y locales en pedidos
+
+Registro automático de sesiones remotas (futura integración con RustDesk)
+
+⚙️ Scripts útiles
+bash
+Copiar
 # Clonar el proyecto y correr localmente
-git clone https://github.com/tu-usuario/bitguard.git
+git clone https://github.com/darioburda/bitguard.git
 cd bitguard
 npm install
 npm run dev
+
+# Desplegar funciones Edge
+supabase functions deploy registrar-actualizacion-ticket
+
+# Migrar base de datos y cargar seeds
+# (Comandos específicos según configuración local)
 👥 Autores
-Desarrollado por:
 Darío Burda
+
 Nicolás Burda
+

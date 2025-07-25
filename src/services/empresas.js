@@ -12,6 +12,7 @@ export const getEmpresas = async () => {
       cuit,
       visitas_consumidas,
       minutos_consumidos,
+      minutos_excedidos,
       plan_id,
       planes(nombre, minutos_incluidos, visitas_incluidas)
     `)
@@ -48,6 +49,7 @@ export const getEmpresaById = async (id) => {
       cuit,
       visitas_consumidas,
       minutos_consumidos,
+      minutos_excedidos,
       plan_id
     `)
     .eq('id', id)

@@ -30,6 +30,7 @@
           :key="empresa.id"
           class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]"
         >
+        
           <!-- Badge del plan -->
           <BadgePlan
             :value="empresa.plan_nombre || 'Sin plan'"
@@ -51,12 +52,14 @@
 
        <div class="flex flex-col items-center gap-4 my-2">
           <div class="flex flex-col items-center">
-            <span class="text-xs text-gray-500 mb-1">Soporte</span>
+            <span class="text-xs text-gray-500 pb-4">Soporte</span>
             <SoporteChart
               class="w-[140px] h-[140px]"
               :usados="empresa.minutos_consumidos ?? 0"
               :restantes="empresa.minutos_restantes ?? 0"
+              :excedidos="empresa.minutos_excedidos ?? 0"
             />
+
           </div>
           <div class="flex flex-col items-center">
             <span class="text-xs text-gray-500 mb-1">Visitas</span>
@@ -182,17 +185,22 @@ export default {
     const feedback = ref('');
     const empresaAEliminar = ref(null);
 
-    const cargarEmpresas = async () => {
+   const cargarEmpresas = async () => {
       loading.value = true;
       try {
         const data = await getAllEmpresas();
         empresas.value = data;
+        // Aquí logueamos los valores de la primer empresa para revisar datos
+        if (empresas.value.length > 0) {
+          console.log('Primer empresa minutos:', empresas.value[0].minutos_consumidos, empresas.value[0].minutos_restantes, empresas.value[0].minutos_excedidos);
+        }
       } catch (error) {
         console.error('Error al cargar empresas:', error);
       } finally {
         loading.value = false;
       }
     };
+
 
     const abrirModalEliminar = (empresa) => {
       empresaAEliminar.value = empresa;

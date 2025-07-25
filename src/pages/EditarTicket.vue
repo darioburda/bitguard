@@ -9,7 +9,7 @@
 
       <AlertMessage v-if="feedback" :message="feedback" type="success" auto-dismiss @dismiss="feedback = ''" />
 
-      <!-- Card 1 -->
+      <!-- Card 1: Información del ticket -->
       <div class="relative bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 mb-10 overflow-hidden">
         <BadgeEstado v-if="estadoOriginal" :value="estadoOriginal" class="absolute top-2 left-2 z-10" />
         <div class="absolute top-3 right-3 z-10 flex items-center gap-1">
@@ -62,7 +62,23 @@
         </form>
       </div>
 
-      <!-- Card 2 -->
+      <!-- Card 2: Historial de Actualizaciones -->
+      <div v-if="actualizaciones.length > 0" class="bg-white shadow-md rounded-2xl p-6 border mb-6">
+        <h2 class="text-lg font-bold mb-4">Historial de Actualizaciones</h2>
+        <ul class="space-y-4">
+          <li v-for="act in actualizaciones" :key="act.id" class="border-b pb-2">
+            <div class="text-sm text-gray-600">
+              <strong>{{ act.tecnico_nombre }}</strong> - {{ formatDate(act.created_at) }}
+            </div>
+            <p class="mt-1 text-gray-800 whitespace-pre-line">{{ act.descripcion }}</p>
+            <p class="text-gray-500 italic">
+              {{ act.minutos_usados }} min · {{ act.fue_visita ? 'Visita presencial' : 'Remoto' }} · Estado: {{ act.estado_ticket }}
+            </p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Card 3: Agregar actualización -->
       <div class="bg-white rounded-xl shadow p-6 mb-6">
         <h2 class="text-lg font-semibold mb-4 text-[#01C38E]">Agregar actualización</h2>
 
@@ -96,26 +112,9 @@
           </div>
         </div>
       </div>
-
-      <!-- Historial -->
-      <div v-if="actualizaciones.length > 0" class="bg-white shadow-md rounded-2xl p-6 border">
-        <h2 class="text-lg font-bold mb-4">Historial de Actualizaciones</h2>
-        <ul class="space-y-4">
-          <li v-for="act in actualizaciones" :key="act.id" class="border-b pb-2">
-            <div class="text-sm text-gray-600">
-              <strong>{{ act.tecnico_nombre }}</strong> - {{ formatDate(act.created_at) }}
-            </div>
-            <p class="mt-1 text-gray-800 whitespace-pre-line">{{ act.descripcion }}</p>
-            <p class="text-gray-500 italic">
-              {{ act.minutos_usados }} min · {{ act.fue_visita ? 'Visita presencial' : 'Remoto' }} · Estado: {{ act.estado_ticket }}
-            </p>
-          </li>
-        </ul>
-      </div>
     </div>
   </div>
 </template>
-
 
 <script>
 import { ref, onMounted, computed } from 'vue';
@@ -173,19 +172,14 @@ export default {
       return currentUserId.value === ticket.value.usuario_id && ticket.value.estado === 'Abierto';
     });
 
-    const esTecnicoAsignado = computed(() => {
-      return currentUserId.value && currentUserId.value === ticket.value.tecnico_id;
-    });
-
     const tieneActualizacionPendiente = computed(() => {
       return nuevaActualizacion.value.trim().length > 0 && minutosUsados.value > 0;
     });
 
     const puedeCerrarTicket = computed(() => {
       return (
-        esTecnicoAsignado.value &&
-        ticket.value.estado === 'Activo' &&
-        (actualizaciones.value.length > 0 || tieneActualizacionPendiente.value)
+        (ticket.value.estado === 'Abierto' || ticket.value.estado === 'Activo') &&
+        tieneActualizacionPendiente.value
       );
     });
 
@@ -254,7 +248,6 @@ export default {
 
     const cerrarTicket = async () => {
       try {
-        // Si hay actualización pendiente, la guardamos antes
         if (tieneActualizacionPendiente.value) {
           await agregarActualizacion(true);
         }
@@ -325,12 +318,9 @@ export default {
       loading,
       formatDate,
       puedeEditarCampos,
-      esTecnicoAsignado,
       puedeCerrarTicket,
       cerrarTicket
     };
   },
 };
 </script>
-
-

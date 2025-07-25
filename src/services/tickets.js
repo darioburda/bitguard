@@ -114,7 +114,8 @@ export const eliminarTicket = async (id) => {
   }
 };
 
-// 7. Crear actualización de ticket
+// 7. Crear actualización de ticket (via Edge Function Supabase)
+
 export const crearActualizacionTicket = async ({
   ticket_id,
   tecnico_id,
@@ -123,23 +124,46 @@ export const crearActualizacionTicket = async ({
   fue_visita,
   estado_ticket
 }) => {
-  const { error } = await supabase
-    .from('ticket_updates')
-    .insert([{
+  const {
+    data: { session },
+    error: sessionError
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session?.access_token) {
+    throw new Error('No se pudo obtener el token de autenticación.');
+  }
+
+  const response = await fetch('https://yjqstwwltjefqtsxlbsa.supabase.co/functions/v1/registrar-actualizacion-ticket', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({
       ticket_id,
       tecnico_id,
       descripcion,
       minutos_usados,
       fue_visita,
-      estado_ticket,
-      created_at: new Date().toISOString()
-    }]);
+      estado_ticket
+    })
+  });
 
-  if (error) {
-    console.error('[crearActualizacionTicket] Error:', error);
-    throw error;
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error('Error inesperado al procesar la respuesta del servidor.');
   }
+
+  if (!response.ok) {
+    console.error('[crearActualizacionTicket] Error:', result.error || result);
+    throw new Error(result.error || 'Error al registrar actualización');
+  }
+
+  return result;
 };
+
 
 // 8. Obtener actualizaciones de un ticket
 export const getActualizacionesPorTicketId = async (ticketId) => {
