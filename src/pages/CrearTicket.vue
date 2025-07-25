@@ -80,6 +80,31 @@
         </div>
       </div>
 
+      <!-- Título -->
+      <div>
+        <label class="block mb-1 font-semibold">Título del ticket <span class="text-red-600">*</span></label>
+        <input
+          type="text"
+          v-model="ticket.titulo"
+          class="w-full border px-4 py-2 rounded"
+          maxlength="100"
+          required
+        />
+      </div>
+
+      <!-- Tema de ayuda -->
+      <div>
+        <label class="block mb-1 font-semibold">Tema de ayuda</label>
+        <select v-model="ticket.tema_ayuda" class="w-full border px-4 py-2 rounded">
+          <option disabled value="">Selecciona una categoría</option>
+          <option value="Red">Red</option>
+          <option value="Hardware">Hardware</option>
+          <option value="Software">Software</option>
+          <option value="Correo">Correo</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+
       <!-- Tipo de soporte -->
       <div>
         <label class="block mb-1 font-semibold">Tipo</label>
@@ -144,6 +169,8 @@ export default {
     const ticket = ref({
       empresa_id: '',
       tipo: 'Remoto',
+      titulo: '',
+      tema_ayuda: '',
       descripcion: '',
       usuario_id: '',
       tecnico_id: '',
