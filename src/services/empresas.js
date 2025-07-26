@@ -115,29 +115,28 @@ export const getEmpresaConResumen = async (id) => {
     empresa.plan = plan;
   }
 
-  // Calcular métricas desde tickets cerrados
-  const { data: tickets, error: ticketsError } = await supabase
-    .from('tickets')
-    .select('minutos_usados, fue_visita')
-    .eq('empresa_id', id)
-    .eq('estado', 'cerrado');
+  // Obtener métricas desde actualizaciones técnicas (ticket_updates)
+  const { data: actualizaciones, error: updatesError } = await supabase
+    .from('ticket_updates')
+    .select('minutos_usados, fue_visita, tickets!inner(empresa_id)')
+    .eq('tickets.empresa_id', id);
 
-  if (ticketsError) throw ticketsError;
+  if (updatesError) throw updatesError;
 
   let minutos = 0;
   let visitas = 0;
 
-  for (const ticket of tickets || []) {
-    minutos += ticket.minutos_usados ?? 0;
-    if (ticket.fue_visita) visitas += 1;
+  for (const update of actualizaciones || []) {
+    minutos += update.minutos_usados ?? 0;
+    if (update.fue_visita) visitas += 1;
   }
 
   empresa.minutos_consumidos = minutos;
   empresa.visitas_consumidas = visitas;
 
   return {
-  ...empresa,
-  plan: empresa.plan || { nombre: '', minutos_incluidos: 0, visitas_incluidas: 0 }
+    ...empresa,
+    plan: empresa.plan || { nombre: '', minutos_incluidos: 0, visitas_incluidas: 0 }
+  };
 };
 
-};

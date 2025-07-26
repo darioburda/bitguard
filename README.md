@@ -1,59 +1,51 @@
-BitGuard Web
-BitGuard es una aplicación web desarrollada con Vue.js y Supabase que brinda una solución integral de gestión IT para PyMEs. Permite administrar usuarios, equipos, configuraciones técnicas y brindar soporte remoto a través de un chat interno en tiempo real.
+# BitGuard Web
 
-✨ Características principales
-✅ Autenticación y perfiles con Supabase Auth y Storage
+**BitGuard** es una aplicación web desarrollada con **Vue.js** y **Supabase** que brinda una solución integral de gestión IT para PyMEs. Permite administrar usuarios, equipos, configuraciones técnicas y brindar soporte remoto a través de un chat interno en tiempo real.
 
-✅ Gestión de usuarios con edición, eliminación, filtros y paginación
+---
 
-✅ Gestión de empresas con asignación de planes y validaciones específicas
+## ✨ Características principales
 
-✅ Validaciones detalladas en formularios (nombre obligatorio, email válido, formato de CUIT)
+- ✅ Autenticación y perfiles con Supabase Auth y Storage  
+- ✅ Gestión de usuarios con edición, eliminación, filtros y paginación  
+- ✅ Gestión de empresas con asignación de planes y validaciones específicas  
+- ✅ Validaciones detalladas en formularios (nombre obligatorio, email válido, formato de CUIT)  
+- ✅ Campos técnicos personalizables por usuario (equipo, IP, RAM, SO, microprocesador, etc.)  
+- ✅ Control de visitas y horas consumidas por empresa  
+- ✅ Visualización gráfica del consumo de soporte con gráficos tipo torta y tooltips personalizados  
+- ✅ Seguimiento de minutos consumidos, restantes y excedidos con alertas visuales (color violeta)  
+- ✅ Chat global y privado en tiempo real  
+- ✅ Publicaciones con imágenes y comentarios  
+- ✅ Vista responsive adaptada a mobile y desktop  
+- ✅ Vista personalizada para usuarios no admin con datos de su empresa, compañeros y tickets propios  
+- ✅ Feedback visual con SweetAlert2 y componente AlertMessage  
+- ✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)  
+- ✅ Visualización del plan de empresa en cada card de usuario (BadgePlan)  
+- ✅ Eliminación del campo bio; se muestra interno_telefono como no editable  
+- ✅ En `MyProfile.vue` ya no se permite enlazar a RustDesk directamente, solo visible en ABM por admins  
+- ✅ Nuevo botón "Tomar Ticket" con ícono de mano e integración con modal de confirmación  
+- ✅ Estado intermedio `Activo` para tickets tomados por un técnico  
 
-✅ Campos técnicos personalizables por usuario (equipo, IP, RAM, SO, microprocesador, etc.)
+---
 
-✅ Control de visitas y horas consumidas por empresa
+## 🧱 Tecnologías utilizadas
 
-✅ Visualización gráfica del consumo de soporte con gráficos tipo torta y tooltips personalizados
+| Categoría     | Herramientas                                         |
+|---------------|------------------------------------------------------|
+| Frontend      | Vue 3 + Vite + TailwindCSS                           |
+| Backend       | Supabase (Auth, Database, Storage, Edge Functions)   |
+| Base de datos | PostgreSQL (gestionado desde Supabase)               |
+| Realtime      | Supabase Realtime Channels                           |
+| Storage       | Supabase Buckets (profile-picture, post-image)       |
+| Estilo        | Tailwind + clases personalizadas                     |
+| Gráficos      | vue-chartjs + chart.js                               |
+| Animaciones   | SweetAlert2, animaciones CSS (spin, fade-in, hover)  |
 
-✅ Seguimiento de minutos consumidos, restantes y excedidos con alertas visuales (color violeta)
+---
 
-✅ Chat global y privado en tiempo real
+## 📁 Estructura del proyecto (parcial)
 
-✅ Publicaciones con imágenes y comentarios
-
-✅ Vista responsive adaptada a mobile y desktop
-
-✅ Vista personalizada para usuarios no admin con datos de su empresa, compañeros y tickets propios
-
-✅ Feedback visual con SweetAlert2 y componente AlertMessage
-
-✅ Validaciones al editar tickets (estado, técnico asignado, minutos usados)
-
-✅ Visualización del plan de empresa en cada card de usuario (BadgePlan)
-
-✅ Eliminación del campo bio; se muestra interno_telefono como no editable
-
-✅ En MyProfile.vue ya no se permite enlazar a RustDesk directamente, solo visible en ABM por admins
-
-✅ Nuevo botón "Tomar Ticket" con icono de mano e integración con modal de confirmación
-
-✅ Estado intermedio Activo para tickets tomados por un técnico
-
-🧱 Tecnologías utilizadas
-Categoría	Herramientas
-Frontend	Vue 3 + Vite + TailwindCSS
-Backend	Supabase (Auth, Database, Storage, Edge Functions)
-Base de datos	PostgreSQL (gestionado desde Supabase)
-Realtime	Supabase Realtime Channels
-Storage	Supabase Buckets (profile-picture, post-image)
-Estilo	Tailwind + clases personalizadas
-Gráficos	vue-chartjs + chart.js
-Animaciones	SweetAlert2, animaciones CSS (spin, fade-in, hover, etc.)
-
-📁 Estructura del proyecto (parcial)
-bash
-Copiar
+```bash
 src/
 ├── assets/                # Imágenes y recursos estáticos
 ├── components/            # Componentes reutilizables (botones, alerts, loaders, etc.)
@@ -83,6 +75,7 @@ nombre, email_contacto, telefono, direccion, cuit, plan_id
 visitas_consumidas, minutos_consumidos, minutos_excedidos, updated_at
 
 Validaciones:
+
 Nombre obligatorio
 
 Email con formato válido
@@ -92,6 +85,7 @@ CUIT con formato XX-XXXXXXXX-X
 Plan obligatorio
 
 Visualización:
+
 Gráfica tipo torta (vue-chartjs) mostrando:
 
 Minutos usados, restantes y excedidos (color violeta para excedidos)
@@ -123,7 +117,8 @@ Estado: Abierto, Activo, Cerrado
 
 Fecha de creación y actualización
 
-Funcionalidades destacadas
+Funcionalidades destacadas:
+
 Botón "Tomar" con ícono de mano (Hand)
 
 Modal de confirmación con título "Confirmar Asignación"
@@ -132,14 +127,17 @@ Asignación automática del técnico logueado al tomar el ticket
 
 Actualización del estado del ticket a Activo
 
-Validaciones al editar tickets (tecnico_id obligatorio si está activo o cerrado, minutos_usados obligatorio si está cerrado)
+Validaciones al editar tickets:
+
+tecnico_id obligatorio si está activo o cerrado
+
+minutos_usados obligatorio si está cerrado
 
 Actualización automática de fecha de modificación
 
 👤 Vista para usuarios no administradores
 MyProfile.vue
 Muestra solo los datos del usuario logueado:
-
 Nombre, email, equipo, IP, SO, memoria, etc.
 
 interno_telefono visible (no editable)
@@ -150,7 +148,6 @@ No se muestra enlace a RustDesk
 
 ContactosEmpresa.vue
 Lista de compañeros de la misma empresa:
-
 Foto, nombre, email, sector e interno
 
 🔭 Próximas funcionalidades
@@ -169,6 +166,7 @@ Registro automático de sesiones remotas (futura integración con RustDesk)
 ⚙️ Scripts útiles
 bash
 Copiar
+Editar
 # Clonar el proyecto y correr localmente
 git clone https://github.com/darioburda/bitguard.git
 cd bitguard
@@ -184,4 +182,3 @@ supabase functions deploy registrar-actualizacion-ticket
 Darío Burda
 
 Nicolás Burda
-

@@ -84,33 +84,34 @@
 
 
         <!-- Caja integrada para métricas -->
-        <div v-if="empresa && mostrarConsumo" class="bg-[#e7fdef] -mx-10 -mb-10 px-10 pt-6 pb-8 rounded-b-2xl">
-          <h2 class="text-lg font-semibold text-gray-700 mb-6 text-center">Consumo del Plan</h2>
+<div v-if="empresa && mostrarConsumo" class="bg-[#e7fdef] -mx-10 -mb-10 px-10 pt-6 pb-8 rounded-b-2xl">
+  <h2 class="text-lg font-semibold text-gray-700 mb-6 text-center">Consumo del Plan</h2>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6 justify-items-center">
-            <!-- Gráfica: Soporte -->
-            <div class="flex flex-col items-center w-[140px] h-[140px]">
-              <span class="text-sm text-gray-500 mb-1">Soporte</span>
-              <SoporteChart
-                class="w-[140px] h-[140px]"
-                :usados="empresa.minutos_consumidos ?? 0"
-                :restantes="(empresa.plan?.minutos_incluidos ?? 0) - (empresa.minutos_consumidos ?? 0)"
-              />
-            </div>
+  <!-- TORTAS -->
+  <div class="flex flex-col sm:flex-row justify-center items-center my-2 gap-y-10 sm:gap-x-6 sm:gap-y-4 lg:gap-x-0 lg:gap-y-0 xl:gap-x-0">
+    <!-- Soporte -->
+    <div class="flex flex-col items-center justify-center text-center gap-y-8 sm:gap-y-4 lg:gap-y-2">
+      <h2 class="text-xs text-gray-500 mb-1">Soporte</h2>
+      <SoporteChart
+        class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
+        :usados="empresa.minutos_consumidos ?? 0"
+        :restantes="(empresa.plan?.minutos_incluidos ?? 0) - (empresa.minutos_consumidos ?? 0)"
+      />
+    </div>
 
-            <!-- Gráfica: Visitas -->
-            <div class="flex flex-col items-center w-[140px] h-[140px] justify-center">
-              <div class="flex flex-col items-center">
-                <span class="text-sm text-gray-500 mb-1">Visitas</span>
-                <VisitasChart
-                  class="w-[80px] h-[80px]"
-                  :visitasConsumidas="empresa.visitas_consumidas ?? 0"
-                  :visitasTotales="empresa.plan?.visitas_incluidas ?? 0"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Visitas -->
+    <div class="flex flex-col items-center justify-center text-center gap-y-8 sm:gap-y-4 lg:gap-y-2">
+      <h2 class="text-xs text-gray-500 mb-1">Visitas</h2>
+      <VisitasChart
+        class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
+        :visitasConsumidas="empresa.visitas_consumidas ?? 0"
+        :visitasTotales="empresa.plan?.visitas_incluidas ?? 0"
+      />
+    </div>
+  </div>
+</div>
+
+
       </div>
 
       

@@ -1,35 +1,45 @@
 <template>
-  <div class="relative flex flex-col items-center justify-center w-28 h-40">
-    <Doughnut :data="chartData" :options="chartOptions" class="w-28 h-28" />
-    <div
-      class="absolute text-center leading-tight top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-      :class="colorPorcentaje"
-    >
-      <div class="text-xl font-bold">
-        {{ porcentajeRestante }}%
-      </div>
-      <div class="text-[12px] text-gray-600">
-        {{ tiempoMostrado }}
+  <div class="flex flex-col items-center justify-center w-28">
+    <div class="relative w-28 h-28">
+      <Doughnut :data="chartData" :options="chartOptions" class="w-full h-full" />
+      <div
+        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center justify-center text-center leading-tight"
+        :class="colorPorcentaje"
+      >
+        <div class="text-xl font-bold">
+          {{ porcentajeRestante }}%
+        </div>
+        <div class="text-[12px] text-gray-600">
+          {{ tiempoMostrado }}
+        </div>
       </div>
     </div>
 
     <!-- Leyenda visible abajo -->
-    <div class="mt-2 flex gap-3 text-xs">
-      <div class="flex items-center gap-1">
-        <span class="w-3 h-3 rounded-sm bg-[#ff7675]"></span>
-        <span>Usado</span>
+    <div class="mt-2 flex flex-col items-center gap-1 text-xs">
+      <div class="flex gap-3">
+        <div class="flex items-center gap-1">
+          <span class="w-3 h-3 rounded-sm bg-[#55efc4]"></span>
+          <span>Restante</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="w-3 h-3 rounded-sm bg-[#ff7675]"></span>
+          <span>Usado</span>
+        </div>
       </div>
-      <div class="flex items-center gap-1">
-        <span class="w-3 h-3 rounded-sm bg-[#55efc4]"></span>
-        <span>Restante</span>
-      </div>
-      <div v-if="props.excedidos > 0" class="flex items-center gap-1">
+      <div
+        class="flex items-center gap-1 mt-1"
+        :class="{ 'invisible': props.excedidos === 0 }"
+      >
         <span class="w-3 h-3 rounded-sm bg-[#8e44ad]"></span>
         <span>Excedido</span>
       </div>
+
     </div>
+
   </div>
 </template>
+
 
 <script setup>
 import { Doughnut } from 'vue-chartjs'
@@ -58,34 +68,36 @@ const props = defineProps({
   }
 })
 
-const totalPlan = props.usados + props.restantes
-const total = totalPlan + props.excedidos
-
+const total = props.usados + props.restantes + props.excedidos
 const porcentajeRestante = total > 0 ? Math.round((props.restantes / total) * 100) : 0
 const colorPorcentaje = props.excedidos > 0 ? 'text-violet-600' : 'text-[#01C38E]'
 
 const chartData = {
-  labels: ['Usado', 'Restante', 'Excedido'],
-  datasets: [{
-    data: [props.usados, props.restantes, props.excedidos],
-    backgroundColor: [
-      '#ff7675', // rojo - usados
-      '#55efc4', // verde - restantes
-      props.excedidos > 0 ? '#8e44ad' : 'transparent' // violeta o transparente
-    ],
-    borderWidth: 1
-  }]
+  labels: ['Excedido', 'Usado', 'Restante'],
+  datasets: [
+    {
+      data: [props.excedidos, props.usados, props.restantes],
+      backgroundColor: [
+        props.excedidos > 0 ? '#8e44ad' : 'transparent',
+        '#ff7675',
+        '#55efc4'
+      ],
+      borderWidth: 0
+    }
+  ]
 }
 
 const chartOptions = {
   cutout: '80%',
   responsive: true,
   maintainAspectRatio: false,
+  rotation: 0,
+  circumference: 360,
   plugins: {
     legend: { display: false },
     tooltip: {
-      enabled: false, // Desactiva tooltip por defecto
-      external: customTooltip, // Usa tooltip personalizado
+      enabled: false,
+      external: customTooltip,
       callbacks: {
         label(context) {
           const label = context.label || ''
@@ -107,7 +119,6 @@ const tiempoMostrado = props.restantes > 0
   ? formatearTiempo(props.restantes)
   : formatearTiempo(props.excedidos)
 
-// Función para tooltip personalizado con transición sin parpadeos ni mini cuadro
 function customTooltip(context) {
   let tooltipEl = document.getElementById('chartjs-tooltip')
 
@@ -124,7 +135,7 @@ function customTooltip(context) {
     tooltipEl.style.fontSize = '12px'
     tooltipEl.style.fontFamily = "'Montserrat', sans-serif"
     tooltipEl.style.whiteSpace = 'nowrap'
-    tooltipEl.style.transition = 'none'
+    tooltipEl.style.transition = 'opacity 0.2s ease'
     tooltipEl.style.opacity = '0'
     tooltipEl.style.display = 'none'
     document.body.appendChild(tooltipEl)
@@ -135,7 +146,6 @@ function customTooltip(context) {
   if (tooltipModel.opacity === 0) {
     tooltipEl.style.opacity = '0'
     tooltipEl.style.display = 'none'
-    tooltipEl.innerHTML = ''
     return
   }
 
@@ -146,20 +156,26 @@ function customTooltip(context) {
       const bgColor = point.element?.options?.backgroundColor || '#000'
       return `<span class="tooltip-color" style="background:${bgColor}"></span> ${label}: ${formatearTiempo(minutos)}`
     })
-
     tooltipEl.innerHTML = lines.join('<br/>')
-  } else {
-    tooltipEl.innerHTML = ''
   }
 
-  const canvasRect = context.chart.canvas.getBoundingClientRect()
-  tooltipEl.style.left = canvasRect.left + window.pageXOffset + tooltipModel.caretX + 'px'
-  tooltipEl.style.top = canvasRect.top + window.pageYOffset + tooltipModel.caretY + 'px'
+  const event = tooltipModel._event
+  let x, y
 
+  if (event?.clientX && event?.clientY) {
+    x = event.clientX + 10
+    y = event.clientY + 10
+  } else {
+    const canvasRect = context.chart.canvas.getBoundingClientRect()
+    x = canvasRect.left + window.pageXOffset + tooltipModel.caretX
+    y = canvasRect.top + window.pageYOffset + tooltipModel.caretY
+  }
+
+  tooltipEl.style.left = `${x}px`
+  tooltipEl.style.top = `${y}px`
   tooltipEl.style.display = 'block'
   tooltipEl.style.opacity = '1'
   tooltipEl.style.zIndex = '9999'
-
   tooltipEl.style.width = 'auto'
   tooltipEl.style.height = 'auto'
 }
