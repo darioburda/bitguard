@@ -5,98 +5,112 @@
     </div>
 
     <template v-else>
-      <AlertMessage
-        v-if="feedback"
-        :message="feedback"
-        type="success"
-        auto-dismiss
-        @dismiss="feedback = ''"
-      />
+      <div :class="[mostrarGraficos ? '' : 'min-h-[860px]']">
+        <AlertMessage
+          v-if="feedback"
+          :message="feedback"
+          type="success"
+          auto-dismiss
+          @dismiss="feedback = ''"
+        />
 
-      <!-- Encabezado y Toggle -->
-      <div class="py-4 mb-6 flex justify-between items-center flex-wrap gap-4">
-        <h1 class="text-2xl font-bold">Gestión de Empresas</h1>
-        <div class="flex gap-4 items-center">
-          <button
-            @click="mostrarGraficos = !mostrarGraficos"
-            class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition"
-          >
-            <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
-            <EyeOffIcon v-else class="w-4 h-4" />
-            <span>{{ mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes' }}</span>
-          </button>
-          <MainButton to="/empresas/agregar">Agregar Empresa</MainButton>
-          <MainButton
-            v-if="empresasSeleccionadas.size === 1"
-            class="bg-blue-500 hover:bg-blue-600"
-            @click="irAEditar"
-          >
-            Editar Empresa
-          </MainButton>
-          <MainButton
-            v-if="empresasSeleccionadas.size > 0"
-            class="bg-red-500 hover:bg-red-600"
-            @click="eliminarEmpresasSeleccionadas"
-          >
-            Borrar Empresas
-          </MainButton>
-        </div>
-      </div>
-
-      <div v-if="empresas.length === 0" class="text-center text-gray-600 text-lg py-10">
-        No hay empresas registradas.
-      </div>
-
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
-        <div
-          v-for="empresa in empresas"
-          :key="empresa.id"
-          class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full max-w-[320px] sm:max-w-[440px] md:max-w-[500px] lg:max-w-[540px] xl:max-w-[380px] mx-auto"
-        >
-          <input
-            type="checkbox"
-            class="absolute bottom-3 left-3 w-5 h-5 accent-[#01C38E]"
-            :checked="empresasSeleccionadas.has(empresa.id)"
-            @change="toggleSeleccion(empresa.id)"
-          />
-
-          <BadgePlan :value="empresa.plan_nombre || 'Sin plan'" class="top-2 left-2" />
-
-          <div class="pt-5 flex justify-between items-start mb-2 gap-4">
-            <div>
-              <h2 class="text-lg font-semibold">{{ empresa.nombre }}</h2>
-              <p class="text-sm text-gray-500 pb-1">{{ empresa.email_contacto || 'Sin email' }}</p>
-              <p class="text-sm"><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
-              <p class="text-sm"><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
-              <p class="text-sm"><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
-            </div>
+        <!-- Encabezado y Toggle -->
+        <div class="py-4 mb-6 flex justify-between items-center flex-wrap gap-4">
+          <h1 class="text-2xl font-bold">Gestión de Empresas</h1>
+          <div class="flex gap-4 items-center">
+            <button
+              @click="mostrarGraficos = !mostrarGraficos"
+              class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition"
+            >
+              <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
+              <EyeOffIcon v-else class="w-4 h-4" />
+              <span>{{ mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes' }}</span>
+            </button>
+            <MainButton to="/empresas/agregar">Agregar Empresa</MainButton>
+            <MainButton
+              v-if="empresasSeleccionadas.size === 1"
+              class="bg-blue-500 hover:bg-blue-600"
+              @click="irAEditar"
+            >
+              Editar Empresa
+            </MainButton>
+            <MainButton
+              v-if="empresasSeleccionadas.size > 0"
+              class="bg-red-500 hover:bg-red-600"
+              @click="eliminarEmpresasSeleccionadas"
+            >
+              Borrar Empresas
+            </MainButton>
           </div>
+        </div>
 
-          <!-- Gráficos con espacio reservado -->
+        <div v-if="empresas.length === 0" class="text-center text-gray-600 text-lg py-10">
+          No hay empresas registradas.
+        </div>
+
+        <div
+          v-else
+          :class="[
+            'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6 transition-all duration-500',
+            !mostrarGraficos ? 'min-h-[460px]' : ''
+          ]"
+        >
           <div
-            :key="mostrarGraficos"
-            :class="[
-              'flex flex-col sm:flex-row justify-center items-center my-2 gap-y-10 sm:gap-x-6 sm:gap-y-4 lg:gap-x-0 lg:gap-y-0 xl:gap-x-0 transition-all duration-500',
-              mostrarGraficos ? '' : 'opacity-0 pointer-events-none h-0 overflow-hidden'
-            ]"
+            v-for="empresa in empresas"
+            :key="empresa.id"
+            class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full max-w-[320px] sm:max-w-[440px] md:max-w-[500px] lg:max-w-[540px] xl:max-w-[380px] mx-auto"
           >
-            <div class="flex flex-col items-center justify-center text-center gap-y-8 sm:gap-y-4 lg:gap-y-2">
-              <h2 class="text-xs text-gray-500 mb-1">Soporte</h2>
-              <SoporteChart
-                class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
-                :usados="empresa.minutos_consumidos ?? 0"
-                :restantes="empresa.minutos_restantes ?? 0"
-                :excedidos="empresa.minutos_excedidos ?? 0"
-              />
+            <input
+              type="checkbox"
+              class="absolute bottom-3 left-3 w-5 h-5 accent-[#01C38E]"
+              :checked="empresasSeleccionadas.has(empresa.id)"
+              @change="toggleSeleccion(empresa.id)"
+            />
+
+            <BadgePlan :value="empresa.plan_nombre || 'Sin plan'" class="top-2 left-2" />
+
+            <div class="pt-5 flex justify-between items-start mb-2 gap-4">
+              <div>
+                <h2 class="text-lg font-semibold">{{ empresa.nombre }}</h2>
+                <p class="text-sm text-gray-500 pb-1">{{ empresa.email_contacto || 'Sin email' }}</p>
+                <p class="text-sm"><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
+                <p class="text-sm"><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
+                <p class="text-sm"><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
+              </div>
             </div>
 
-            <div class="flex flex-col items-center justify-center text-center gap-y-8 sm:gap-y-4 lg:gap-y-2">
-              <h2 class="text-xs text-gray-500 mb-1">Visitas</h2>
-              <VisitasChart
-                class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
-                :visitasConsumidas="empresa.visitas_consumidas ?? 0"
-                :visitasTotales="empresa.visitas_incluidas ?? 0"
-              />
+            <!-- Gráficos con fondo verde -->
+            <div
+              :key="mostrarGraficos"
+              :class="[
+                'transition-all duration-500',
+                mostrarGraficos ? 'bg-[#e7fdef] -mx-6 px-6 pt-5 pb-6 mb-[-1.5rem] rounded-b-2xl' : 'opacity-0 pointer-events-none h-0 overflow-hidden'
+              ]"
+            >
+              <h2 class="text-sm font-semibold text-gray-700 mb-4 text-center">Consumo del Plan</h2>
+
+              <div
+                class="flex flex-col sm:flex-row justify-center items-center gap-y-10 sm:gap-x-6 sm:gap-y-4 lg:gap-x-0 lg:gap-y-0 xl:gap-x-0"
+              >
+                <div class="flex flex-col items-center justify-center text-center gap-y-2">
+                  <h2 class="text-xs text-gray-500 mb-1">Soporte</h2>
+                  <SoporteChart
+                    class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
+                    :usados="empresa.minutos_consumidos ?? 0"
+                    :restantes="empresa.minutos_restantes ?? 0"
+                    :excedidos="empresa.minutos_excedidos ?? 0"
+                  />
+                </div>
+
+                <div class="flex flex-col items-center justify-center text-center gap-y-2">
+                  <h2 class="text-xs text-gray-500 mb-1">Visitas</h2>
+                  <VisitasChart
+                    class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
+                    :visitasConsumidas="empresa.visitas_consumidas ?? 0"
+                    :visitasTotales="empresa.visitas_incluidas ?? 0"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

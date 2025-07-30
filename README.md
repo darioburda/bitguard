@@ -61,11 +61,11 @@ src/
 ├── styles/                # SCSS global, variables y animaciones
 └── router/                # Definición de rutas con protección por rol
 🔐 Seguridad y control de acceso
-Rutas protegidas según el estado de sesión y el rol (is_admin)
+Rutas protegidas según el estado de sesión y el rol (is_admin).
 
-Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets)
+Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets).
 
-Las rutas sensibles se verifican en tiempo real mediante subscribeToAuthState
+Las rutas sensibles se verifican en tiempo real mediante subscribeToAuthState.
 
 🧩 Gestión de empresas y planes
 Las empresas incluyen los siguientes campos:
@@ -75,7 +75,6 @@ nombre, email_contacto, telefono, direccion, cuit, plan_id
 visitas_consumidas, minutos_consumidos, minutos_excedidos, updated_at
 
 Validaciones:
-
 Nombre obligatorio
 
 Email con formato válido
@@ -85,6 +84,9 @@ CUIT con formato XX-XXXXXXXX-X
 Plan obligatorio
 
 Visualización:
+Cards con información completa de cada empresa y badge de plan asignado.
+
+Botón para mostrar/ocultar métricas de consumo por empresa.
 
 Gráfica tipo torta (vue-chartjs) mostrando:
 
@@ -94,10 +96,20 @@ Porcentaje restante
 
 Tiempo total incluido por plan
 
-Tooltips personalizados que se posicionan dinámicamente según el cursor
+Tooltips personalizados que se posicionan según el cursor
+
+Diseño visual unificado con MyProfile.vue:
+
+Bloque verde con título "Consumo del Plan" en cada card
+
+Estética consistente con paddings y esquinas redondeadas
+
+Transiciones suaves al alternar visibilidad
+
+Altura mínima dinámica del layout para evitar saltos visuales
 
 🆘 Gestión de tickets de soporte
-ABM completo de tickets: listado, creación, edición y eliminación
+ABM completo de tickets: listado, creación, edición y eliminación.
 
 Cada ticket registra:
 
@@ -118,7 +130,6 @@ Estado: Abierto, Activo, Cerrado
 Fecha de creación y actualización
 
 Funcionalidades destacadas:
-
 Botón "Tomar" con ícono de mano (Hand)
 
 Modal de confirmación con título "Confirmar Asignación"
@@ -127,17 +138,17 @@ Asignación automática del técnico logueado al tomar el ticket
 
 Actualización del estado del ticket a Activo
 
-Validaciones al editar tickets:
-
-tecnico_id obligatorio si está activo o cerrado
+Validaciones al editar:
+tecnico_id obligatorio si el ticket está activo o cerrado
 
 minutos_usados obligatorio si está cerrado
 
-Actualización automática de fecha de modificación
+Actualización automática de updated_at
 
 👤 Vista para usuarios no administradores
 MyProfile.vue
 Muestra solo los datos del usuario logueado:
+
 Nombre, email, equipo, IP, SO, memoria, etc.
 
 interno_telefono visible (no editable)
@@ -146,8 +157,11 @@ Badge del plan de su empresa
 
 No se muestra enlace a RustDesk
 
+Gráficos de consumo en bloque verde, con toggle para mostrar/ocultar
+
 ContactosEmpresa.vue
 Lista de compañeros de la misma empresa:
+
 Foto, nombre, email, sector e interno
 
 🔭 Próximas funcionalidades
@@ -180,5 +194,4 @@ supabase functions deploy registrar-actualizacion-ticket
 # (Comandos específicos según configuración local)
 👥 Autores
 Darío Burda
-
 Nicolás Burda
