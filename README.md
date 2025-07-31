@@ -29,6 +29,12 @@
 - ✅ Checkbox fijo visible siempre en cada card de usuario  
 - ✅ Modal de eliminación con estética mejorada y comportamiento condicional  
 - ✅ Paginación con navegación completa: primero, anterior, siguiente, último  
+- ✅ Componente reutilizable `MainButton.vue` con variantes (`agregar`, `editar`, `borrar`, `default`)  
+- ✅ Soporte para íconos dinámicos, posición (izquierda/derecha) y texto opcional  
+- ✅ Soporte para tamaños (`sm`, `md`, `lg`) y comportamiento responsivo  
+- ✅ Vista `Acciones.vue` optimizada con `MainButton`, transiciones, toggle y contador  
+- ✅ En mobile, los botones se muestran centrados y con ancho reducido (`w-[80%]`)  
+- ✅ Diseño consistente de botones en desktop: íconos alineados, altura y tipografía uniforme  
 
 ---
 
@@ -53,6 +59,11 @@
 src/
 ├── assets/                # Imágenes y recursos estáticos
 ├── components/            # Componentes reutilizables (botones, alerts, loaders, etc.)
+│   ├── MainButton.vue     # Botón base reutilizable
+│   ├── Acciones.vue       # Acciones globales para ABMs
+│   ├── CheckboxSeleccion.vue
+│   ├── FiltrosUsuarios.vue
+│   └── Paginador.vue
 ├── pages/                 # Vistas principales (Home, Login, ABM, etc.)
 ├── modules/
 │   ├── home/              # Vista de bienvenida
@@ -61,14 +72,14 @@ src/
 │   ├── empresas/          # ABM y validaciones de empresas
 │   ├── pedidos/           # Vista de pedidos por rol (admin, vendedor)
 │   └── tickets/           # ABM de soporte técnico
+├── composables/
+│   └── useUsuarios.js     # Lógica de selección, filtros y datos centralizada
 ├── services/              # Conexión con Supabase (auth, publicaciones, empresas, etc.)
 ├── styles/                # SCSS global, variables y animaciones
 └── router/                # Definición de rutas con protección por rol
 🔐 Seguridad y control de acceso
 Rutas protegidas según el estado de sesión y el rol (is_admin).
-
 Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets).
-
 Las rutas sensibles se verifican en tiempo real mediante subscribeToAuthState.
 
 🧩 Gestión de empresas y planes
@@ -116,7 +127,6 @@ Altura mínima dinámica del layout para evitar saltos visuales
 
 🆘 Gestión de tickets de soporte
 ABM completo de tickets: listado, creación, edición y eliminación.
-
 Cada ticket registra:
 
 Empresa solicitante
@@ -155,9 +165,7 @@ Actualización automática de updated_at
 
 👤 Vista para usuarios no administradores
 MyProfile.vue
-Muestra solo los datos del usuario logueado:
-
-Nombre, email, equipo, IP, SO, memoria, etc.
+Muestra solo los datos del usuario logueado: nombre, email, equipo, IP, SO, memoria, etc.
 
 interno_telefono visible (no editable)
 
@@ -168,9 +176,7 @@ No se muestra enlace a RustDesk
 Gráficos de consumo en bloque verde, con toggle para mostrar/ocultar
 
 ContactosEmpresa.vue
-Lista de compañeros de la misma empresa:
-
-Foto, nombre, email, sector e interno
+Lista de compañeros de la misma empresa: foto, nombre, email, sector e interno
 
 🔭 Próximas funcionalidades
 Separación de equipos IT como entidad independiente del usuario
@@ -202,5 +208,4 @@ supabase functions deploy registrar-actualizacion-ticket
 # (Comandos específicos según configuración local)
 👥 Autores
 Darío Burda
-
 Nicolás Burda

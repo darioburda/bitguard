@@ -25,7 +25,7 @@ const beforeEnter = (el) => {
 const enter = async (el) => {
   await nextTick()
   el.style.maxHeight = el.scrollHeight + 'px'
-  el.style.opacity = '5'
+  el.style.opacity = '1'
 }
 
 const leave = (el) => {
