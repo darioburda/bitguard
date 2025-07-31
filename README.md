@@ -25,6 +25,10 @@
 - ✅ En `MyProfile.vue` ya no se permite enlazar a RustDesk directamente, solo visible en ABM por admins  
 - ✅ Nuevo botón "Tomar Ticket" con ícono de mano e integración con modal de confirmación  
 - ✅ Estado intermedio `Activo` para tickets tomados por un técnico  
+- ✅ Nueva animación fluida al expandir datos técnicos de usuarios  
+- ✅ Checkbox fijo visible siempre en cada card de usuario  
+- ✅ Modal de eliminación con estética mejorada y comportamiento condicional  
+- ✅ Paginación con navegación completa: primero, anterior, siguiente, último  
 
 ---
 
@@ -39,7 +43,7 @@
 | Storage       | Supabase Buckets (profile-picture, post-image)       |
 | Estilo        | Tailwind + clases personalizadas                     |
 | Gráficos      | vue-chartjs + chart.js                               |
-| Animaciones   | SweetAlert2, animaciones CSS (spin, fade-in, hover)  |
+| Animaciones   | SweetAlert2, `TransitionExpand`, animaciones CSS     |
 
 ---
 
@@ -75,6 +79,7 @@ nombre, email_contacto, telefono, direccion, cuit, plan_id
 visitas_consumidas, minutos_consumidos, minutos_excedidos, updated_at
 
 Validaciones:
+
 Nombre obligatorio
 
 Email con formato válido
@@ -84,11 +89,12 @@ CUIT con formato XX-XXXXXXXX-X
 Plan obligatorio
 
 Visualización:
-Cards con información completa de cada empresa y badge de plan asignado.
 
-Botón para mostrar/ocultar métricas de consumo por empresa.
+Cards con información completa de cada empresa y BadgePlan asignado
 
-Gráfica tipo torta (vue-chartjs) mostrando:
+Botón para mostrar/ocultar métricas de consumo por empresa
+
+Gráfica tipo torta (vue-chartjs):
 
 Minutos usados, restantes y excedidos (color violeta para excedidos)
 
@@ -96,7 +102,7 @@ Porcentaje restante
 
 Tiempo total incluido por plan
 
-Tooltips personalizados que se posicionan según el cursor
+Tooltips personalizados
 
 Diseño visual unificado con MyProfile.vue:
 
@@ -130,6 +136,7 @@ Estado: Abierto, Activo, Cerrado
 Fecha de creación y actualización
 
 Funcionalidades destacadas:
+
 Botón "Tomar" con ícono de mano (Hand)
 
 Modal de confirmación con título "Confirmar Asignación"
@@ -139,6 +146,7 @@ Asignación automática del técnico logueado al tomar el ticket
 Actualización del estado del ticket a Activo
 
 Validaciones al editar:
+
 tecnico_id obligatorio si el ticket está activo o cerrado
 
 minutos_usados obligatorio si está cerrado
@@ -153,7 +161,7 @@ Nombre, email, equipo, IP, SO, memoria, etc.
 
 interno_telefono visible (no editable)
 
-Badge del plan de su empresa
+BadgePlan del plan de su empresa
 
 No se muestra enlace a RustDesk
 
@@ -194,4 +202,5 @@ supabase functions deploy registrar-actualizacion-ticket
 # (Comandos específicos según configuración local)
 👥 Autores
 Darío Burda
+
 Nicolás Burda
