@@ -1,53 +1,55 @@
 <template>
   <div
     class="absolute top-0 left-0 text-[11px] text-center py-[2px] px-1"
-    :class="getTextClass(value)"
+    :class="getTextClass(plan)"
     :style="{
-      backgroundColor: getColor(value),
-      color: getTextColor(value),
-      textShadow: getTextShadow(value),
+      backgroundColor: getColor(plan),
+      color: getTextColor(plan),
+      textShadow: getTextShadow(plan),
       width: '80px',
       transform: 'rotate(-45deg) translate(-50%, 30%)',
       transformOrigin: 'top left',
       borderTopLeftRadius: '2px'
     }"
   >
-    {{ value }}
+    {{ plan || 'Sin Plan' }}
   </div>
 </template>
 
 <script setup>
-defineProps({
-  value: {
+import { computed } from 'vue'
+
+const props = defineProps({
+  plan: {
     type: String,
-    required: true
+    default: ''
   }
-});
+})
 
 function getColor(plan) {
   switch (plan?.toLowerCase()) {
     case 'oro':
-      return '#ffd700';
+      return '#ffd700'
     case 'plata':
-      return '#dcdcdc';
+      return '#dcdcdc'
     case 'bronce':
-      return '#b87333';
+      return '#b87333'
     case 'admin':
-      return '#474747';
+      return '#474747'
     default:
-      return '#6c5ce7';
+      return '#6c5ce7' // color por defecto si no hay plan válido
   }
 }
 
 function getTextColor(plan) {
-  return ['oro', 'plata'].includes(plan?.toLowerCase()) ? '#474747' : '#ffffff';
+  return ['oro', 'plata'].includes(plan?.toLowerCase()) ? '#474747' : '#ffffff'
 }
 
 function getTextShadow(plan) {
-  return ['oro', 'plata'].includes(plan?.toLowerCase()) ? '0 0.5px #999' : 'none';
+  return ['oro', 'plata'].includes(plan?.toLowerCase()) ? '0 0.5px #999' : 'none'
 }
 
 function getTextClass(plan) {
-  return ['oro', 'plata'].includes(plan?.toLowerCase()) ? 'font-bold' : 'font-semibold';
+  return ['oro', 'plata'].includes(plan?.toLowerCase()) ? 'font-bold' : 'font-semibold'
 }
 </script>

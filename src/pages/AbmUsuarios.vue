@@ -13,54 +13,74 @@
         @dismiss="feedback = ''"
       />
 
-      <!-- Título -->
-      <h1 class="text-2xl font-bold mb-2">Gestión de Usuarios</h1>
+      <!-- Título separado con más aire -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Gestión de Usuarios</h1>
+      </div>
 
-      <!-- Filtros -->
+      <!-- Acciones -->
+      <Acciones
+        nombreEntidad="Usuario"
+        :seleccionados="usuariosSeleccionados"
+        @agregar="router.push('/usuarios/agregar')"
+        @editar="irAEditar"
+        @borrar="abrirModalEliminarMultiple"
+        @deseleccionarTodos="usuariosSeleccionados.clear()"
+      />
+
+      <!-- Filtros con toggle -->
       <FiltrosUsuarios
         :busqueda="busqueda"
         :empresaSeleccionada="empresaSeleccionada"
         :sectorSeleccionado="sectorSeleccionado"
+        :planSeleccionado="planSeleccionado"
         :empresas="empresasDisponibles"
         :sectores="sectoresDisponibles"
+        :planes="planesDisponibles"
+        :mostrarDetalles="mostrarTecnicos"
         @update:busqueda="busqueda = $event"
         @update:empresa="empresaSeleccionada = $event"
         @update:sector="sectorSeleccionado = $event"
-      />
-
-      <!-- Acciones reutilizables -->
-      <Acciones
-        nombreEntidad="Usuario"
-        :seleccionados="usuariosSeleccionados"
-        :mostrarToggle="mostrarTecnicos"
-        labelToggle="detalles técnicos"
-        @agregar="router.push('/usuarios/agregar')"
-        @editar="irAEditar"
-        @borrar="abrirModalEliminarMultiple"
+        @update:plan="planSeleccionado = $event"
         @toggle="mostrarTecnicos = !mostrarTecnicos"
-        @deseleccionarTodos="usuariosSeleccionados.clear()"
       />
 
-      <!-- Lista de usuarios -->
-      <div v-if="usuariosPaginados.length === 0" class="text-center text-gray-600 text-lg py-10">
-        No se encontraron usuarios que coincidan con la búsqueda.
-      </div>
+      <!-- Separador -->
+      <div class="my-4 border-b border-gray-200"></div>
 
-      <transition-group
-        name="fade-move"
-        tag="div"
-        appear
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6"
-      >
-        <UsuarioCard
-          v-for="usuario in usuariosPaginados"
-          :key="usuario.id"
-          :usuario="usuario"
-          :mostrarTecnicos="mostrarTecnicos"
-          :seleccionados="usuariosSeleccionados"
-          @toggle-seleccion="toggleSeleccion"
-        />
-      </transition-group>
+      <!-- Grilla y mensaje si no hay usuarios -->
+      <div :class="[usuariosPaginados.length < 4 ? 'min-h-[460px]' : '']" class="mt-6">
+        <transition-group
+          name="fade-move"
+          tag="div"
+          appear
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+        >
+          <UsuarioCard
+            v-for="usuario in usuariosPaginados"
+            :key="usuario.id"
+            :usuario="usuario"
+            :mostrarTecnicos="mostrarTecnicos"
+            :seleccionados="usuariosSeleccionados"
+            @toggle-seleccion="toggleSeleccion"
+          />
+        </transition-group>
+
+<div
+  v-if="usuariosPaginados.length === 0"
+  class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 min-h-[600px] w-full"
+>
+  <!-- Caja invisible para mantener el ancho de columna -->
+  <div class="invisible h-0">.</div>
+
+  <!-- Mensaje centrado ocupando todo el ancho -->
+  <div class="col-span-full text-center text-gray-600 text-lg py-10">
+    No se encontraron usuarios que coincidan con la búsqueda.
+  </div>
+</div>
+
+
+      </div>
 
       <!-- Modal eliminar -->
       <ModalEliminar
@@ -79,6 +99,7 @@
         @anterior="paginaAnterior"
         @siguiente="siguientePagina"
         @ultimo="paginaActual = totalPaginas"
+        @ir-a="paginaActual = $event"
       />
     </template>
   </div>
@@ -87,11 +108,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-// Composables
 import { useUsuarios } from '@/composables/useUsuarios.js'
 
-// Componentes
 import MainLoader from '@/components/MainLoader.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
 import UsuarioCard from '@/components/UsuarioCard.vue'
@@ -100,21 +118,9 @@ import FiltrosUsuarios from '@/components/FiltrosUsuarios.vue'
 import Acciones from '@/components/Acciones.vue'
 import Paginador from '@/components/Paginador.vue'
 
-// Icons (usados en componentes hijos)
-import {
-  Laptop2Icon,
-  UsersIcon,
-  EyeIcon,
-  EyeOffIcon,
-  PencilIcon,
-  Trash2Icon
-} from 'lucide-vue-next'
-
-// Router
 const router = useRouter()
 const route = useRoute()
 
-// Composable de usuarios
 const {
   usuarios,
   loading,
@@ -124,9 +130,11 @@ const {
   busqueda,
   sectorSeleccionado,
   empresaSeleccionada,
+  planSeleccionado,
   cargarUsuarios,
   sectoresDisponibles,
   empresasDisponibles,
+  planesDisponibles,
   usuariosPaginados,
   totalPaginas,
   nombreSeleccionado,
@@ -135,7 +143,6 @@ const {
   siguientePagina,
 } = useUsuarios()
 
-// Modal y estado técnico
 const mostrarTecnicos = ref(false)
 const mostrarModalEliminar = ref(false)
 
@@ -173,60 +180,18 @@ const eliminarUsuariosSeleccionados = async () => {
   }
 }
 
-// Carga inicial
 onMounted(() => {
   const successMsg = route.query.success
   if (successMsg) {
     feedback.value = decodeURIComponent(successMsg)
     router.replace({ query: {} })
   }
+
   cargarUsuarios()
 })
 </script>
 
-
 <style scoped>
-/* Transición de expansión técnica */
-.fade-expand-enter-active,
-.fade-expand-leave-active {
-  transition: all 0.35s ease;
-  overflow: hidden;
-}
-.fade-expand-enter-from,
-.fade-expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-6px);
-}
-.fade-expand-enter-to,
-.fade-expand-leave-from {
-  max-height: 300px;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Fade general para modales, filtros, contadores */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* Transición para los botones Editar/Borrar */
-.fade-button-enter-active,
-.fade-button-leave-active {
-  transition: all 0.3s ease-in-out;
-}
-.fade-button-enter-from,
-.fade-button-leave-to {
-  opacity: 0;
-  transform: translateX(-16px);
-}
-
-/* Movimiento suave para grupo de botones */
 .fade-move-enter-active,
 .fade-move-leave-active {
   transition: all 0.3s ease;
@@ -235,40 +200,5 @@ onMounted(() => {
 .fade-move-leave-to {
   opacity: 0;
   transform: translateY(6px);
-}
-
-/* Transición alternativa */
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.3s ease;
-}
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
-/* Visual del bloque técnico */
-.card-tecnica {
-  background-color: #ECFDF5;
-  border-radius: 0 0 1rem 1rem;
-  padding: 0.75rem;
-  border-top: 1px solid #D1FAE5;
-  margin-top: 0.75rem;
-}
-
-/* Animación para el modal */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
 }
 </style>

@@ -35,6 +35,10 @@
 - ✅ Vista `Acciones.vue` optimizada con `MainButton`, transiciones, toggle y contador  
 - ✅ En mobile, los botones se muestran centrados y con ancho reducido (`w-[80%]`)  
 - ✅ Diseño consistente de botones en desktop: íconos alineados, altura y tipografía uniforme  
+- ✅ Filtros de usuarios con toggle de detalles integrados en la misma línea que la búsqueda  
+- ✅ Grilla de usuarios con `min-h-[600px]` para evitar saltos visuales al no haber resultados  
+- ✅ Mensaje de “No se encontraron usuarios…” centrado dentro de la misma grilla  
+- ✅ Layout de filtros y resultados mantiene el ancho al aplicar cualquier filtro  
 
 ---
 
@@ -78,9 +82,11 @@ src/
 ├── styles/                # SCSS global, variables y animaciones
 └── router/                # Definición de rutas con protección por rol
 🔐 Seguridad y control de acceso
-Rutas protegidas según el estado de sesión y el rol (is_admin).
-Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets).
-Las rutas sensibles se verifican en tiempo real mediante subscribeToAuthState.
+Rutas protegidas según el estado de sesión y el rol (is_admin)
+
+Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets)
+
+Verificación en tiempo real mediante subscribeToAuthState
 
 🧩 Gestión de empresas y planes
 Las empresas incluyen los siguientes campos:
@@ -165,6 +171,7 @@ Actualización automática de updated_at
 
 👤 Vista para usuarios no administradores
 MyProfile.vue
+
 Muestra solo los datos del usuario logueado: nombre, email, equipo, IP, SO, memoria, etc.
 
 interno_telefono visible (no editable)
@@ -176,6 +183,7 @@ No se muestra enlace a RustDesk
 Gráficos de consumo en bloque verde, con toggle para mostrar/ocultar
 
 ContactosEmpresa.vue
+
 Lista de compañeros de la misma empresa: foto, nombre, email, sector e interno
 
 🔭 Próximas funcionalidades
@@ -208,4 +216,9 @@ supabase functions deploy registrar-actualizacion-ticket
 # (Comandos específicos según configuración local)
 👥 Autores
 Darío Burda
+
 Nicolás Burda
+
+sql
+Copiar
+Editar

@@ -47,48 +47,21 @@
         </div>
       </transition>
     </div>
-
-    <!-- Botón toggle alineado a derecha -->
-  <div class="sm:self-start">
-    <button
-      v-if="mostrarToggle !== null"
-      @click="$emit('toggle')"
-      class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit"
-    >
-      <EyeIcon v-if="!mostrarToggle" class="w-4 h-4" />
-      <EyeOffIcon v-else class="w-4 h-4" />
-      <span class="whitespace-nowrap">
-        {{ mostrarToggle ? `Ocultar ${labelToggle}` : `Ver ${labelToggle}` }}
-      </span>
-    </button>
-  </div>
-
   </div>
 </template>
 
-
-
 <script setup>
 import MainButton from '@/components/MainButton.vue'
-import { EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 
 defineProps({
   seleccionados: Object,
   nombreEntidad: {
     type: String,
     default: 'Elemento'
-  },
-  mostrarToggle: {
-    type: Boolean,
-    default: null
-  },
-  labelToggle: {
-    type: String,
-    default: 'detalles'
   }
 })
 
-defineEmits(['agregar', 'editar', 'borrar', 'toggle', 'deseleccionarTodos'])
+defineEmits(['agregar', 'editar', 'borrar', 'deseleccionarTodos'])
 </script>
 
 <style scoped>

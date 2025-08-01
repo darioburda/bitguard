@@ -13,6 +13,7 @@ export function useUsuarios() {
   const busqueda = ref('')
   const sectorSeleccionado = ref('')
   const empresaSeleccionada = ref('')
+  const planSeleccionado = ref('') // ✅ Nuevo filtro
 
   const cargarUsuarios = async () => {
     loading.value = true
@@ -35,18 +36,24 @@ export function useUsuarios() {
     return [...new Set(usuarios.value.map(u => u.empresa_nombre).filter(Boolean))]
   })
 
-  const usuariosFiltrados = computed(() =>
-    usuarios.value.filter(u => {
-      const coincideBusqueda =
-        u.display_name?.toLowerCase().includes(busqueda.value.toLowerCase()) ||
-        u.email?.toLowerCase().includes(busqueda.value.toLowerCase())
-      const coincideSector =
-        !sectorSeleccionado.value || u.sector === sectorSeleccionado.value
-      const coincideEmpresa =
-        !empresaSeleccionada.value || u.empresa_nombre === empresaSeleccionada.value
-      return coincideBusqueda && coincideSector && coincideEmpresa
-    })
-  )
+  const planesDisponibles = computed(() => {
+    return [...new Set(usuarios.value.map(u => u.plan_nombre).filter(Boolean))]
+  })
+
+const usuariosFiltrados = computed(() =>
+  usuarios.value.filter(u => {
+    const coincideBusqueda =
+      u.display_name?.toLowerCase().includes(busqueda.value.toLowerCase()) ||
+      u.email?.toLowerCase().includes(busqueda.value.toLowerCase())
+
+    const coincideSector = !sectorSeleccionado.value || u.sector === sectorSeleccionado.value
+    const coincideEmpresa = !empresaSeleccionada.value || u.empresa_nombre === empresaSeleccionada.value
+    const coincidePlan = !planSeleccionado.value || (u.plan_nombre === planSeleccionado.value && !u.is_admin)
+
+    return coincideBusqueda && coincideSector && coincideEmpresa && coincidePlan
+  })
+)
+
 
   const totalPaginas = computed(() =>
     Math.ceil(usuariosFiltrados.value.length / 12)
@@ -82,7 +89,7 @@ export function useUsuarios() {
     if (paginaActual.value < totalPaginas.value) paginaActual.value++
   }
 
-  watch([busqueda, sectorSeleccionado, empresaSeleccionada], () => {
+  watch([busqueda, sectorSeleccionado, empresaSeleccionada, planSeleccionado], () => {
     paginaActual.value = 1
   })
 
@@ -95,9 +102,11 @@ export function useUsuarios() {
     busqueda,
     sectorSeleccionado,
     empresaSeleccionada,
+    planSeleccionado, // ✅ exportado
     cargarUsuarios,
     sectoresDisponibles,
     empresasDisponibles,
+    planesDisponibles, // ✅ exportado
     usuariosFiltrados,
     usuariosPaginados,
     totalPaginas,

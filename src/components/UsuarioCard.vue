@@ -4,9 +4,10 @@
   >
     <!-- Badge plan -->
     <BadgePlan
-      :value="usuario.is_admin ? 'ADMIN' : (usuario.empresa_plan_nombre || 'Default')"
-      class="top-2 left-2"
+    :plan="usuario.is_admin ? 'ADMIN' : usuario.plan_nombre"
+    class="top-2 left-2"
     />
+
 
     <!-- Datos básicos -->
     <div class="flex items-center gap-4 mb-4 mt-4">
