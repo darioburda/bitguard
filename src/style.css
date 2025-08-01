@@ -59,3 +59,20 @@ body {
   vertical-align: middle;
   border-radius: 2px;
 }
+
+/* Animacion cards */
+
+.tarjeta-animada {
+  animation: fadeSlideLeft 0.3s ease;
+}
+
+@keyframes fadeSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

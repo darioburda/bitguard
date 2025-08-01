@@ -1,161 +1,150 @@
 <template>
-  <div class="max-w-screen-xl mx-auto px-4 sm:px-8 pt-4 pb-10">
-    <div v-if="loading" class="flex justify-center items-center py-20">
-      <MainLoader />
-    </div>
+  <div class="w-full">
+    <PageContainer>
+      <div v-if="loading" class="flex justify-center items-center py-20">
+        <MainLoader />
+      </div>
 
-    <template v-else>
-      <div :class="[mostrarGraficos ? '' : 'min-h-[860px]']">
-        <AlertMessage
-          v-if="feedback"
-          :message="feedback"
-          type="success"
-          auto-dismiss
-          @dismiss="feedback = ''"
-        />
+      <template v-else>
+        <div :class="[mostrarGraficos ? '' : 'min-h-[860px]']">
+          <AlertMessage
+            v-if="feedback"
+            :message="feedback"
+            type="success"
+            auto-dismiss
+            @dismiss="feedback = ''"
+          />
 
-        <!-- Encabezado y Toggle -->
-        <div class="py-4 mb-6 flex justify-between items-center flex-wrap gap-4">
-          <h1 class="text-2xl font-bold">Gestión de Empresas</h1>
-          <div class="flex gap-4 items-center">
-            <button
-              @click="mostrarGraficos = !mostrarGraficos"
-              class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition"
-            >
-              <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
-              <EyeOffIcon v-else class="w-4 h-4" />
-              <span>{{ mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes' }}</span>
-            </button>
-            <MainButton to="/empresas/agregar">Agregar Empresa</MainButton>
-            <MainButton
-              v-if="empresasSeleccionadas.size === 1"
-              class="bg-blue-500 hover:bg-blue-600"
-              @click="irAEditar"
-            >
-              Editar Empresa
-            </MainButton>
-            <MainButton
-              v-if="empresasSeleccionadas.size > 0"
-              class="bg-red-500 hover:bg-red-600"
-              @click="eliminarEmpresasSeleccionadas"
-            >
-              Borrar Empresas
-            </MainButton>
-          </div>
-        </div>
-
-        <div v-if="empresas.length === 0" class="text-center text-gray-600 text-lg py-10">
-          No hay empresas registradas.
-        </div>
-
-        <div
-          v-else
-          :class="[
-            'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6 transition-all duration-500',
-            !mostrarGraficos ? 'min-h-[460px]' : ''
-          ]"
-        >
-          <div
-            v-for="empresa in empresas"
-            :key="empresa.id"
-            class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full max-w-[320px] sm:max-w-[440px] md:max-w-[500px] lg:max-w-[540px] xl:max-w-[380px] mx-auto"
-          >
-            <input
-              type="checkbox"
-              class="absolute bottom-3 left-3 w-5 h-5 accent-[#01C38E]"
-              :checked="empresasSeleccionadas.has(empresa.id)"
-              @change="toggleSeleccion(empresa.id)"
-            />
-
-            <BadgePlan :value="empresa.plan_nombre || 'Sin plan'" class="top-2 left-2" />
-
-            <div class="pt-5 flex justify-between items-start mb-2 gap-4">
-              <div>
-                <h2 class="text-lg font-semibold">{{ empresa.nombre }}</h2>
-                <p class="text-sm text-gray-500 pb-1">{{ empresa.email_contacto || 'Sin email' }}</p>
-                <p class="text-sm"><strong>CUIT:</strong> {{ empresa.cuit || '-' }}</p>
-                <p class="text-sm"><strong>Teléfono:</strong> {{ empresa.telefono || '-' }}</p>
-                <p class="text-sm"><strong>Dirección:</strong> {{ empresa.direccion || '-' }}</p>
-              </div>
-            </div>
-
-            <!-- Gráficos con fondo verde -->
-            <div
-              :key="mostrarGraficos"
-              :class="[
-                'transition-all duration-500',
-                mostrarGraficos ? 'bg-[#e7fdef] -mx-6 px-6 pt-5 pb-6 mb-[-1.5rem] rounded-b-2xl' : 'opacity-0 pointer-events-none h-0 overflow-hidden'
-              ]"
-            >
-              <h2 class="text-sm font-semibold text-gray-700 mb-4 text-center">Consumo del Plan</h2>
-
-              <div
-                class="flex flex-col sm:flex-row justify-center items-center gap-y-10 sm:gap-x-6 sm:gap-y-4 lg:gap-x-0 lg:gap-y-0 xl:gap-x-0"
+          <!-- Encabezado y acciones -->
+          <div class="py-4 mb-6 flex justify-between items-center flex-wrap gap-4">
+            <h1 class="text-2xl font-bold">Gestión de Empresas</h1>
+            <div class="flex gap-4 items-center">
+              <button
+                @click="mostrarGraficos = !mostrarGraficos"
+                class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition"
               >
-                <div class="flex flex-col items-center justify-center text-center gap-y-2">
-                  <h2 class="text-xs text-gray-500 mb-1">Soporte</h2>
-                  <SoporteChart
-                    class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
-                    :usados="empresa.minutos_consumidos ?? 0"
-                    :restantes="empresa.minutos_restantes ?? 0"
-                    :excedidos="empresa.minutos_excedidos ?? 0"
-                  />
-                </div>
-
-                <div class="flex flex-col items-center justify-center text-center gap-y-2">
-                  <h2 class="text-xs text-gray-500 mb-1">Visitas</h2>
-                  <VisitasChart
-                    class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
-                    :visitasConsumidas="empresa.visitas_consumidas ?? 0"
-                    :visitasTotales="empresa.visitas_incluidas ?? 0"
-                  />
-                </div>
-              </div>
+                <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
+                <EyeOffIcon v-else class="w-4 h-4" />
+                <span>
+                  {{ mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes' }}
+                </span>
+              </button>
+              <MainButton to="/empresas/agregar">Agregar Empresa</MainButton>
+              <MainButton
+                v-if="empresasSeleccionadas.size === 1"
+                class="bg-blue-500 hover:bg-blue-600"
+                @click="irAEditar"
+              >
+                Editar Empresa
+              </MainButton>
+              <MainButton
+                v-if="empresasSeleccionadas.size > 0"
+                class="bg-red-500 hover:bg-red-600"
+                @click="eliminarEmpresasSeleccionadas"
+              >
+                Borrar Empresas
+              </MainButton>
             </div>
+          </div>
+
+          <!-- Filtros -->
+          <FiltrosEntidad
+            entidad="empresa"
+            :busqueda="busqueda"
+            :planSeleccionado="planSeleccionado"
+            :empresaSeleccionada="''"
+            :sectorSeleccionado="''"
+            :empresas="empresas.map(e => e.nombre || '')"
+            :sectores="empresas.map(e => e.sector || '').filter((s, i, arr) => s && arr.indexOf(s) === i)"
+            :planes="planesDisponibles.map(p => p.nombre)"
+            :mostrarGraficos="mostrarGraficos"
+            @update:busqueda="busqueda = $event"
+            @update:plan="planSeleccionado = $event"
+            @toggleGraficos="mostrarGraficos = !mostrarGraficos"
+          />
+
+
+          <!-- Mensaje si no hay resultados -->
+          <div v-if="empresasFiltradas.length === 0" class="text-center text-gray-600 text-lg py-10">
+            No se encontraron empresas que coincidan con la búsqueda.
+          </div>
+
+          <!-- Grilla de tarjetas -->
+          <div
+            v-else
+            :class="[ 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6 transition-all duration-500',
+                      !mostrarGraficos ? 'min-h-[460px]' : '' ]"
+          >
+            <EmpresaCard
+              v-for="empresa in empresasFiltradas"
+              :key="empresa.id"
+              :empresa="empresa"
+              :seleccionados="empresasSeleccionadas"
+              :mostrarGraficos="mostrarGraficos"
+              @toggle-seleccion="toggleSeleccion"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- Modal eliminar -->
+      <div v-if="empresaAEliminar" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+        <div class="bg-white border border-red-500 rounded-lg shadow-lg w-full max-w-[500px] p-6">
+          <h2 class="text-lg font-bold text-red-600 mb-4">Confirmar Eliminación</h2>
+          <p class="mb-6 break-words">
+            ¿Estás seguro de que querés eliminar la empresa <strong>{{ empresaAEliminar.nombre }}</strong>?
+          </p>
+          <div class="flex justify-end gap-4">
+            <button @click="eliminarEmpresaConfirmada" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+              Eliminar
+            </button>
+            <button @click="cerrarModalEliminar" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+              Cancelar
+            </button>
           </div>
         </div>
       </div>
-    </template>
-
-    <!-- Modal de eliminación -->
-    <div v-if="empresaAEliminar" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
-      <div class="bg-white border border-red-500 rounded-lg shadow-lg w-full max-w-[500px] p-6">
-        <h2 class="text-lg font-bold text-red-600 mb-4">Confirmar Eliminación</h2>
-        <p class="mb-6 break-words">
-          ¿Estás seguro de que querés eliminar la empresa <strong>{{ empresaAEliminar.nombre }}</strong>?
-        </p>
-        <div class="flex justify-end gap-4">
-          <button @click="eliminarEmpresaConfirmada" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-            Eliminar
-          </button>
-          <button @click="cerrarModalEliminar" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
+    </PageContainer>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllEmpresas, deleteEmpresaById } from '@/services/empresas';
+import { getAllPlanes } from '@/services/planes';
+
 import MainLoader from '@/components/MainLoader.vue';
 import AlertMessage from '@/components/AlertMessage.vue';
 import MainButton from '@/components/MainButton.vue';
-import BadgePlan from '@/components/BadgePlan.vue';
-import SoporteChart from '@/components/SoporteChart.vue';
-import VisitasChart from '@/components/VisitasChart.vue';
+import EmpresaCard from '@/components/EmpresaCard.vue';
+import FiltrosEntidad from '@/components/FiltrosEntidad.vue';
+import PageContainer from '@/components/layouts/PageContainer.vue';
+
 import { EyeIcon, EyeOffIcon } from 'lucide-vue-next';
 
 const router = useRouter();
+
 const empresas = ref([]);
 const loading = ref(true);
 const feedback = ref('');
 const empresaAEliminar = ref(null);
 const empresasSeleccionadas = ref(new Set());
 const mostrarGraficos = ref(false);
+
+// Filtros
+const busqueda = ref('');
+const planSeleccionado = ref('');
+const planesDisponibles = ref([]);
+
+// Computed con filtros aplicados
+const empresasFiltradas = computed(() => {
+  return empresas.value.filter(e => {
+    const coincideBusqueda = busqueda.value === '' || e.nombre?.toLowerCase().includes(busqueda.value.toLowerCase());
+    const coincidePlan = planSeleccionado.value === '' || e.plan_id === planSeleccionado.value;
+    return coincideBusqueda && coincidePlan;
+  });
+});
 
 const cargarEmpresas = async () => {
   loading.value = true;
@@ -166,6 +155,15 @@ const cargarEmpresas = async () => {
   } finally {
     loading.value = false;
     empresasSeleccionadas.value.clear();
+  }
+};
+
+const cargarPlanes = async () => {
+  try {
+    planesDisponibles.value = await getAllPlanes();
+
+  } catch (error) {
+    console.error('Error al cargar planes:', error);
   }
 };
 
@@ -217,12 +215,13 @@ const eliminarEmpresaConfirmada = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   const storedMsg = sessionStorage.getItem('empresa_feedback');
   if (storedMsg) {
     feedback.value = storedMsg;
     sessionStorage.removeItem('empresa_feedback');
   }
-  cargarEmpresas();
+  await cargarEmpresas();
+  await cargarPlanes();
 });
 </script>

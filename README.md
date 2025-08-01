@@ -39,6 +39,8 @@
 - ✅ Grilla de usuarios con `min-h-[600px]` para evitar saltos visuales al no haber resultados  
 - ✅ Mensaje de “No se encontraron usuarios…” centrado dentro de la misma grilla  
 - ✅ Layout de filtros y resultados mantiene el ancho al aplicar cualquier filtro  
+- ✅ Nuevo componente `FiltrosEntidad.vue` reutilizable para aplicar filtros en usuarios y empresas  
+- ✅ Filtros en `AbmEmpresas.vue` por nombre, plan y sector con chips de filtros activos y botón de "Quitar todos"  
 
 ---
 
@@ -63,33 +65,34 @@
 src/
 ├── assets/                # Imágenes y recursos estáticos
 ├── components/            # Componentes reutilizables (botones, alerts, loaders, etc.)
-│   ├── MainButton.vue     # Botón base reutilizable
-│   ├── Acciones.vue       # Acciones globales para ABMs
+│   ├── MainButton.vue
+│   ├── Acciones.vue
 │   ├── CheckboxSeleccion.vue
 │   ├── FiltrosUsuarios.vue
+│   ├── FiltrosEntidad.vue     # ✅ Nuevo componente reutilizable
 │   └── Paginador.vue
 ├── pages/                 # Vistas principales (Home, Login, ABM, etc.)
 ├── modules/
-│   ├── home/              # Vista de bienvenida
-│   ├── publicaciones/     # Publicaciones + comentarios + edición
-│   ├── usuarios/          # ABM, perfiles, edición y roles
-│   ├── empresas/          # ABM y validaciones de empresas
-│   ├── pedidos/           # Vista de pedidos por rol (admin, vendedor)
-│   └── tickets/           # ABM de soporte técnico
+│   ├── home/
+│   ├── publicaciones/
+│   ├── usuarios/
+│   ├── empresas/
+│   ├── pedidos/
+│   └── tickets/
 ├── composables/
-│   └── useUsuarios.js     # Lógica de selección, filtros y datos centralizada
-├── services/              # Conexión con Supabase (auth, publicaciones, empresas, etc.)
-├── styles/                # SCSS global, variables y animaciones
-└── router/                # Definición de rutas con protección por rol
+│   └── useUsuarios.js
+├── services/
+├── styles/
+└── router/
 🔐 Seguridad y control de acceso
 Rutas protegidas según el estado de sesión y el rol (is_admin)
 
-Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets)
-
 Verificación en tiempo real mediante subscribeToAuthState
 
+Vistas administrativas accesibles solo para usuarios con permisos (abm-usuarios, abm-empresas, abm-tickets)
+
 🧩 Gestión de empresas y planes
-Las empresas incluyen los siguientes campos:
+Cada empresa contiene:
 
 nombre, email_contacto, telefono, direccion, cuit, plan_id
 
@@ -105,99 +108,64 @@ CUIT con formato XX-XXXXXXXX-X
 
 Plan obligatorio
 
-Visualización:
+Visualización y consumo:
 
-Cards con información completa de cada empresa y BadgePlan asignado
+Cards con BadgePlan y datos de consumo
 
-Botón para mostrar/ocultar métricas de consumo por empresa
+Botón toggle para mostrar/ocultar métricas
 
-Gráfica tipo torta (vue-chartjs):
+Gráfico tipo torta (vue-chartjs): usados, restantes, excedidos (violeta)
 
-Minutos usados, restantes y excedidos (color violeta para excedidos)
+Tooltips personalizados y formato 1h 20m / 5h 0m
 
-Porcentaje restante
+Altura mínima y transiciones suaves
 
-Tiempo total incluido por plan
-
-Tooltips personalizados
-
-Diseño visual unificado con MyProfile.vue:
-
-Bloque verde con título "Consumo del Plan" en cada card
-
-Estética consistente con paddings y esquinas redondeadas
-
-Transiciones suaves al alternar visibilidad
-
-Altura mínima dinámica del layout para evitar saltos visuales
+Filtros por nombre, sector y plan (reutilizando FiltrosEntidad.vue)
 
 🆘 Gestión de tickets de soporte
-ABM completo de tickets: listado, creación, edición y eliminación.
-Cada ticket registra:
+ABM completo: listado, creación, edición y eliminación
 
-Empresa solicitante
+Campos: empresa, usuario solicitante, técnico asignado, tipo, minutos usados, fue_visita, estado
 
-Usuario que solicita soporte
+Funciones destacadas:
 
-Técnico asignado (opcional al inicio)
+Botón "Tomar" con ícono de mano
 
-Tipo (Remoto o Presencial)
+Modal de confirmación
 
-Minutos utilizados
+Estado intermedio Activo
 
-fue_visita (booleano)
-
-Estado: Abierto, Activo, Cerrado
-
-Fecha de creación y actualización
-
-Funcionalidades destacadas:
-
-Botón "Tomar" con ícono de mano (Hand)
-
-Modal de confirmación con título "Confirmar Asignación"
-
-Asignación automática del técnico logueado al tomar el ticket
-
-Actualización del estado del ticket a Activo
-
-Validaciones al editar:
-
-tecnico_id obligatorio si el ticket está activo o cerrado
-
-minutos_usados obligatorio si está cerrado
+Validaciones al editar (minutos y técnico según estado)
 
 Actualización automática de updated_at
 
 👤 Vista para usuarios no administradores
 MyProfile.vue
-
-Muestra solo los datos del usuario logueado: nombre, email, equipo, IP, SO, memoria, etc.
-
-interno_telefono visible (no editable)
+Datos personales del usuario actual
 
 BadgePlan del plan de su empresa
 
-No se muestra enlace a RustDesk
+Campo interno_telefono visible pero no editable
 
-Gráficos de consumo en bloque verde, con toggle para mostrar/ocultar
+Gráficos de consumo en bloque verde
+
+Sin enlace a RustDesk
 
 ContactosEmpresa.vue
-
-Lista de compañeros de la misma empresa: foto, nombre, email, sector e interno
+Lista de compañeros: nombre, sector, email, interno y foto
 
 🔭 Próximas funcionalidades
 Separación de equipos IT como entidad independiente del usuario
 
-Planes de soporte por horas con contador regresivo y control automático
+Comentarios técnicos por ticket (tabla ticket_comentarios)
 
-Comentarios técnicos por ticket en tabla ticket_comentarios
+Registro automático de sesiones remotas (RustDesk)
 
-Subida de documentos técnicos a Supabase Storage
+Subida de documentos técnicos (Supabase Storage)
 
-Asignación de vendedores y locales en pedidos
+Asignación de locales y vendedores para pedidos
 
-Registro automático de sesiones remotas (futura integración con RustDesk)
+Nuevas vistas de pedidos con detalle por artículo, subtotal y total
 
 ⚙️ Scripts útiles
 bash
@@ -212,13 +180,8 @@ npm run dev
 # Desplegar funciones Edge
 supabase functions deploy registrar-actualizacion-ticket
 
-# Migrar base de datos y cargar seeds
-# (Comandos específicos según configuración local)
+# Migrar base de datos y cargar seeds (según configuración)
 👥 Autores
 Darío Burda
 
 Nicolás Burda
-
-sql
-Copiar
-Editar

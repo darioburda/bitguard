@@ -51,11 +51,14 @@
 
 
         <!-- Grilla o mensaje -->
-        <GridLayout
-          :columnas="4"
-          :vacio="usuariosPaginados.length === 0"
-          mensajeVacio="No se encontraron usuarios que coincidan con la búsqueda."
-        >
+        <div class="mt-6 min-h-[600px]">
+          <transition-group
+            name="fade-move"
+            tag="div"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+            :class="{ 'opacity-50': usuariosPaginados.length === 0 }"
+            appear
+          >
           <UsuarioCard
             v-for="usuario in usuariosPaginados"
             :key="usuario.id"
@@ -66,10 +69,20 @@
             :class="{ 'tarjeta-animada': animarTarjetas }"
           />
 
-          <!-- Caja invisible para mantener ancho -->
-          <div v-if="usuariosPaginados.length === 0" :key="'placeholder'" class="invisible h-0">.</div>
-        </GridLayout>
 
+            <!-- Caja invisible para mantener ancho -->
+            <div v-if="usuariosPaginados.length === 0" :key="'placeholder'" class="invisible h-0">.</div>
+          </transition-group>
+
+
+          <!-- Mensaje si no hay resultados -->
+          <div
+            v-if="usuariosPaginados.length === 0"
+            class="text-center text-gray-600 text-lg py-10"
+          >
+            No se encontraron usuarios que coincidan con la búsqueda.
+          </div>
+        </div>
 
         <!-- Modal eliminar -->
         <ModalEliminar
@@ -107,8 +120,6 @@ import Acciones from '@/components/Acciones.vue'
 import Paginador from '@/components/Paginador.vue'
 import AbmLayout from '@/components/layouts/AbmLayout.vue'
 import FiltrosEntidad from '../components/FiltrosEntidad.vue'
-import GridLayout from '@/components/layouts/GridLayout.vue'
-
 
 
 const router = useRouter()
