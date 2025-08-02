@@ -3,110 +3,116 @@
     <div class="mb-6 w-full">
       <!-- Línea unificada de búsqueda, filtros y toggle -->
       <div
-        class="flex flex-wrap items-center justify-between gap-4 w-full pb-5"
+        class="flex flex-wrap justify-between items-center gap-4 w-full pb-5"
         :class="(empresaSeleccionada || sectorSeleccionado || planSeleccionado) ? '' : 'mb-[28px]'"
       >
-        <!-- Búsqueda -->
-        <div class="relative w-[280px] sm:w-[300px] flex-shrink-0">
-          <input
-            :value="busqueda"
-            @input="$emit('update:busqueda', $event.target.value)"
-            type="text"
-            :placeholder="placeholderBusqueda"
-            class="w-full pl-10 pr-8 py-2 border rounded-md shadow-sm"
-          />
+        <!-- Izquierda: búsqueda + filtros -->
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- Búsqueda -->
+          <div class="relative w-[280px] sm:w-[300px] flex-shrink-0">
+            <input
+              :value="busqueda"
+              @input="$emit('update:busqueda', $event.target.value)"
+              type="text"
+              :placeholder="placeholderBusqueda"
+              class="w-full pl-10 pr-8 py-2 border rounded-md shadow-sm"
+            />
+            <!-- Icono de lupa -->
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <!-- Icono de cruz -->
+            <XCircleIcon
+              v-if="busqueda"
+              @click="$emit('update:busqueda', '')"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 w-5 h-5 cursor-pointer"
+            />
+          </div>
 
-          <!-- Icono de lupa -->
-          <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </span>
+          <!-- Filtros -->
+          <div class="flex flex-wrap gap-4">
+            <!-- Empresa -->
+            <select
+              v-if="empresas && empresaSeleccionada !== undefined"
+              :value="empresaSeleccionada"
+              @change="$emit('update:empresa', $event.target.value)"
+              class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
+            >
+              <option value="">Todas las empresas</option>
+              <option v-for="empresa in empresasOrdenadas" :key="empresa" :value="empresa">
+                {{ empresa }}
+              </option>
+            </select>
 
-          <!-- Icono de cruz -->
-          <XCircleIcon
-            v-if="busqueda"
-            @click="$emit('update:busqueda', '')"
-            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 w-5 h-5 cursor-pointer"
-          />
+            <!-- Sector -->
+            <select
+              v-if="sectores && sectorSeleccionado !== undefined"
+              :value="sectorSeleccionado"
+              @change="$emit('update:sector', $event.target.value)"
+              class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
+            >
+              <option value="">Todos los sectores</option>
+              <option v-for="sector in sectoresOrdenados" :key="sector" :value="sector">
+                {{ sector }}
+              </option>
+            </select>
+
+            <!-- Plan -->
+            <select
+              v-if="planes && planSeleccionado !== undefined"
+              :value="planSeleccionado"
+              @change="$emit('update:plan', $event.target.value)"
+              class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
+            >
+              <option value="">Todos los planes</option>
+              <option v-for="plan in planesOrdenados" :key="plan" :value="plan">
+                {{ plan }}
+              </option>
+            </select>
+          </div>
         </div>
 
-        <!-- Filtros -->
-        <div class="flex flex-wrap gap-4 justify-start sm:justify-center">
-          <!-- Empresa -->
-          <select
-            :value="empresaSeleccionada"
-            @change="$emit('update:empresa', $event.target.value)"
-            class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
+        <!-- Derecha: toggle -->
+        <div>
+          <!-- Toggle usuarios -->
+          <button
+            v-if="entidad === 'usuario'"
+            @click="$emit('toggle')"
+            :aria-label="mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'"
+            :title="mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'"
+            class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
           >
-            <option value="">Todas las empresas</option>
-            <option v-for="empresa in empresasOrdenadas" :key="empresa" :value="empresa">
-              {{ empresa }}
-            </option>
-          </select>
+            <EyeIcon v-if="!mostrarDetalles" class="w-4 h-4" />
+            <EyeOffIcon v-else class="w-4 h-4" />
+            <span class="whitespace-nowrap">
+              {{ mostrarDetalles ? `Ocultar detalles técnicos` : `Ver detalles técnicos` }}
+            </span>
+          </button>
 
-          <!-- Sector -->
-          <select
-            :value="sectorSeleccionado"
-            @change="$emit('update:sector', $event.target.value)"
-            class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
+          <!-- Toggle empresas -->
+          <button
+            v-if="entidad === 'empresa'"
+            @click="$emit('toggleGraficos')"
+            :aria-label="mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes'"
+            :title="mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes'"
+            class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
           >
-            <option value="">Todos los sectores</option>
-            <option v-for="sector in sectoresOrdenados" :key="sector" :value="sector">
-              {{ sector }}
-            </option>
-          </select>
-
-          <!-- Plan -->
-          <select
-            :value="planSeleccionado"
-            @change="$emit('update:plan', $event.target.value)"
-            class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
-          >
-            <option value="">Todos los planes</option>
-            <option v-for="plan in planesOrdenados" :key="plan" :value="plan">
-              {{ plan }}
-            </option>
-          </select>
+            <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
+            <EyeOffIcon v-else class="w-4 h-4" />
+            <span class="whitespace-nowrap">
+              {{ mostrarGraficos ? `Ocultar consumo de planes` : `Ver consumo de planes` }}
+            </span>
+          </button>
         </div>
-
-        <!-- Toggle para usuarios -->
-        <button
-          v-if="entidad === 'usuario'"
-          @click="$emit('toggle')"
-          :aria-label="mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'"
-          :title="mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'"
-          class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
-        >
-          <EyeIcon v-if="!mostrarDetalles" class="w-4 h-4" />
-          <EyeOffIcon v-else class="w-4 h-4" />
-          <span class="whitespace-nowrap">
-            {{ mostrarDetalles ? `Ocultar detalles técnicos` : `Ver detalles técnicos` }}
-          </span>
-        </button>
-
-        <!-- Toggle para empresas -->
-        <button
-          v-if="entidad === 'empresa'"
-          @click="$emit('toggleGraficos')"
-          :aria-label="mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes'"
-          :title="mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes'"
-          class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
-        >
-          <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
-          <EyeOffIcon v-else class="w-4 h-4" />
-          <span class="whitespace-nowrap">
-            {{ mostrarGraficos ? `Ocultar consumo de planes` : `Ver consumo de planes` }}
-          </span>
-        </button>
       </div>
 
       <!-- Chips de filtros activos -->
       <div class="flex flex-wrap items-center gap-2">
         <span
-          v-if="empresaSeleccionada"
+          v-if="empresaSeleccionada !== undefined && empresaSeleccionada"
           class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
         >
           Empresa: {{ empresaSeleccionada }}
@@ -117,7 +123,7 @@
         </span>
 
         <span
-          v-if="sectorSeleccionado"
+          v-if="sectorSeleccionado !== undefined && sectorSeleccionado"
           class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
         >
           Sector: {{ sectorSeleccionado }}
@@ -128,7 +134,7 @@
         </span>
 
         <span
-          v-if="planSeleccionado"
+          v-if="planSeleccionado !== undefined && planSeleccionado"
           class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
         >
           Plan: {{ planSeleccionado }}
@@ -140,7 +146,9 @@
 
         <!-- Botón "Quitar todos" -->
         <button
-          v-if="empresaSeleccionada || sectorSeleccionado || planSeleccionado"
+          v-if="(empresaSeleccionada && empresaSeleccionada !== '') ||
+                 (sectorSeleccionado && sectorSeleccionado !== '') ||
+                 (planSeleccionado && planSeleccionado !== '')"
           @click="limpiarFiltros"
           class="text-gray-500 underline hover:text-gray-700 text-sm"
         >
@@ -150,6 +158,7 @@
     </div>
   </transition>
 </template>
+
 
 <script setup>
 import { computed } from 'vue'
@@ -177,9 +186,9 @@ const emit = defineEmits([
   'toggleGraficos'
 ])
 
-const empresasOrdenadas = computed(() => [...props.empresas].sort((a, b) => a.localeCompare(b)))
-const sectoresOrdenados = computed(() => [...props.sectores].sort((a, b) => a.localeCompare(b)))
-const planesOrdenados = computed(() => [...props.planes].sort((a, b) => a.localeCompare(b)))
+const empresasOrdenadas = computed(() => [...(props.empresas || [])].sort((a, b) => a.localeCompare(b)))
+const sectoresOrdenados = computed(() => [...(props.sectores || [])].sort((a, b) => a.localeCompare(b)))
+const planesOrdenados = computed(() => [...(props.planes || [])].sort((a, b) => a.localeCompare(b)))
 
 const placeholderBusqueda = computed(() => {
   return props.entidad === 'empresa'
@@ -188,8 +197,8 @@ const placeholderBusqueda = computed(() => {
 })
 
 function limpiarFiltros() {
-  emit('update:empresa', '')
-  emit('update:sector', '')
-  emit('update:plan', '')
+  if (props.empresaSeleccionada !== undefined) emit('update:empresa', '')
+  if (props.sectorSeleccionado !== undefined) emit('update:sector', '')
+  if (props.planSeleccionado !== undefined) emit('update:plan', '')
 }
 </script>

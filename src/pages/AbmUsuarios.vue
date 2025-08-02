@@ -1,102 +1,97 @@
 <template>
-  <!-- Contenedor externo fijo -->
-  <div class="w-full">
-    <!-- Contenedor interno con ancho máximo fijo siempre -->
-    <div class="max-w-screen-xl mx-auto px-4 sm:px-8 pt-4 pb-10">
-      <div v-if="loading" class="flex justify-center items-center py-20">
-        <MainLoader />
-      </div>
-
-      <template v-else>
-        <AlertMessage
-          v-if="feedback"
-          :message="feedback"
-          type="success"
-          auto-dismiss
-          @dismiss="feedback = ''"
-        />
-
-        <AbmLayout titulo="Gestión de Usuarios">
-          <template #acciones>
-            <Acciones
-              nombreEntidad="Usuario"
-              :seleccionados="usuariosSeleccionados"
-              @agregar="router.push('/usuarios/agregar')"
-              @editar="irAEditar"
-              @borrar="abrirModalEliminarMultiple"
-              @deseleccionarTodos="usuariosSeleccionados.clear()"
-            />
-          </template>
-
-          <template #filtros>
-            <FiltrosEntidad
-              entidad="usuario"
-              :busqueda="busqueda"
-              :empresaSeleccionada="empresaSeleccionada"
-              :sectorSeleccionado="sectorSeleccionado"
-              :planSeleccionado="planSeleccionado"
-              :empresas="empresasDisponibles"
-              :sectores="sectoresDisponibles"
-              :planes="planesDisponibles"
-              :mostrarDetalles="mostrarTecnicos"
-              @update:busqueda="busqueda = $event"
-              @update:empresa="empresaSeleccionada = $event"
-              @update:sector="sectorSeleccionado = $event"
-              @update:plan="planSeleccionado = $event"
-              @toggle="mostrarTecnicos = !mostrarTecnicos"
-            />
-
-          </template>
-        </AbmLayout>
-
-
-        <!-- Grilla o mensaje -->
-        <GridLayout
-          :columnas="4"
-          :vacio="usuariosPaginados.length === 0"
-          mensajeVacio="No se encontraron usuarios que coincidan con la búsqueda."
-        >
-          <UsuarioCard
-            v-for="usuario in usuariosPaginados"
-            :key="usuario.id"
-            :usuario="usuario"
-            :mostrarTecnicos="mostrarTecnicos"
-            :seleccionados="usuariosSeleccionados"
-            @toggle-seleccion="toggleSeleccion"
-            :class="{ 'tarjeta-animada': animarTarjetas }"
-          />
-
-          <!-- Caja invisible para mantener ancho -->
-          <div v-if="usuariosPaginados.length === 0" :key="'placeholder'" class="invisible h-0">.</div>
-        </GridLayout>
-
-
-        <!-- Modal eliminar -->
-        <ModalEliminar
-          :show="mostrarModalEliminar"
-          :cantidad="usuariosSeleccionados.size"
-          :nombreUsuario="nombreSeleccionado"
-          @confirmar="eliminarUsuariosSeleccionados"
-          @cancelar="cerrarModalEliminarMultiple"
-        />
-
-        <!-- Paginación -->
-        <Paginador
-          :paginaActual="paginaActual"
-          :totalPaginas="totalPaginas"
-          @primero="paginaActual = 1"
-          @anterior="paginaAnterior"
-          @siguiente="siguientePagina"
-          @ultimo="paginaActual = totalPaginas"
-          @ir-a="paginaActual = $event"
-        />
-      </template>
+  <PageContainer>
+    <div v-if="loading" class="flex justify-center items-center py-20">
+      <MainLoader />
     </div>
-  </div>
+
+    <template v-else>
+      <AlertMessage
+        v-if="feedback"
+        :message="feedback"
+        type="success"
+        auto-dismiss
+        @dismiss="feedback = ''"
+      />
+
+      <AbmLayout titulo="Gestión de Usuarios">
+        <!-- Acciones -->
+        <template #acciones>
+          <Acciones
+            nombreEntidad="Usuario"
+            :seleccionados="usuariosSeleccionados"
+            @agregar="router.push('/usuarios/agregar')"
+            @editar="irAEditar"
+            @borrar="abrirModalEliminarMultiple"
+            @deseleccionarTodos="usuariosSeleccionados.clear()"
+          />
+        </template>
+
+        <!-- Filtros -->
+        <template #filtros>
+          <FiltrosEntidad
+            entidad="usuario"
+            :busqueda="busqueda"
+            :empresaSeleccionada="empresaSeleccionada"
+            :sectorSeleccionado="sectorSeleccionado"
+            :planSeleccionado="planSeleccionado"
+            :empresas="empresasDisponibles"
+            :sectores="sectoresDisponibles"
+            :planes="planesDisponibles"
+            :mostrarDetalles="mostrarTecnicos"
+            @update:busqueda="busqueda = $event"
+            @update:empresa="empresaSeleccionada = $event"
+            @update:sector="sectorSeleccionado = $event"
+            @update:plan="planSeleccionado = $event"
+            @toggle="mostrarTecnicos = !mostrarTecnicos"
+          />
+        </template>
+      </AbmLayout>
+
+      <!-- Grilla -->
+      <GridLayout
+        :columnas="4"
+        :vacio="usuariosVisibles.length === 0"
+        entidad="usuario"
+      >
+        <UsuarioCard
+          v-for="usuario in usuariosVisibles"
+          :key="usuario.id"
+          :usuario="usuario"
+          :mostrarTecnicos="mostrarTecnicos"
+          :seleccionados="usuariosSeleccionados"
+          @toggle-seleccion="toggleSeleccion"
+          :class="{ 'tarjeta-animada': animarTarjetas }"
+        />
+
+        <!-- Caja invisible para mantener ancho -->
+        <div v-if="usuariosVisibles.length === 0" :key="'placeholder'" class="invisible h-0">.</div>
+      </GridLayout>
+
+      <!-- Modal eliminar -->
+      <ModalEliminar
+        :show="mostrarModalEliminar"
+        :cantidad="usuariosSeleccionados.size"
+        :nombreUsuario="nombreSeleccionado"
+        @confirmar="eliminarUsuariosSeleccionados"
+        @cancelar="cerrarModalEliminarMultiple"
+      />
+
+      <!-- Paginación -->
+      <Paginador
+        :paginaActual="paginaActual"
+        :totalPaginas="totalPaginas"
+        @primero="paginaActual = 1"
+        @anterior="paginaAnterior"
+        @siguiente="siguientePagina"
+        @ultimo="paginaActual = totalPaginas"
+        @ir-a="paginaActual = $event"
+      />
+    </template>
+  </PageContainer>
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsuarios } from '@/composables/useUsuarios.js'
 import MainLoader from '@/components/MainLoader.vue'
@@ -108,8 +103,7 @@ import Paginador from '@/components/Paginador.vue'
 import AbmLayout from '@/components/layouts/AbmLayout.vue'
 import FiltrosEntidad from '../components/FiltrosEntidad.vue'
 import GridLayout from '@/components/layouts/GridLayout.vue'
-
-
+import PageContainer from '@/components/layouts/PageContainer.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -138,15 +132,21 @@ const {
 
 const mostrarTecnicos = ref(false)
 const mostrarModalEliminar = ref(false)
-const animarTarjetas = ref(false)
+const animarTarjetas = ref(true)
+const usuariosVisibles = ref([])
 
-// Aplica animación a todas las tarjetas cada vez que cambia el listado
-watchEffect(() => {
-  usuariosPaginados.value // dependencia
+// Animación secuencial como en empresas
+watch(usuariosPaginados, async () => {
   animarTarjetas.value = false
-  requestAnimationFrame(() => {
-    animarTarjetas.value = true
-  })
+
+  const nuevos = usuariosPaginados.value
+  usuariosVisibles.value = usuariosVisibles.value.filter(u =>
+    nuevos.some(n => n.id === u.id)
+  )
+
+  await new Promise(r => setTimeout(r, 300))
+  usuariosVisibles.value = nuevos
+  animarTarjetas.value = true
 })
 
 const irAEditar = () => {

@@ -68,7 +68,7 @@
       </TransitionExpand>
 
       <!-- Checkbox reutilizable -->
-      <div class="absolute bottom-3 left-0">
+      <div class="absolute bottom-3 -left-2">
         <CheckboxSeleccion
           :checked="seleccionados.has(usuario.id)"
           @update:checked="$emit('toggle-seleccion', usuario.id)"

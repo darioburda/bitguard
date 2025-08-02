@@ -25,8 +25,8 @@
 - ✅ En `MyProfile.vue` ya no se permite enlazar a RustDesk directamente, solo visible en ABM por admins  
 - ✅ Nuevo botón "Tomar Ticket" con ícono de mano e integración con modal de confirmación  
 - ✅ Estado intermedio `Activo` para tickets tomados por un técnico  
-- ✅ Nueva animación fluida al expandir datos técnicos de usuarios  
-- ✅ Checkbox fijo visible siempre en cada card de usuario  
+- ✅ Nueva animación fluida al expandir datos técnicos de usuarios y empresas  
+- ✅ Checkbox fijo visible siempre en cada card  
 - ✅ Modal de eliminación con estética mejorada y comportamiento condicional  
 - ✅ Paginación con navegación completa: primero, anterior, siguiente, último  
 - ✅ Componente reutilizable `MainButton.vue` con variantes (`agregar`, `editar`, `borrar`, `default`)  
@@ -36,11 +36,14 @@
 - ✅ En mobile, los botones se muestran centrados y con ancho reducido (`w-[80%]`)  
 - ✅ Diseño consistente de botones en desktop: íconos alineados, altura y tipografía uniforme  
 - ✅ Filtros de usuarios con toggle de detalles integrados en la misma línea que la búsqueda  
-- ✅ Grilla de usuarios con `min-h-[600px]` para evitar saltos visuales al no haber resultados  
-- ✅ Mensaje de “No se encontraron usuarios…” centrado dentro de la misma grilla  
+- ✅ Grilla de usuarios y empresas con `min-h-[600px]` para evitar saltos visuales  
+- ✅ Mensaje de “No se encontraron resultados” centrado dentro de la grilla  
 - ✅ Layout de filtros y resultados mantiene el ancho al aplicar cualquier filtro  
 - ✅ Nuevo componente `FiltrosEntidad.vue` reutilizable para aplicar filtros en usuarios y empresas  
 - ✅ Filtros en `AbmEmpresas.vue` por nombre, plan y sector con chips de filtros activos y botón de "Quitar todos"  
+- ✅ Animaciones suaves al filtrar empresas con transición completa de entrada y salida  
+- ✅ Gráficos de soporte y visitas se cargan luego de completar animaciones con fade  
+- ✅ Cards de empresa con comportamiento visual unificado respecto a usuario (`pb`, `mb`, `transition`)  
 
 ---
 
@@ -70,7 +73,10 @@ src/
 │   ├── CheckboxSeleccion.vue
 │   ├── FiltrosUsuarios.vue
 │   ├── FiltrosEntidad.vue     # ✅ Nuevo componente reutilizable
-│   └── Paginador.vue
+│   ├── Paginador.vue
+│   ├── SoporteChart.vue
+│   ├── VisitasChart.vue
+│   ├── TransitionExpand.vue
 ├── pages/                 # Vistas principales (Home, Login, ABM, etc.)
 ├── modules/
 │   ├── home/
@@ -141,6 +147,7 @@ Actualización automática de updated_at
 
 👤 Vista para usuarios no administradores
 MyProfile.vue
+
 Datos personales del usuario actual
 
 BadgePlan del plan de su empresa
@@ -152,6 +159,7 @@ Gráficos de consumo en bloque verde
 Sin enlace a RustDesk
 
 ContactosEmpresa.vue
+
 Lista de compañeros: nombre, sector, email, interno y foto
 
 🔭 Próximas funcionalidades
