@@ -9,11 +9,10 @@
 
         <p class="mb-6 break-words">
           <template v-if="cantidad === 1">
-            ¿Estás seguro de que querés eliminar al usuario
-            <strong>{{ nombreUsuario }}</strong>?
+            ¿Estás seguro de que querés eliminar {{ nombreEntidadSingular }} <strong>{{ nombre }}</strong>?
           </template>
           <template v-else>
-            ¿Estás seguro de que querés eliminar {{ cantidad }} usuario(s)?
+            ¿Estás seguro de que querés eliminar {{ cantidad }} {{ nombreEntidadPlural }}?
           </template>
         </p>
 
@@ -37,13 +36,35 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   show: Boolean,
   cantidad: Number,
-  nombreUsuario: String
+  nombre: String,
+  entidad: {
+    type: String,
+    default: 'usuario' // fallback si no se pasa
+  }
 })
 
 defineEmits(['confirmar', 'cancelar'])
+
+const nombreEntidadSingular = computed(() => {
+  switch (props.entidad) {
+    case 'ticket': return 'el ticket';
+    case 'empresa': return 'la empresa';
+    default: return 'al usuario';
+  }
+})
+
+const nombreEntidadPlural = computed(() => {
+  switch (props.entidad) {
+    case 'ticket': return 'ticket(s)';
+    case 'empresa': return 'empresa(s)';
+    default: return 'usuario(s)';
+  }
+})
 </script>
 
 <style scoped>

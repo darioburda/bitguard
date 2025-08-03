@@ -12,6 +12,7 @@ export async function getAllTickets() {
       tema_ayuda,
       estado,
       created_at,
+      empresa_id,
       empresas ( nombre ),
       user_profiles!tickets_usuario_id_fkey ( display_name ),
       tecnico:user_profiles!tickets_tecnico_id_fkey ( display_name )
@@ -30,6 +31,7 @@ export async function getAllTickets() {
     tecnico_nombre: ticket.tecnico?.display_name || 'No asignado'
   }));
 }
+
 
 // 2. Crear nuevo ticket
 export const crearTicket = async (ticketData) => {

@@ -1,12 +1,82 @@
+<script setup>
+import { computed } from 'vue'
+import { XCircleIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
+
+const props = defineProps({
+  busqueda: String,
+  empresaSeleccionada: [String, Number],
+  sectorSeleccionado: String,
+  planSeleccionado: String,
+  estadoSeleccionado: String,
+  tipoSeleccionado: String,
+
+  empresas: Array,
+  sectores: Array,
+  planes: Array,
+  estados: Array,
+  tipos: Array,
+
+  mostrarDetalles: Boolean,
+  mostrarGraficos: Boolean,
+  entidad: String
+})
+
+const emit = defineEmits([
+  'update:busqueda',
+  'update:empresa',
+  'update:sector',
+  'update:plan',
+  'update:estado',
+  'update:tipo',
+  'toggle',
+  'toggleGraficos'
+])
+
+const ordenarArray = (arr) => {
+  return [...(arr || [])].sort((a, b) => {
+    const aVal = typeof a === 'string' ? a : a.nombre
+    const bVal = typeof b === 'string' ? b : b.nombre
+    return aVal?.localeCompare?.(bVal)
+  })
+}
+
+const empresasOrdenadas = computed(() => ordenarArray(props.empresas))
+const sectoresOrdenados = computed(() => ordenarArray(props.sectores))
+const planesOrdenados = computed(() => ordenarArray(props.planes))
+const estadosOrdenados = computed(() => ordenarArray(props.estados))
+const tiposOrdenados = computed(() => ordenarArray(props.tipos))
+
+const placeholderBusqueda = computed(() => {
+  if (props.entidad === 'empresa') return 'Buscar por empresa...'
+  if (props.entidad === 'ticket') return 'Buscar por ticket o título...'
+  return 'Buscar por usuario o email...'
+})
+
+const empresaNombreSeleccionada = computed(() => {
+  if (!props.empresas || !props.empresaSeleccionada) return ''
+  const emp = props.empresas.find(e =>
+    typeof e === 'object' && e.id && String(e.id) === String(props.empresaSeleccionada)
+  )
+  return emp?.nombre || props.empresaSeleccionada
+})
+
+function limpiarFiltros() {
+  emit('update:empresa', '')
+  emit('update:sector', '')
+  emit('update:plan', '')
+  emit('update:estado', '')
+  emit('update:tipo', '')
+}
+</script>
+
 <template>
   <transition name="fade">
     <div class="mb-6 w-full">
-      <!-- Línea unificada de búsqueda, filtros y toggle -->
       <div
         class="flex flex-wrap justify-between items-center gap-4 w-full pb-5"
-        :class="(empresaSeleccionada || sectorSeleccionado || planSeleccionado) ? '' : 'mb-[28px]'"
+        :class="(empresaSeleccionada || sectorSeleccionado || planSeleccionado || estadoSeleccionado || tipoSeleccionado) ? '' : 'mb-[28px]'"
       >
-        <!-- Izquierda: búsqueda + filtros -->
+        <!-- Izquierda -->
         <div class="flex flex-wrap items-center gap-4">
           <!-- Búsqueda -->
           <div class="relative w-[280px] sm:w-[300px] flex-shrink-0">
@@ -17,14 +87,12 @@
               :placeholder="placeholderBusqueda"
               class="w-full pl-10 pr-8 py-2 border rounded-md shadow-sm"
             />
-            <!-- Icono de lupa -->
             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </span>
-            <!-- Icono de cruz -->
             <XCircleIcon
               v-if="busqueda"
               @click="$emit('update:busqueda', '')"
@@ -42,8 +110,12 @@
               class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
             >
               <option value="">Todas las empresas</option>
-              <option v-for="empresa in empresasOrdenadas" :key="empresa" :value="empresa">
-                {{ empresa }}
+              <option
+                v-for="empresa in empresasOrdenadas"
+                :key="typeof empresa === 'string' ? empresa : empresa.id"
+                :value="typeof empresa === 'string' ? empresa : empresa.id"
+              >
+                {{ typeof empresa === 'string' ? empresa : empresa.nombre }}
               </option>
             </select>
 
@@ -55,7 +127,11 @@
               class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
             >
               <option value="">Todos los sectores</option>
-              <option v-for="sector in sectoresOrdenados" :key="sector" :value="sector">
+              <option
+                v-for="sector in sectoresOrdenados"
+                :key="sector"
+                :value="sector"
+              >
                 {{ sector }}
               </option>
             </select>
@@ -68,54 +144,78 @@
               class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
             >
               <option value="">Todos los planes</option>
-              <option v-for="plan in planesOrdenados" :key="plan" :value="plan">
-                {{ plan }}
+              <option
+                v-for="plan in planesOrdenados"
+                :key="typeof plan === 'string' ? plan : plan.id"
+                :value="typeof plan === 'string' ? plan : plan.id"
+              >
+                {{ typeof plan === 'string' ? plan : plan.nombre }}
+              </option>
+            </select>
+
+            <!-- Estado -->
+            <select
+              v-if="estados && estadoSeleccionado !== undefined"
+              :value="estadoSeleccionado"
+              @change="$emit('update:estado', $event.target.value)"
+              class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
+            >
+              <option value="">Todos los estados</option>
+              <option v-for="estado in estadosOrdenados" :key="estado" :value="estado">
+                {{ estado }}
+              </option>
+            </select>
+
+            <!-- Tipo -->
+            <select
+              v-if="tipos && tipoSeleccionado !== undefined"
+              :value="tipoSeleccionado"
+              @change="$emit('update:tipo', $event.target.value)"
+              class="w-[200px] px-4 py-2 border rounded-md shadow-sm"
+            >
+              <option value="">Todos los tipos</option>
+              <option v-for="tipo in tiposOrdenados" :key="tipo" :value="tipo">
+                {{ tipo }}
               </option>
             </select>
           </div>
         </div>
 
-        <!-- Derecha: toggle -->
+        <!-- Toggle -->
         <div>
-          <!-- Toggle usuarios -->
           <button
             v-if="entidad === 'usuario'"
             @click="$emit('toggle')"
-            :aria-label="mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'"
-            :title="mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'"
             class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
           >
             <EyeIcon v-if="!mostrarDetalles" class="w-4 h-4" />
             <EyeOffIcon v-else class="w-4 h-4" />
             <span class="whitespace-nowrap">
-              {{ mostrarDetalles ? `Ocultar detalles técnicos` : `Ver detalles técnicos` }}
+              {{ mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos' }}
             </span>
           </button>
 
-          <!-- Toggle empresas -->
           <button
             v-if="entidad === 'empresa'"
             @click="$emit('toggleGraficos')"
-            :aria-label="mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes'"
-            :title="mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes'"
             class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
           >
             <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
             <EyeOffIcon v-else class="w-4 h-4" />
             <span class="whitespace-nowrap">
-              {{ mostrarGraficos ? `Ocultar consumo de planes` : `Ver consumo de planes` }}
+              {{ mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes' }}
             </span>
           </button>
         </div>
       </div>
 
-      <!-- Chips de filtros activos -->
+      <!-- Chips -->
       <div class="flex flex-wrap items-center gap-2">
         <span
-          v-if="empresaSeleccionada !== undefined && empresaSeleccionada"
+          v-if="empresaSeleccionada"
           class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
         >
-          Empresa: {{ empresaSeleccionada }}
+          Empresa: {{ empresaNombreSeleccionada }}
           <XCircleIcon
             @click="$emit('update:empresa', '')"
             class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
@@ -123,7 +223,7 @@
         </span>
 
         <span
-          v-if="sectorSeleccionado !== undefined && sectorSeleccionado"
+          v-if="sectorSeleccionado"
           class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
         >
           Sector: {{ sectorSeleccionado }}
@@ -134,7 +234,7 @@
         </span>
 
         <span
-          v-if="planSeleccionado !== undefined && planSeleccionado"
+          v-if="planSeleccionado"
           class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
         >
           Plan: {{ planSeleccionado }}
@@ -144,11 +244,30 @@
           />
         </span>
 
-        <!-- Botón "Quitar todos" -->
+        <span
+          v-if="estadoSeleccionado"
+          class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
+        >
+          Estado: {{ estadoSeleccionado }}
+          <XCircleIcon
+            @click="$emit('update:estado', '')"
+            class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
+          />
+        </span>
+
+        <span
+          v-if="tipoSeleccionado"
+          class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
+        >
+          Tipo: {{ tipoSeleccionado }}
+          <XCircleIcon
+            @click="$emit('update:tipo', '')"
+            class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
+          />
+        </span>
+
         <button
-          v-if="(empresaSeleccionada && empresaSeleccionada !== '') ||
-                 (sectorSeleccionado && sectorSeleccionado !== '') ||
-                 (planSeleccionado && planSeleccionado !== '')"
+          v-if="empresaSeleccionada || sectorSeleccionado || planSeleccionado || estadoSeleccionado || tipoSeleccionado"
           @click="limpiarFiltros"
           class="text-gray-500 underline hover:text-gray-700 text-sm"
         >
@@ -158,47 +277,3 @@
     </div>
   </transition>
 </template>
-
-
-<script setup>
-import { computed } from 'vue'
-import { XCircleIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
-
-const props = defineProps({
-  busqueda: String,
-  empresaSeleccionada: String,
-  sectorSeleccionado: String,
-  planSeleccionado: String,
-  empresas: Array,
-  sectores: Array,
-  planes: Array,
-  mostrarDetalles: Boolean,
-  mostrarGraficos: Boolean,
-  entidad: String // 'usuario' o 'empresa'
-})
-
-const emit = defineEmits([
-  'update:busqueda',
-  'update:empresa',
-  'update:sector',
-  'update:plan',
-  'toggle',
-  'toggleGraficos'
-])
-
-const empresasOrdenadas = computed(() => [...(props.empresas || [])].sort((a, b) => a.localeCompare(b)))
-const sectoresOrdenados = computed(() => [...(props.sectores || [])].sort((a, b) => a.localeCompare(b)))
-const planesOrdenados = computed(() => [...(props.planes || [])].sort((a, b) => a.localeCompare(b)))
-
-const placeholderBusqueda = computed(() => {
-  return props.entidad === 'empresa'
-    ? 'Buscar por nombre de empresa...'
-    : 'Buscar por nombre o email...'
-})
-
-function limpiarFiltros() {
-  if (props.empresaSeleccionada !== undefined) emit('update:empresa', '')
-  if (props.sectorSeleccionado !== undefined) emit('update:sector', '')
-  if (props.planSeleccionado !== undefined) emit('update:plan', '')
-}
-</script>

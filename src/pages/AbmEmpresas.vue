@@ -1,91 +1,85 @@
 <template>
-  <PageContainer>
-    <div v-if="loading" class="flex justify-center items-center py-20">
-      <MainLoader />
-    </div>
+  <PageContainer :loading="loading">
+    <AlertMessage
+      v-if="feedback"
+      :message="feedback"
+      type="success"
+      auto-dismiss
+      @dismiss="feedback = ''"
+    />
 
-    <template v-else>
-      <AlertMessage
-        v-if="feedback"
-        :message="feedback"
-        type="success"
-        auto-dismiss
-        @dismiss="feedback = ''"
-      />
-
-      <AbmLayout titulo="Gestión de Empresas">
-        <!-- Acciones -->
-        <template #acciones>
-          <Acciones
-            nombreEntidad="Empresa"
-            :seleccionados="empresasSeleccionadas"
-            @agregar="router.push('/empresas/agregar')"
-            @editar="irAEditar"
-            @borrar="eliminarEmpresasSeleccionadas"
-            @deseleccionarTodos="empresasSeleccionadas.clear()"
-          />
-        </template>
-
-        <!-- Filtros -->
-        <template #filtros>
-          <FiltrosEntidad
-            entidad="empresa"
-            :busqueda="busqueda"
-            :planSeleccionado="planSeleccionado"
-            :planes="planesDisponibles.map(p => p.nombre)"
-            :mostrarGraficos="mostrarGraficos"
-            @update:busqueda="busqueda = $event"
-            @update:plan="planSeleccionado = $event"
-            @toggleGraficos="mostrarGraficos = !mostrarGraficos"
-          />
-        </template>
-      </AbmLayout>
-
-      <!-- Grilla -->
-      <GridLayout
-        :columnas="3"
-        :vacio="empresasVisibles.length === 0"
-        entidad="empresa"
-      >
-        <EmpresaCard
-          v-for="empresa in empresasVisibles"
-          :key="empresa.id"
-          :empresa="empresa"
+    <AbmLayout titulo="Gestión de Empresas">
+      <!-- Acciones -->
+      <template #acciones>
+        <Acciones
+          nombreEntidad="Empresa"
           :seleccionados="empresasSeleccionadas"
-          :mostrarGraficos="mostrarGraficos"
-          @toggle-seleccion="toggleSeleccion"
-          :class="{ 'tarjeta-animada': animarTarjetas }"
+          @agregar="router.push('/empresas/agregar')"
+          @editar="irAEditar"
+          @borrar="eliminarEmpresasSeleccionadas"
+          @deseleccionarTodos="empresasSeleccionadas.clear()"
         />
-      </GridLayout>
+      </template>
 
-      <!-- Modal eliminar -->
-      <div
-        v-if="empresaAEliminar"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4"
-      >
-        <div class="bg-white border border-red-500 rounded-lg shadow-lg w-full max-w-[500px] p-6">
-          <h2 class="text-lg font-bold text-red-600 mb-4">Confirmar Eliminación</h2>
-          <p class="mb-6 break-words">
-            ¿Estás seguro de que querés eliminar la empresa
-            <strong>{{ empresaAEliminar.nombre }}</strong>?
-          </p>
-          <div class="flex justify-end gap-4">
-            <button
-              @click="eliminarEmpresaConfirmada"
-              class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-            >
-              Eliminar
-            </button>
-            <button
-              @click="cerrarModalEliminar"
-              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Cancelar
-            </button>
-          </div>
+      <!-- Filtros -->
+      <template #filtros>
+        <FiltrosEntidad
+          entidad="empresa"
+          :busqueda="busqueda"
+          :planSeleccionado="planSeleccionado"
+          :planes="planesDisponibles.map(p => p.nombre)"
+          :mostrarGraficos="mostrarGraficos"
+          @update:busqueda="busqueda = $event"
+          @update:plan="planSeleccionado = $event"
+          @toggleGraficos="mostrarGraficos = !mostrarGraficos"
+        />
+      </template>
+    </AbmLayout>
+
+    <!-- Grilla -->
+    <GridLayout
+      :columnas="3"
+      :vacio="empresasVisibles.length === 0"
+      entidad="empresa"
+    >
+      <EmpresaCard
+        v-for="empresa in empresasVisibles"
+        :key="empresa.id"
+        :empresa="empresa"
+        :seleccionados="empresasSeleccionadas"
+        :mostrarGraficos="mostrarGraficos"
+        @toggle-seleccion="toggleSeleccion"
+        :class="{ 'tarjeta-animada': animarTarjetas }"
+      />
+    </GridLayout>
+
+    <!-- Modal eliminar -->
+    <div
+      v-if="empresaAEliminar"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4"
+    >
+      <div class="bg-white border border-red-500 rounded-lg shadow-lg w-full max-w-[500px] p-6">
+        <h2 class="text-lg font-bold text-red-600 mb-4">Confirmar Eliminación</h2>
+        <p class="mb-6 break-words">
+          ¿Estás seguro de que querés eliminar la empresa
+          <strong>{{ empresaAEliminar.nombre }}</strong>?
+        </p>
+        <div class="flex justify-end gap-4">
+          <button
+            @click="eliminarEmpresaConfirmada"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Eliminar
+          </button>
+          <button
+            @click="cerrarModalEliminar"
+            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
-    </template>
+    </div>
   </PageContainer>
 </template>
 
@@ -94,8 +88,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllEmpresas, deleteEmpresaById } from '@/services/empresas'
 import { getAllPlanes } from '@/services/planes'
+import { useLoader } from '@/composables/useLoader.js'
+
 import Acciones from '@/components/Acciones.vue'
-import MainLoader from '@/components/MainLoader.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
 import EmpresaCard from '@/components/EmpresaCard.vue'
 import FiltrosEntidad from '@/components/FiltrosEntidad.vue'
@@ -105,17 +100,19 @@ import GridLayout from '@/components/layouts/GridLayout.vue'
 
 const router = useRouter()
 
+const { loading, finalizarCarga } = useLoader() // ✅ loader reusable
+
 const empresas = ref([])
-const loading = ref(true)
-const feedback = ref('')
-const empresaAEliminar = ref(null)
+const empresasVisibles = ref([])
 const empresasSeleccionadas = ref(new Set())
+const empresaAEliminar = ref(null)
 const mostrarGraficos = ref(false)
+const feedback = ref('')
+const animarTarjetas = ref(true)
 
 const busqueda = ref('')
 const planSeleccionado = ref('')
 const planesDisponibles = ref([])
-const animarTarjetas = ref(true)
 
 const empresasFiltradas = computed(() => {
   return empresas.value.filter(e => {
@@ -129,36 +126,27 @@ const empresasFiltradas = computed(() => {
   })
 })
 
-// Lista visible para controlar animación entrada/salida
-const empresasVisibles = ref([])
-
 watch([busqueda, planSeleccionado], async () => {
   animarTarjetas.value = false
-
   const nuevas = empresasFiltradas.value
 
-  // Fase 1: fade-out de las que se van
   empresasVisibles.value = empresasVisibles.value.filter(e =>
     nuevas.some(n => n.id === e.id)
   )
 
-  // Esperar salida
   await new Promise(resolve => setTimeout(resolve, 300))
-
-  // Fase 2: fade-in de las nuevas
   empresasVisibles.value = nuevas
   animarTarjetas.value = true
 })
 
 const cargarEmpresas = async () => {
-  loading.value = true
   try {
     empresas.value = await getAllEmpresas()
   } catch (error) {
     console.error('Error al cargar empresas:', error)
   } finally {
-    loading.value = false
     empresasSeleccionadas.value.clear()
+    finalizarCarga() // ✅ ocultar loader cuando termina todo
   }
 }
 
@@ -226,8 +214,25 @@ onMounted(async () => {
     feedback.value = storedMsg
     sessionStorage.removeItem('empresa_feedback')
   }
+
   await cargarEmpresas()
   await cargarPlanes()
   empresasVisibles.value = empresasFiltradas.value
 })
 </script>
+
+<style scoped>
+.tarjeta-animada {
+  animation: fadeInUp 0.4s ease;
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

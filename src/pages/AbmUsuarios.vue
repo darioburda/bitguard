@@ -1,92 +1,86 @@
 <template>
-  <PageContainer>
-    <div v-if="loading" class="flex justify-center items-center py-20">
-      <MainLoader />
-    </div>
+  <PageContainer :loading="loading">
+    <AlertMessage
+      v-if="feedback"
+      :message="feedback"
+      type="success"
+      auto-dismiss
+      @dismiss="feedback = ''"
+    />
 
-    <template v-else>
-      <AlertMessage
-        v-if="feedback"
-        :message="feedback"
-        type="success"
-        auto-dismiss
-        @dismiss="feedback = ''"
-      />
-
-      <AbmLayout titulo="Gestión de Usuarios">
-        <!-- Acciones -->
-        <template #acciones>
-          <Acciones
-            nombreEntidad="Usuario"
-            :seleccionados="usuariosSeleccionados"
-            @agregar="router.push('/usuarios/agregar')"
-            @editar="irAEditar"
-            @borrar="abrirModalEliminarMultiple"
-            @deseleccionarTodos="usuariosSeleccionados.clear()"
-          />
-        </template>
-
-        <!-- Filtros -->
-        <template #filtros>
-          <FiltrosEntidad
-            entidad="usuario"
-            :busqueda="busqueda"
-            :empresaSeleccionada="empresaSeleccionada"
-            :sectorSeleccionado="sectorSeleccionado"
-            :planSeleccionado="planSeleccionado"
-            :empresas="empresasDisponibles"
-            :sectores="sectoresDisponibles"
-            :planes="planesDisponibles"
-            :mostrarDetalles="mostrarTecnicos"
-            @update:busqueda="busqueda = $event"
-            @update:empresa="empresaSeleccionada = $event"
-            @update:sector="sectorSeleccionado = $event"
-            @update:plan="planSeleccionado = $event"
-            @toggle="mostrarTecnicos = !mostrarTecnicos"
-          />
-        </template>
-      </AbmLayout>
-
-      <!-- Grilla -->
-      <GridLayout
-        :columnas="4"
-        :vacio="usuariosVisibles.length === 0"
-        entidad="usuario"
-      >
-        <UsuarioCard
-          v-for="usuario in usuariosVisibles"
-          :key="usuario.id"
-          :usuario="usuario"
-          :mostrarTecnicos="mostrarTecnicos"
+    <AbmLayout titulo="Gestión de Usuarios">
+      <!-- Acciones -->
+      <template #acciones>
+        <Acciones
+          nombreEntidad="Usuario"
           :seleccionados="usuariosSeleccionados"
-          @toggle-seleccion="toggleSeleccion"
-          :class="{ 'tarjeta-animada': animarTarjetas }"
+          @agregar="router.push('/usuarios/agregar')"
+          @editar="irAEditar"
+          @borrar="abrirModalEliminarMultiple"
+          @deseleccionarTodos="usuariosSeleccionados.clear()"
         />
+      </template>
 
-        <!-- Caja invisible para mantener ancho -->
-        <div v-if="usuariosVisibles.length === 0" :key="'placeholder'" class="invisible h-0">.</div>
-      </GridLayout>
+      <!-- Filtros -->
+      <template #filtros>
+        <FiltrosEntidad
+          entidad="usuario"
+          :busqueda="busqueda"
+          :empresaSeleccionada="empresaSeleccionada"
+          :sectorSeleccionado="sectorSeleccionado"
+          :planSeleccionado="planSeleccionado"
+          :empresas="empresasDisponibles"
+          :sectores="sectoresDisponibles"
+          :planes="planesDisponibles"
+          :mostrarDetalles="mostrarTecnicos"
+          @update:busqueda="busqueda = $event"
+          @update:empresa="empresaSeleccionada = $event"
+          @update:sector="sectorSeleccionado = $event"
+          @update:plan="planSeleccionado = $event"
+          @toggle="mostrarTecnicos = !mostrarTecnicos"
+        />
+      </template>
+    </AbmLayout>
 
-      <!-- Modal eliminar -->
-      <ModalEliminar
-        :show="mostrarModalEliminar"
-        :cantidad="usuariosSeleccionados.size"
-        :nombreUsuario="nombreSeleccionado"
-        @confirmar="eliminarUsuariosSeleccionados"
-        @cancelar="cerrarModalEliminarMultiple"
+    <!-- Grilla -->
+    <GridLayout
+      :columnas="4"
+      :vacio="usuariosVisibles.length === 0"
+      entidad="usuario"
+    >
+      <UsuarioCard
+        v-for="usuario in usuariosVisibles"
+        :key="usuario.id"
+        :usuario="usuario"
+        :mostrarTecnicos="mostrarTecnicos"
+        :seleccionados="usuariosSeleccionados"
+        @toggle-seleccion="toggleSeleccion"
+        :class="{ 'tarjeta-animada': animarTarjetas }"
       />
 
-      <!-- Paginación -->
-      <Paginador
-        :paginaActual="paginaActual"
-        :totalPaginas="totalPaginas"
-        @primero="paginaActual = 1"
-        @anterior="paginaAnterior"
-        @siguiente="siguientePagina"
-        @ultimo="paginaActual = totalPaginas"
-        @ir-a="paginaActual = $event"
-      />
-    </template>
+      <!-- Caja invisible para mantener ancho -->
+      <div v-if="usuariosVisibles.length === 0" :key="'placeholder'" class="invisible h-0">.</div>
+    </GridLayout>
+
+    <!-- Modal eliminar -->
+    <ModalEliminar
+      :show="mostrarModalEliminar"
+      :cantidad="usuariosSeleccionados.size"
+      :nombreUsuario="nombreSeleccionado"
+      @confirmar="eliminarUsuariosSeleccionados"
+      @cancelar="cerrarModalEliminarMultiple"
+    />
+
+    <!-- Paginación -->
+    <Paginador
+      :paginaActual="paginaActual"
+      :totalPaginas="totalPaginas"
+      @primero="paginaActual = 1"
+      @anterior="paginaAnterior"
+      @siguiente="siguientePagina"
+      @ultimo="paginaActual = totalPaginas"
+      @ir-a="paginaActual = $event"
+    />
   </PageContainer>
 </template>
 
@@ -94,7 +88,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsuarios } from '@/composables/useUsuarios.js'
-import MainLoader from '@/components/MainLoader.vue'
+import { useLoader } from '@/composables/useLoader.js' // ✅ Nuevo
 import AlertMessage from '@/components/AlertMessage.vue'
 import UsuarioCard from '@/components/UsuarioCard.vue'
 import ModalEliminar from '@/components/ModalEliminar.vue'
@@ -110,7 +104,6 @@ const route = useRoute()
 
 const {
   usuarios,
-  loading,
   feedback,
   usuariosSeleccionados,
   paginaActual,
@@ -130,20 +123,19 @@ const {
   siguientePagina,
 } = useUsuarios()
 
+const { loading, finalizarCarga } = useLoader() // ✅ Usamos el composable
+
 const mostrarTecnicos = ref(false)
 const mostrarModalEliminar = ref(false)
 const animarTarjetas = ref(true)
 const usuariosVisibles = ref([])
 
-// Animación secuencial como en empresas
 watch(usuariosPaginados, async () => {
   animarTarjetas.value = false
-
   const nuevos = usuariosPaginados.value
   usuariosVisibles.value = usuariosVisibles.value.filter(u =>
     nuevos.some(n => n.id === u.id)
   )
-
   await new Promise(r => setTimeout(r, 300))
   usuariosVisibles.value = nuevos
   animarTarjetas.value = true
@@ -183,13 +175,15 @@ const eliminarUsuariosSeleccionados = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const successMsg = route.query.success
   if (successMsg) {
     feedback.value = decodeURIComponent(successMsg)
     router.replace({ query: {} })
   }
 
-  cargarUsuarios()
+  await cargarUsuarios()
+  finalizarCarga() // ✅ Ocultamos el loader solo cuando todo esté listo
 })
 </script>
+

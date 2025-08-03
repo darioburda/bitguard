@@ -14,25 +14,20 @@
       />
     </transition-group>
 
-    <!-- Mensaje o loader centrado arriba -->
+    <!-- Mensaje centrado con delay -->
     <div
-      v-if="vacio && mostrarMensaje"
+      v-if="vacio && mostrarMensaje && mostrarMensajeVacio"
       class="absolute top-10 left-1/2 transform -translate-x-1/2 z-10 text-center"
     >
-      <MainLoader v-if="esperandoRender" />
-      <div v-else class="text-gray-600 text-lg">
+      <div class="text-gray-600 text-lg">
         {{ mensajeFinal }}
       </div>
     </div>
   </div>
 </template>
 
-
-
-
 <script setup>
-import { computed, ref, watchEffect } from 'vue'
-import MainLoader from '@/components/MainLoader.vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   columnas: {
@@ -74,18 +69,22 @@ const mensajeFinal = computed(() => {
   return 'No se encontraron elementos.'
 })
 
-// Mostrar loader antes del mensaje
-const esperandoRender = ref(true)
-watchEffect(() => {
-  if (props.vacio) {
-    esperandoRender.value = true
-    setTimeout(() => {
-      esperandoRender.value = false
-    }, 100)
-  } else {
-    esperandoRender.value = false
+// Mostrar mensaje de vacío con delay
+const mostrarMensajeVacio = ref(false)
+
+watch(
+  () => props.vacio,
+  (nuevoValor) => {
+    if (nuevoValor) {
+      mostrarMensajeVacio.value = false
+      setTimeout(() => {
+        mostrarMensajeVacio.value = true
+      }, 400)
+    } else {
+      mostrarMensajeVacio.value = false
+    }
   }
-})
+)
 </script>
 
 <style scoped>
