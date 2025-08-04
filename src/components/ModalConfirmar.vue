@@ -7,12 +7,9 @@
       <div
         class="bg-white border border-[#01C38E] rounded-lg shadow-lg w-full max-w-[500px] p-6 animate-fadeIn"
       >
-        <h2 class="text-lg font-bold text-[#01C38E] mb-4">Confirmar Acción</h2>
+        <h2 class="text-lg font-bold text-[#01C38E] mb-4">{{ titulo }}</h2>
 
-        <p class="mb-6 break-words">
-          ¿Estás seguro de que querés tomar el ticket
-          <strong>#{{ nombre?.slice(-8) }}</strong>?
-        </p>
+        <p class="mb-6 break-words" v-html="mensaje" />
 
         <div class="flex justify-end gap-4">
           <button
@@ -36,9 +33,15 @@
 <script setup>
 defineProps({
   visible: Boolean,
-  nombre: String // será el ID completo del ticket
+  titulo: {
+    type: String,
+    default: 'Confirmar Acción'
+  },
+  mensaje: {
+    type: String,
+    default: '¿Estás seguro que querés realizar esta acción?'
+  }
 })
-
 defineEmits(['confirmar', 'cancelar'])
 </script>
 

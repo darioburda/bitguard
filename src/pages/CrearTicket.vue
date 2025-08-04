@@ -1,277 +1,146 @@
-<template>
-  <div class="max-w-screen-md mx-auto px-4 py-10">
-    <h1 class="text-2xl font-bold mb-6">Crear Ticket</h1>
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
-    <AlertMessage v-if="feedback" :message="feedback" type="success" auto-dismiss @dismiss="feedback = ''" />
+import DetailContainer from '@/components/layouts/DetailContainer.vue'
+import DetailLayout from '@/components/layouts/DetailLayout.vue'
+import AccionesDetalle from '@/components/AccionesDetalle.vue'
+import FormularioLayout from '@/components/layouts/FormularioLayout.vue'
+import AlertMessage from '@/components/AlertMessage.vue'
+import MainButton from '@/components/MainButton.vue'
 
-    <form @submit.prevent="submitForm" class="space-y-6">
-      <!-- Empresa -->
-      <div>
-        <label class="block mb-1 font-semibold">Empresa</label>
-        <select v-model="ticket.empresa_id" class="w-full border px-4 py-2 rounded">
-          <option disabled value="">Selecciona una empresa</option>
-          <option v-for="e in empresas" :key="e.id" :value="e.id">{{ e.nombre }}</option>
-        </select>
-      </div>
+import FormularioTicket from '@/components/FormularioTicket.vue'
 
-      <!-- Usuario solicitante con autocomplete -->
-      <div class="relative">
-        <label class="block mb-1 font-semibold">Usuario solicitante</label>
+import { getAllEmpresas } from '@/services/empresas'
+import { getAllUserProfiles } from '@/services/user-profiles'
+import { crearTicket } from '@/services/tickets'
 
-        <input
-          type="text"
-          v-model="busquedaUsuario"
-          placeholder="Buscar por nombre o email..."
-          class="w-full border px-4 py-2 rounded"
-          :disabled="usuarios.length === 0"
-          @focus="mostrarSugerencias = true"
-          @blur="ocultarConDelay"
-        />
+const router = useRouter()
 
-        <!-- Sugerencias -->
-        <ul
-          v-if="mostrarSugerencias && busquedaUsuario && usuariosFiltrados.length > 0"
-          class="absolute z-10 w-full bg-white border border-gray-300 rounded shadow max-h-52 overflow-auto"
-        >
-          <li
-            v-for="u in usuariosFiltrados"
-            :key="u.id"
-            @mousedown.prevent="seleccionarUsuario(u)"
-            class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-          >
-            {{ u.display_name ? `${u.display_name} - ${u.email}` : u.email }}
-          </li>
-        </ul>
+const cargando = ref(false)
+const feedback = ref('')
+const feedbackType = ref('danger') // para controlar color error o éxito
 
-        <!-- No encontrado -->
-        <p
-          v-if="mostrarSugerencias && busquedaUsuario && usuariosFiltrados.length === 0"
-          class="mt-2 text-sm text-red-600"
-        >
-          ❗ Usuario no encontrado. Verificá el nombre o email.
-        </p>
+const empresas = ref([])
+const usuarios = ref([])
+const todosUsuarios = ref([])
+const tecnicos = ref([])
 
-        <!-- Usuario seleccionado -->
-        <div v-if="usuarioSeleccionado" class="text-sm text-gray-600 mt-1">
-          Usuario seleccionado: <strong>{{ usuarioSeleccionado }}</strong>
-        </div>
+const ticket = ref({
+  empresa_id: '',
+  tipo: 'Remoto',
+  titulo: '',
+  tema_ayuda: '',
+  descripcion: '',
+  usuario_id: '',
+  tecnico_id: '',
+})
 
-        <!-- Botón para mostrar select -->
-        <button
-          type="button"
-          class="mt-3 text-sm text-blue-600 underline"
-          @click="mostrarSelectUsuarios = !mostrarSelectUsuarios"
-        >
-          {{ mostrarSelectUsuarios ? 'Ocultar listado completo' : '¿No recordás el nombre? Mostrar lista completa' }}
-        </button>
+const cargarDatos = async () => {
+  cargando.value = true
+  try {
+    empresas.value = await getAllEmpresas()
+    const perfiles = await getAllUserProfiles()
+    todosUsuarios.value = perfiles
+    usuarios.value = []
+    tecnicos.value = perfiles.filter(u => u.is_admin)
+  } catch (error) {
+    console.error(error)
+  } finally {
+    cargando.value = false
+  }
+}
 
-        <!-- Select completo (opcional) -->
-        <div v-if="mostrarSelectUsuarios" class="mt-2">
-          <select
-            class="w-full border px-4 py-2 rounded"
-            @change="seleccionarDesdeSelect($event)"
-            :value="ticket.usuario_id"
-          >
-            <option value="">Selecciona un usuario</option>
-            <option v-for="u in usuarios" :key="u.id" :value="u.id">
-              {{ u.display_name ? `${u.display_name} - ${u.email}` : u.email }}
-            </option>
-          </select>
-        </div>
-      </div>
+onMounted(cargarDatos)
 
-      <!-- Título -->
-      <div>
-        <label class="block mb-1 font-semibold">Título del ticket <span class="text-red-600">*</span></label>
-        <input
-          type="text"
-          v-model="ticket.titulo"
-          class="w-full border px-4 py-2 rounded"
-          maxlength="100"
-          required
-        />
-      </div>
+const filtrarUsuariosPorEmpresa = () => {
+  if (!ticket.value.empresa_id) {
+    usuarios.value = []
+    ticket.value.usuario_id = ''
+    return
+  }
+  usuarios.value = todosUsuarios.value.filter(u => u.empresa_id === ticket.value.empresa_id)
+  ticket.value.usuario_id = ''
+  feedback.value = ''
+}
 
-      <!-- Tema de ayuda -->
-      <div>
-        <label class="block mb-1 font-semibold">Tema de ayuda</label>
-        <select v-model="ticket.tema_ayuda" class="w-full border px-4 py-2 rounded">
-          <option disabled value="">Selecciona una categoría</option>
-          <option value="Red">Red</option>
-          <option value="Hardware">Hardware</option>
-          <option value="Software">Software</option>
-          <option value="Correo">Correo</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
+watch(() => ticket.value.empresa_id, filtrarUsuariosPorEmpresa)
 
-      <!-- Tipo de soporte -->
-      <div>
-        <label class="block mb-1 font-semibold">Tipo</label>
-        <select v-model="ticket.tipo" class="w-full border px-4 py-2 rounded">
-          <option value="Remoto">Remoto</option>
-          <option value="Presencial">Presencial</option>
-        </select>
-      </div>
+const guardarTicket = async () => {
+  feedback.value = ''
+  feedbackType.value = 'danger'
 
-      <!-- Descripción -->
-      <div>
-        <label class="block mb-1 font-semibold">Descripción <span class="text-red-600">*</span></label>
-        <textarea
-          v-model="ticket.descripcion"
-          class="w-full border px-4 py-2 rounded resize-none"
-          rows="4"
-          required
-        ></textarea>
-      </div>
+  if (!ticket.value.empresa_id) {
+    feedback.value = '❌ Debes seleccionar una empresa.'
+    return
+  }
+  if (!ticket.value.usuario_id) {
+    feedback.value = '❌ Debes seleccionar un usuario solicitante.'
+    return
+  }
+  if (!ticket.value.titulo.trim()) {
+    feedback.value = '❌ Debes ingresar un título para el ticket.'
+    return
+  }
+  if (!ticket.value.descripcion.trim()) {
+    feedback.value = '❌ Debes ingresar una descripción.'
+    return
+  }
 
-      <!-- Técnico asignado -->
-      <div>
-        <label class="block mb-1 font-semibold">Asignar técnico (opcional)</label>
-        <select v-model="ticket.tecnico_id" class="w-full border px-4 py-2 rounded">
-          <option value="">-- Ninguno --</option>
-          <option v-for="t in tecnicos" :key="t.id" :value="t.id">{{ t.display_name || t.email }}</option>
-        </select>
-      </div>
-
-      <!-- Botón -->
-      <MainButton type="submit">Crear Ticket</MainButton>
-    </form>
-  </div>
-</template>
-
-<script>
-import { ref, onMounted, watch, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { getAllEmpresas } from '@/services/empresas';
-import { getAllUserProfiles } from '@/services/user-profiles';
-import { crearTicket } from '@/services/tickets';
-import AlertMessage from '@/components/AlertMessage.vue';
-import MainButton from '@/components/MainButton.vue';
-
-export default {
-  components: {
-    AlertMessage,
-    MainButton,
-  },
-  setup() {
-    const router = useRouter();
-    const empresas = ref([]);
-    const usuarios = ref([]);
-    const todosLosUsuarios = ref([]);
-    const tecnicos = ref([]);
-    const feedback = ref('');
-    const busquedaUsuario = ref('');
-    const usuarioSeleccionado = ref('');
-    const mostrarSugerencias = ref(false);
-    const mostrarSelectUsuarios = ref(false);
-
-    const ticket = ref({
-      empresa_id: '',
-      tipo: 'Remoto',
-      titulo: '',
-      tema_ayuda: '',
-      descripcion: '',
-      usuario_id: '',
-      tecnico_id: '',
-    });
-
-    const submitForm = async () => {
-      try {
-        const payload = {
-          ...ticket.value,
-          tecnico_id: ticket.value.tecnico_id || null,
-          estado: ticket.value.tecnico_id ? 'Activo' : 'Abierto'
-        };
-        await crearTicket(payload);
-        feedback.value = '✅ Ticket creado correctamente';
-        router.push({ name: 'AbmTickets' });
-      } catch (error) {
-        console.error('[crearTicket] Error:', error);
-        feedback.value = '❌ Error al crear ticket';
-      }
-    };
-
-    const cargarDatos = async () => {
-      empresas.value = await getAllEmpresas();
-      const perfiles = await getAllUserProfiles();
-      todosLosUsuarios.value = perfiles;
-      usuarios.value = [];
-      tecnicos.value = perfiles.filter(u => u.is_admin);
-    };
-
-    const filtrarUsuariosPorEmpresa = () => {
-      if (!ticket.value.empresa_id) {
-        usuarios.value = [];
-        ticket.value.usuario_id = '';
-        return;
-      }
-      usuarios.value = todosLosUsuarios.value.filter(
-        (u) => u.empresa_id === ticket.value.empresa_id
-      );
-      ticket.value.usuario_id = '';
-      busquedaUsuario.value = '';
-      usuarioSeleccionado.value = '';
-    };
-
-    const usuariosFiltrados = computed(() => {
-      const texto = busquedaUsuario.value.toLowerCase();
-      return usuarios.value
-        .filter(
-          (u) =>
-            (u.display_name && u.display_name.toLowerCase().includes(texto)) ||
-            u.email.toLowerCase().includes(texto)
-        )
-        .slice(0, 10);
-    });
-
-    const seleccionarUsuario = (usuario) => {
-      ticket.value.usuario_id = usuario.id;
-      usuarioSeleccionado.value = usuario.display_name || usuario.email;
-      busquedaUsuario.value = usuario.display_name || usuario.email;
-      mostrarSugerencias.value = false;
-      mostrarSelectUsuarios.value = false;
-    };
-
-    const seleccionarDesdeSelect = (e) => {
-      const id = e.target.value;
-      const usuario = usuarios.value.find(u => u.id === id);
-      if (usuario) {
-        seleccionarUsuario(usuario);
-      }
-    };
-
-    const ocultarConDelay = () => {
-      setTimeout(() => {
-        mostrarSugerencias.value = false;
-      }, 200);
-    };
-
-    watch(() => ticket.value.empresa_id, filtrarUsuariosPorEmpresa);
-    onMounted(cargarDatos);
-
-    return {
-      empresas,
-      usuarios,
-      usuariosFiltrados,
-      tecnicos,
-      ticket,
-      feedback,
-      busquedaUsuario,
-      usuarioSeleccionado,
-      mostrarSugerencias,
-      mostrarSelectUsuarios,
-      seleccionarUsuario,
-      seleccionarDesdeSelect,
-      ocultarConDelay,
-      submitForm,
-    };
-  },
-};
+  cargando.value = true
+  try {
+    const payload = {
+      ...ticket.value,
+      tecnico_id: ticket.value.tecnico_id || null,
+      estado: ticket.value.tecnico_id ? 'Activo' : 'Abierto',
+    }
+    await crearTicket(payload)
+    feedbackType.value = 'success'
+    feedback.value = '✅ Ticket creado correctamente'
+    router.push({ name: 'AbmTickets' })
+  } catch (error) {
+    console.error(error)
+    feedback.value = '❌ Error al crear ticket'
+  } finally {
+    cargando.value = false
+  }
+}
 </script>
 
-<style scoped>
-label {
-  color: #333;
-}
-</style>
+<template>
+  <DetailContainer :loading="cargando">
+    <DetailLayout titulo="Crear Ticket">
+      <AccionesDetalle>
+        <MainButton to="/abm-tickets" variant="volver" :showIcon="true">
+          Volver
+        </MainButton>
+
+        <MainButton
+          variant="actualizar"
+          :disabled="cargando"
+          @click="guardarTicket"
+        >
+          Crear Ticket
+        </MainButton>
+      </AccionesDetalle>
+
+      <FormularioLayout>
+        <AlertMessage
+          v-if="feedback"
+          :message="feedback"
+          :type="feedbackType"
+          auto-dismiss
+          @dismiss="feedback = ''"
+        />
+
+        <FormularioTicket
+          v-model:ticket="ticket"
+          :empresas="empresas"
+          :usuarios="usuarios"
+          :tecnicos="tecnicos"
+          :todos-usuarios="todosUsuarios"
+        />
+      </FormularioLayout>
+    </DetailLayout>
+  </DetailContainer>
+</template>
