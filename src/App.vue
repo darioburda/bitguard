@@ -106,8 +106,7 @@ export default {
         <RouterView />
       </div>
 
-      <!-- Botón flotante de ChatBit -->
-      <ChatBitButton v-if="user.id" />
+
     </main>
 
     <!-- FOOTER -->
