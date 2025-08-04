@@ -1,8 +1,13 @@
 <template>
-  <div class="bg-white shadow rounded-xl p-6 w-full max-w-3xl mx-auto border border-[#01C38E]">
+  <div class="relative bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 overflow-hidden">
+    <!-- Badges opcionales -->
+    <slot name="badges" />
+
+    <!-- Contenido del formulario -->
     <slot />
   </div>
 </template>
+
 
 <script setup>
 // Este layout encapsula un formulario dentro de una card visual consistente

@@ -74,10 +74,20 @@ export async function getTicketById(id) {
       estado,
       usuario_id,
       tecnico_id,
+      empresa_id,
       created_at,
-      empresas ( nombre ),
-      user_profiles!tickets_usuario_id_fkey ( display_name, email ),
-      tecnico:user_profiles!tickets_tecnico_id_fkey ( display_name, email )
+      empresas (
+        id,
+        nombre
+      ),
+      user_profiles!tickets_usuario_id_fkey (
+        display_name,
+        email
+      ),
+      tecnico:user_profiles!tickets_tecnico_id_fkey (
+        display_name,
+        email
+      )
     `)
     .eq('id', id)
     .single();
@@ -89,6 +99,8 @@ export async function getTicketById(id) {
 
   return data;
 }
+
+
 
 // 5. Actualizar ticket
 export const actualizarTicket = async (id, updates) => {

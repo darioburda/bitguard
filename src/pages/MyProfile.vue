@@ -29,6 +29,8 @@
         @toggle-consumo="mostrarConsumo = !mostrarConsumo"
       />
     </DetailLayout>
+    <ChatBitButton />
+
   </DetailContainer>
 </template>
 
@@ -43,6 +45,8 @@ import { subscribeToAuthState } from '@/services/auth'
 import { getUserProfileById } from '@/services/user-profiles'
 import { getEmpresaConResumen } from '@/services/empresas'
 import { supabase } from '@/services/supabase'
+import ChatBitButton from '@/components/ChatBitButton.vue'
+
 
 export default {
   name: 'MyProfile',
@@ -53,6 +57,7 @@ export default {
     CardProfile,
     MainButton,
     AlertMessage,
+    ChatBitButton
   },
   data() {
     return {

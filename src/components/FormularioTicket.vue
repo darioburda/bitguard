@@ -1,226 +1,128 @@
-<script setup>
-import { ref, computed, watch, reactive } from 'vue'
-
-const props = defineProps({
-  ticket: Object,
-  empresas: Array,
-  usuarios: Array,
-  tecnicos: Array,
-  todosUsuarios: Array
-})
-
-const emit = defineEmits(['update:ticket'])
-
-// Creamos una copia reactiva local para trabajar
-const localTicket = reactive({ ...props.ticket })
-
-// Emitimos los cambios hacia el padre
-watch(
-  () => localTicket,
-  (newVal) => {
-    emit('update:ticket', { ...newVal })
-  },
-  { deep: true }
-)
-
-// Variables para manejo del autocomplete y UI
-const busquedaUsuario = ref('')
-const mostrarSugerencias = ref(false)
-const mostrarSelectUsuarios = ref(false)
-const usuarioSeleccionado = ref('')
-
-// Computed para filtrar usuarios según texto de búsqueda
-const usuariosFiltrados = computed(() => {
-  const texto = busquedaUsuario.value.toLowerCase()
-  return props.usuarios
-    .filter(
-      (u) =>
-        (u.display_name && u.display_name.toLowerCase().includes(texto)) ||
-        u.email.toLowerCase().includes(texto)
-    )
-    .slice(0, 10)
-})
-
-// Funciones para seleccionar usuario desde autocomplete o select
-function seleccionarUsuario(usuario) {
-  localTicket.usuario_id = usuario.id
-  usuarioSeleccionado.value = usuario.display_name || usuario.email
-  busquedaUsuario.value = usuarioSeleccionado.value
-  mostrarSugerencias.value = false
-  mostrarSelectUsuarios.value = false
-}
-
-function seleccionarDesdeSelect(e) {
-  const id = e.target.value
-  const usuario = props.usuarios.find((u) => u.id === id)
-  if (usuario) {
-    seleccionarUsuario(usuario)
-  }
-}
-
-function ocultarConDelay() {
-  setTimeout(() => {
-    mostrarSugerencias.value = false
-  }, 200)
-}
-
-// Limpiar usuario seleccionado cuando cambia empresa
-watch(
-  () => localTicket.empresa_id,
-  () => {
-    localTicket.usuario_id = ''
-    usuarioSeleccionado.value = ''
-    busquedaUsuario.value = ''
-  }
-)
-</script>
-
 <template>
-  <form @submit.prevent>
-    <!-- Empresa -->
-    <div>
-      <label for="empresa" class="block mb-1 font-semibold cursor-pointer">Empresa</label>
-      <select
-        id="empresa"
-        v-model="localTicket.empresa_id"
-        class="w-full border px-4 py-2 rounded"
-      >
-        <option disabled value="">Selecciona una empresa</option>
-        <option v-for="e in empresas" :key="e.id" :value="e.id">{{ e.nombre }}</option>
-      </select>
-    </div>
+  <div class="space-y-4">
 
-    <!-- Usuario solicitante con autocomplete -->
-    <div class="relative mt-4">
-      <label class="block mb-1 font-semibold cursor-pointer">Usuario solicitante</label>
+
+    <!-- Usuario solicitante (solo edición, readonly) -->
+    <div v-if="ticket.id">
+      <label class="block font-medium text-sm mb-1 mt-5">Usuario solicitante</label>
       <input
         type="text"
-        v-model="busquedaUsuario"
-        placeholder="Buscar por nombre o email..."
-        class="w-full border px-4 py-2 rounded"
-        :disabled="props.usuarios.length === 0"
-        @focus="mostrarSugerencias = true"
-        @blur="ocultarConDelay"
+        :value="nombreUsuarioSolicitante"
+        disabled
+        class="w-full px-4 py-2 border rounded-md bg-gray-100 text-sm text-gray-700"
       />
-      <ul
-        v-if="mostrarSugerencias && busquedaUsuario && usuariosFiltrados.length > 0"
-        class="absolute z-10 w-full bg-white border border-gray-300 rounded shadow max-h-52 overflow-auto"
-      >
-        <li
-          v-for="u in usuariosFiltrados"
-          :key="u.id"
-          @mousedown.prevent="seleccionarUsuario(u)"
-          class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-        >
-          {{ u.display_name ? `${u.display_name} - ${u.email}` : u.email }}
-        </li>
-      </ul>
-      <p
-        v-if="mostrarSugerencias && busquedaUsuario && usuariosFiltrados.length === 0"
-        class="mt-2 text-sm text-red-600"
-      >
-        ❗ Usuario no encontrado. Verificá el nombre o email.
-      </p>
-      <div v-if="usuarioSeleccionado" class="text-sm text-gray-600 mt-1">
-        Usuario seleccionado: <strong>{{ usuarioSeleccionado }}</strong>
-      </div>
-      <button
-        type="button"
-        class="mt-3 text-sm text-blue-600 underline"
-        @click="mostrarSelectUsuarios = !mostrarSelectUsuarios"
-      >
-        {{ mostrarSelectUsuarios ? 'Ocultar listado completo' : '¿No recordás el nombre? Mostrar lista completa' }}
-      </button>
-      <div v-if="mostrarSelectUsuarios" class="mt-2">
-        <select
-          class="w-full border px-4 py-2 rounded"
-          @change="seleccionarDesdeSelect"
-          :value="localTicket.usuario_id"
-        >
-          <option value="">Selecciona un usuario</option>
-          <option v-for="u in usuarios" :key="u.id" :value="u.id">
-            {{ u.display_name ? `${u.display_name} - ${u.email}` : u.email }}
-          </option>
-        </select>
-      </div>
+    </div>
+
+        <!-- Empresa (solo lectura) -->
+    <div>
+      <label class="block font-medium text-sm mb-1">Empresa</label>
+      <input
+        type="text"
+        :value="nombreEmpresa"
+        disabled
+        class="w-full px-4 py-2 border rounded-md bg-gray-100 text-sm text-gray-700"
+      />
     </div>
 
     <!-- Título -->
-    <div class="mt-4">
-      <label for="titulo" class="block mb-1 font-semibold cursor-pointer"
-        >Título del ticket <span class="text-red-600">*</span></label
-      >
+    <div>
+      <label class="block font-medium text-sm mb-1">Título del problema</label>
       <input
-        id="titulo"
         type="text"
-        v-model="localTicket.titulo"
-        class="w-full border px-4 py-2 rounded"
-        maxlength="100"
-        required
+        v-model="ticket.titulo"
+        class="w-full px-4 py-2 border rounded-md text-sm"
+        :disabled="!puedeEditar"
       />
     </div>
 
     <!-- Tema de ayuda -->
-    <div class="mt-4">
-      <label for="tema_ayuda" class="block mb-1 font-semibold cursor-pointer"
-        >Tema de ayuda</label
-      >
-      <select
-        id="tema_ayuda"
-        v-model="localTicket.tema_ayuda"
-        class="w-full border px-4 py-2 rounded"
-      >
-        <option disabled value="">Selecciona una categoría</option>
-        <option value="Red">Red</option>
-        <option value="Hardware">Hardware</option>
-        <option value="Software">Software</option>
-        <option value="Correo">Correo</option>
-        <option value="Otro">Otro</option>
-      </select>
+    <div>
+      <label class="block font-medium text-sm mb-1">Tema de ayuda</label>
+      <input
+        type="text"
+        v-model="ticket.tema_ayuda"
+        class="w-full px-4 py-2 border rounded-md text-sm"
+        :disabled="!puedeEditar"
+      />
     </div>
 
     <!-- Tipo de soporte -->
-    <div class="mt-4">
-      <label for="tipo" class="block mb-1 font-semibold cursor-pointer">Tipo</label>
+    <div>
+      <label class="block font-medium text-sm mb-1">Tipo de soporte</label>
       <select
-        id="tipo"
-        v-model="localTicket.tipo"
-        class="w-full border px-4 py-2 rounded"
+        v-model="ticket.tipo"
+        class="w-full px-4 py-2 border rounded-md text-sm"
       >
-        <option value="Remoto">Remoto</option>
+        <option disabled value="">Seleccionar tipo</option>
         <option value="Presencial">Presencial</option>
+        <option value="Remoto">Remoto</option>
+      </select>
+    </div>
+
+    <!-- Técnico asignado -->
+    <div>
+      <label class="block font-medium text-sm mb-1">Técnico asignado</label>
+      <select
+        v-model="ticket.tecnico_id"
+        class="w-full px-4 py-2 border rounded-md text-sm"
+      >
+        <option disabled value="">Seleccionar técnico</option>
+        <option v-for="tec in tecnicos" :key="tec.id" :value="tec.id">
+          {{ tec.display_name || tec.email }}
+        </option>
       </select>
     </div>
 
     <!-- Descripción -->
-    <div class="mt-4">
-      <label for="descripcion" class="block mb-1 font-semibold cursor-pointer"
-        >Descripción <span class="text-red-600">*</span></label
-      >
+    <div>
+      <label class="block font-medium text-sm mb-1">Descripción</label>
       <textarea
-        id="descripcion"
-        v-model="localTicket.descripcion"
-        class="w-full border px-4 py-2 rounded resize-none"
+        v-model="ticket.descripcion"
         rows="4"
-        required
+        class="w-full px-4 py-2 border rounded-md text-sm"
+        :disabled="!puedeEditar"
       ></textarea>
     </div>
-
-    <!-- Técnico asignado -->
-    <div class="mt-4">
-      <label for="tecnico_id" class="block mb-1 font-semibold cursor-pointer"
-        >Asignar técnico (opcional)</label
-      >
-      <select
-        id="tecnico_id"
-        v-model="localTicket.tecnico_id"
-        class="w-full border px-4 py-2 rounded"
-      >
-        <option value="">-- Ninguno --</option>
-        <option v-for="t in tecnicos" :key="t.id" :value="t.id">
-          {{ t.display_name || t.email }}
-        </option>
-      </select>
-    </div>
-  </form>
+  </div>
 </template>
+
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  ticket: {
+    type: Object,
+    required: true
+  },
+  empresas: {
+    type: Array,
+    required: true
+  },
+  tecnicos: {
+    type: Array,
+    required: true
+  },
+  todosUsuarios: {
+    type: Array,
+    required: true
+  }
+})
+
+const emit = defineEmits(['update:ticket'])
+
+const puedeEditar = computed(() => {
+  return !props.ticket.id || props.ticket.estado === 'Abierto'
+})
+
+const nombreUsuarioSolicitante = computed(() => {
+  if (!props.ticket || !props.ticket.usuario_id) return '—'
+  const user = props.todosUsuarios.find((u) => u.id === props.ticket.usuario_id)
+  return user?.display_name || user?.email || 'Usuario no encontrado'
+})
+
+const nombreEmpresa = computed(() => {
+  if (!props.ticket || !props.ticket.empresa_id) return '—'
+  const emp = props.empresas.find((e) => e.id === props.ticket.empresa_id)
+  return emp?.nombre || 'Empresa no encontrada'
+})
+</script>

@@ -86,6 +86,8 @@
       @cancelar="cerrarModalEliminarMultiple"
       @confirmar="eliminarTicketsSeleccionados"
     />
+    <ChatBitButton />
+
   </PageContainer>
 </template>
 
@@ -106,6 +108,8 @@ import Modal from '@/components/Modal.vue'
 import FiltrosEntidad from '@/components/FiltrosEntidad.vue'
 import Acciones from '@/components/Acciones.vue'
 import CardTicket from '@/components/CardTicket.vue'
+import ChatBitButton from '@/components/ChatBitButton.vue'
+
 
 const router = useRouter()
 

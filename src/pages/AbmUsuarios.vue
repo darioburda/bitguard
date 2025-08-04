@@ -81,6 +81,8 @@
       @ultimo="paginaActual = totalPaginas"
       @ir-a="paginaActual = $event"
     />
+    <ChatBitButton />
+
   </PageContainer>
 </template>
 
@@ -98,6 +100,8 @@ import AbmLayout from '@/components/layouts/AbmLayout.vue'
 import FiltrosEntidad from '../components/FiltrosEntidad.vue'
 import GridLayout from '@/components/layouts/GridLayout.vue'
 import PageContainer from '@/components/layouts/PageContainer.vue'
+import ChatBitButton from '@/components/ChatBitButton.vue'
+
 
 const router = useRouter()
 const route = useRoute()

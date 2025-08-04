@@ -82,10 +82,12 @@ const crearUsuario = async () => {
           @dismiss="feedback = ''"
         />
 
-        <FormularioUsuario
-          v-model:form="form"
-          :editing="false"
-        />
+      <FormularioUsuario
+        v-model:form="form"
+        :editing="false"
+        modo="creacion"
+      />
+
       </FormularioLayout>
     </DetailLayout>
   </DetailContainer>

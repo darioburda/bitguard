@@ -80,6 +80,8 @@
         </div>
       </div>
     </div>
+    <ChatBitButton />
+
   </PageContainer>
 </template>
 
@@ -97,6 +99,8 @@ import FiltrosEntidad from '@/components/FiltrosEntidad.vue'
 import PageContainer from '@/components/layouts/PageContainer.vue'
 import AbmLayout from '@/components/layouts/AbmLayout.vue'
 import GridLayout from '@/components/layouts/GridLayout.vue'
+import ChatBitButton from '@/components/ChatBitButton.vue'
+
 
 const router = useRouter()
 
