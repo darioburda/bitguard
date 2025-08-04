@@ -34,7 +34,13 @@
 </template>
 
 <script>
-import { PlusIcon, PencilIcon, Trash2Icon } from 'lucide-vue-next'
+import {
+  PlusIcon,
+  PencilIcon,
+  Trash2Icon,
+  SaveIcon,
+  ArrowLeftIcon
+} from 'lucide-vue-next'
 
 export default {
   name: 'MainButton',
@@ -55,7 +61,7 @@ export default {
       type: String,
       default: 'default',
       validator: (value) =>
-        ['agregar', 'editar', 'borrar', 'default'].includes(value)
+        ['agregar', 'editar', 'borrar', 'actualizar', 'volver', 'default'].includes(value)
     },
     size: {
       type: String,
@@ -81,6 +87,10 @@ export default {
           return 'bg-blue-500 hover:bg-blue-600 focus:bg-blue-600'
         case 'borrar':
           return 'bg-red-500 hover:bg-red-600 focus:bg-red-600'
+        case 'actualizar':
+          return 'bg-[#41C3A5] hover:bg-[#3D9C86] focus:bg-[#3D9C86]'
+        case 'volver':
+          return 'bg-gray-400 hover:bg-gray-500 focus:bg-gray-500'
         case 'default':
         default:
           return 'bg-gray-500 hover:bg-gray-600 focus:bg-gray-600'
@@ -107,6 +117,10 @@ export default {
           return PencilIcon
         case 'borrar':
           return Trash2Icon
+        case 'actualizar':
+          return SaveIcon
+        case 'volver':
+          return ArrowLeftIcon
         default:
           return null
       }
@@ -119,6 +133,10 @@ export default {
           return 'Editar'
         case 'borrar':
           return 'Eliminar'
+        case 'actualizar':
+          return 'Actualizar'
+        case 'volver':
+          return 'Volver'
         default:
           return 'Enviar'
       }

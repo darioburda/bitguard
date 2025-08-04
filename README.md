@@ -44,8 +44,51 @@
 - ✅ Animaciones suaves al filtrar empresas con transición completa de entrada y salida  
 - ✅ Gráficos de soporte y visitas se cargan luego de completar animaciones con fade  
 - ✅ Cards de empresa con comportamiento visual unificado respecto a usuario (`pb`, `mb`, `transition`)  
-
+- ✅ Soporte de borradores automáticos en formularios usando sessionStorage (solo se mantiene en caso de refresh)
+- ✅ Eliminación del borrador al salir de la vista (`onBeforeRouteLeave`)
+- ✅ Componente `AlertMessage` mejorado con estética BitGuard y colores diferenciados (`success`, `info`, `danger`)
+- ✅ Feedback visual centralizado usando `sessionStorage` para comunicar entre vistas (ej. MyProfileEdit → MyProfile)
+- ✅ AutoDismiss en feedback: 
+      - Mensajes de éxito e información se ocultan tras 3 segundos
+      - Errores (danger) se mantienen visibles hasta ser corregidos
+- ✅ Protección básica contra inyección en campos `input` de formularios (escape en frontend + validación backend sugerida)
+- ✅ Diseño desacoplado: `Formulario.vue` reutilizable con v-model y props externas (`profile`, `editing`, `onSubmit`)
 ---
+
+✅ Checklist de buenas prácticas en formularios (BitGuard)
+ Usar sessionStorage para guardar automáticamente el borrador del formulario en caso de refresco
+
+ Cargar el borrador desde sessionStorage al entrar en la vista
+
+ Eliminar el borrador si el usuario cambia de página (con onBeforeRouteLeave)
+
+ Validar si el usuario hizo cambios antes de guardar (evitar updates innecesarios)
+
+ Prevenir nombres duplicados o vacíos en campos clave (como nombre de usuario)
+
+ Mostrar feedback visual con AlertMessage.vue, debajo de los botones de acción
+
+ Diferenciar tipos de feedback:
+
+✅ success e info se ocultan automáticamente a los 3 segundos
+
+❌ danger permanece visible para que el usuario corrija
+
+ Usar sessionStorage para pasar mensajes entre vistas (perfil_feedback, feedback_type)
+
+ Recuperar y mostrar feedback solo si existe, luego eliminar del storage
+
+ Deshabilitar campos no editables (sector, equipo, etc.) con disabled y estilo bg-gray-100
+
+ Mantener los botones de acción (Volver, Actualizar, etc.) dentro de AccionesDetalle.vue
+
+ Usar componentes reutilizables como Formulario.vue y FormularioLayout.vue
+
+ Prevenir inyección HTML: no mostrar contenido editable directamente como HTML (v-text, no v-html)
+
+ Limpiar los datos al guardar exitosamente (removeItem('draft_profile'))
+
+
 
 ## 🧱 Tecnologías utilizadas
 

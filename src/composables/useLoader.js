@@ -6,7 +6,7 @@ export function useLoader() {
   const finalizarCarga = () => {
     setTimeout(() => {
       loading.value = false
-    }, 50) // podés ajustar este delay si querés animación más fluida
+    }, 10) // podés ajustar este delay si querés animación más fluida
   }
 
   return {

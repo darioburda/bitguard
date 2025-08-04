@@ -20,7 +20,7 @@ export const getEmpresas = async () => {
 
   if (error) throw error;
 
-  const empresas = data.map(e => ({
+  return data.map(e => ({
     ...e,
     plan_nombre: e.planes?.nombre || null,
     minutos_incluidos: e.planes?.minutos_incluidos || 0,
@@ -32,10 +32,7 @@ export const getEmpresas = async () => {
       ? e.planes.visitas_incluidas - e.visitas_consumidas
       : null
   }));
-
-  return empresas;
 };
-
 
 export const getEmpresaById = async (id) => {
   const { data, error } = await supabase
@@ -65,10 +62,7 @@ export const updateEmpresa = async (id, updates) => {
     .update(updates)
     .eq('id', id);
 
-  if (error) {
-    console.error('[updateEmpresa] Error:', error);
-    throw error;
-  }
+  if (error) throw error;
 };
 
 export const crearEmpresa = async (nuevaEmpresa) => {
@@ -79,7 +73,7 @@ export const crearEmpresa = async (nuevaEmpresa) => {
   if (error) throw error;
 };
 
-export const getAllEmpresas = getEmpresas; // Alias por consistencia
+export const getAllEmpresas = getEmpresas;
 
 export const deleteEmpresaById = async (id) => {
   const { error } = await supabase
@@ -87,15 +81,10 @@ export const deleteEmpresaById = async (id) => {
     .delete()
     .eq('id', id);
 
-  if (error) {
-    console.error('[deleteEmpresaById] Error:', error);
-    throw error;
-  }
+  if (error) throw error;
 };
 
-
 export const getEmpresaConResumen = async (id) => {
-  // Obtener empresa base
   const { data: empresa, error } = await supabase
     .from('empresas')
     .select('id, nombre, email_contacto, telefono, direccion, cuit, plan_id')
@@ -104,18 +93,19 @@ export const getEmpresaConResumen = async (id) => {
 
   if (error || !empresa) throw error || new Error('Empresa no encontrada');
 
-  // Obtener plan
+  let plan = null;
   if (empresa.plan_id) {
-    const { data: plan, error: planError } = await supabase
+    const { data: planData, error: planError } = await supabase
       .from('planes')
       .select('nombre, minutos_incluidos, visitas_incluidas')
       .eq('id', empresa.plan_id)
       .single();
-    if (planError) throw planError;
-    empresa.plan = plan;
+
+    if (!planError) {
+      plan = planData;
+    }
   }
 
-  // Obtener métricas desde actualizaciones técnicas (ticket_updates)
   const { data: actualizaciones, error: updatesError } = await supabase
     .from('ticket_updates')
     .select('minutos_usados, fue_visita, tickets!inner(empresa_id)')
@@ -131,12 +121,10 @@ export const getEmpresaConResumen = async (id) => {
     if (update.fue_visita) visitas += 1;
   }
 
-  empresa.minutos_consumidos = minutos;
-  empresa.visitas_consumidas = visitas;
-
   return {
     ...empresa,
-    plan: empresa.plan || { nombre: '', minutos_incluidos: 0, visitas_incluidas: 0 }
+    plan: plan || { nombre: '', minutos_incluidos: 0, visitas_incluidas: 0 },
+    minutos_consumidos: minutos,
+    visitas_consumidas: visitas,
   };
 };
-

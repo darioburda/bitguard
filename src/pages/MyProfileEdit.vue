@@ -1,131 +1,145 @@
-<script>
-import MainButton from '../components/MainButton.vue';
-import MainH1 from '../components/MainH1.vue';
-import AlertMessage from '../components/AlertMessage.vue';
-import { subscribeToAuthState, updateAuthProfile } from '../services/auth';
+<template>
+  <DetailContainer :loading="loading">
+    <DetailLayout titulo="Editar perfil">
+      <AccionesDetalle>
+        <MainButton to="/mi-perfil" variant="volver" :showIcon="true">
+          Volver
+        </MainButton>
 
-export default {
-  name: 'MyProfileEdit',
-  components: {
-    MainH1,
-    MainButton,
-    AlertMessage
-  },
+        <MainButton
+          type="submit"
+          variant="actualizar"
+          :disabled="editing"
+          @click="handleSubmit"
+        >
+          Actualizar
+        </MainButton>
+      </AccionesDetalle>
 
-  data() {
-    return {
-      profile: {
-        display_name: '',
-        sector: '',
-        equipo: '',
-        rustdesk: '',
-        interno_telefono: ''
-      },
-      editing: false,
-      successMessage: '',
-      errorMessage: '',
-    };
-  },
+      <FormularioLayout>
+        <AlertMessage
+          v-if="feedback"
+          :type="feedbackType"
+          :message="feedback"
+          @dismiss="feedback = ''"
+        />
 
-  methods: {
-    async handleSubmit() {
-      try {
-        this.editing = true;
-        await updateAuthProfile({
-          display_name: this.profile.display_name
-        });
-        this.editing = false;
-        this.$router.push({ 
-          path: '/mi-perfil', 
-          query: { success: 'true' }
-        });
-      } catch (error) {
-        this.errorMessage = 'Ocurrió un error al actualizar tu perfil';
-        this.editing = false;
-      }
-    },
-  },
+        <Formulario
+          v-model:profile="profile"
+          :editing="editing"
+          :on-submit="handleSubmit"
+        />
+      </FormularioLayout>
+    </DetailLayout>
+  </DetailContainer>
+</template>
 
-  mounted() {
-    subscribeToAuthState(newUserData => {
-      this.profile = {
-        display_name: newUserData.display_name,
-        sector: newUserData.sector,
-        equipo: newUserData.equipo,
-        rustdesk: newUserData.rustdesk,
-        interno_telefono: newUserData.interno_telefono
-      };
-    });
-  },
-};
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useLoader } from '@/composables/useLoader.js'
+import DetailContainer from '@/components/layouts/DetailContainer.vue'
+import DetailLayout from '@/components/layouts/DetailLayout.vue'
+import AccionesDetalle from '@/components/AccionesDetalle.vue'
+import FormularioLayout from '@/components/layouts/FormularioLayout.vue'
+import MainButton from '@/components/MainButton.vue'
+import Formulario from '@/components/Formulario.vue'
+import AlertMessage from '@/components/AlertMessage.vue'
+import { subscribeToAuthState } from '@/services/auth'
+import { getAllUserProfiles, getUserProfileById, updateUserProfile } from '@/services/user-profiles'
+import { supabase } from '@/services/supabase'
+
+const router = useRouter()
+const { loading, finalizarCarga } = useLoader()
+
+const profile = ref({
+  display_name: '',
+  sector: '',
+  equipo: '',
+  rustdesk: '',
+  interno_telefono: '',
+  id: ''
+})
+
+const editing = ref(false)
+const allProfiles = ref([])
+const feedback = ref('')
+const feedbackType = ref('success')
+
+onMounted(async () => {
+  subscribeToAuthState(async (newUserData) => {
+    const userProfile = await getUserProfileById(newUserData.id)
+
+    const draft = sessionStorage.getItem('draft_profile')
+    profile.value = draft
+      ? { ...userProfile, ...JSON.parse(draft), id: userProfile.id }
+      : { ...userProfile, id: userProfile.id }
+
+    allProfiles.value = await getAllUserProfiles()
+    finalizarCarga()
+  })
+})
+
+// Guardar borrador en sessionStorage
+watch(profile, (nuevo) => {
+  sessionStorage.setItem('draft_profile', JSON.stringify(nuevo))
+}, { deep: true })
+
+// ✅ Limpiar borrador si navega fuera de la vista
+onBeforeRouteLeave(() => {
+  sessionStorage.removeItem('draft_profile')
+})
+
+const handleSubmit = async () => {
+  const nuevoNombre = profile.value.display_name?.trim() || ''
+  const perfilActual = allProfiles.value.find(p => p.id === profile.value.id)
+  const nombreOriginal = perfilActual?.display_name?.trim() || ''
+
+  if (!nuevoNombre) {
+    sessionStorage.setItem('perfil_feedback', '❌ Debes ingresar un nombre')
+    sessionStorage.setItem('feedback_type', 'danger')
+    return router.push('/mi-perfil')
+  }
+
+  if (nuevoNombre === nombreOriginal) {
+    sessionStorage.setItem('perfil_feedback', 'ℹ️ No realizaste ningún cambio en el nombre')
+    sessionStorage.setItem('feedback_type', 'info')
+    return router.push('/mi-perfil')
+  }
+
+  const nombreEnUso = allProfiles.value.some(
+    p => (p.display_name?.trim()?.toLowerCase() || '') === nuevoNombre.toLowerCase() && p.id !== profile.value.id
+  )
+
+  if (nombreEnUso) {
+    sessionStorage.setItem('perfil_feedback', '❌ El nombre ya está en uso por otro usuario')
+    sessionStorage.setItem('feedback_type', 'danger')
+    return router.push('/mi-perfil')
+  }
+
+  try {
+    editing.value = true
+
+    await updateUserProfile(profile.value.id, { display_name: nuevoNombre })
+
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { display_name: nuevoNombre }
+    })
+
+    if (authError) throw authError
+
+    sessionStorage.removeItem('draft_profile')
+    sessionStorage.setItem('perfil_feedback', '✅ Perfil actualizado correctamente')
+    sessionStorage.setItem('feedback_type', 'success')
+    router.push('/mi-perfil')
+  } catch (error) {
+    console.error('❌ Error al actualizar perfil:', error)
+    editing.value = false
+    sessionStorage.setItem('perfil_feedback', '❌ Ocurrió un error al actualizar tu perfil')
+    sessionStorage.setItem('feedback_type', 'danger')
+    router.push('/mi-perfil')
+  }
+}
 </script>
 
-<template>
-  <div class="h-full overflow-auto">
-    <div class="mx-auto max-w-[900px] w-full px-4 sm:px-8 py-6 mt-10 bg-white shadow rounded-xl">
-      <form @submit.prevent="handleSubmit">
-        <div v-if="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 border border-red-400 rounded">
-          {{ errorMessage }}
-        </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div class="mb-3">
-            <label for="display_name" class="block mb-2 font-semibold">Nombre completo</label>
-            <input
-              v-model="profile.display_name"
-              type="text"
-              id="display_name"
-              class="w-full p-2 border border-gray-400 rounded text-sm"
-            >
-          </div>
-
-          <div class="mb-3">
-            <label for="interno_telefono" class="block mb-2 font-semibold">Interno</label>
-            <input
-              v-model="profile.interno_telefono"
-              type="text"
-              id="interno_telefono"
-              class="w-full p-2 border border-gray-400 rounded text-sm bg-gray-100"
-              disabled
-            >
-          </div>
-
-          <div class="mb-3">
-            <label for="sector" class="block mb-2 font-semibold">Sector</label>
-            <input
-              v-model="profile.sector"
-              type="text"
-              id="sector"
-              class="w-full p-2 border border-gray-400 rounded text-sm bg-gray-100"
-              disabled
-            >
-          </div>
-
-          <div class="mb-3">
-            <label for="equipo" class="block mb-2 font-semibold">Equipo</label>
-            <input
-              v-model="profile.equipo"
-              type="text"
-              id="equipo"
-              class="w-full p-2 border border-gray-400 rounded text-sm bg-gray-100"
-              disabled
-            >
-          </div>
-
-          <div class="mb-3">
-            <label for="rustdesk" class="block mb-2 font-semibold">Rustdesk</label>
-            <input
-              v-model="profile.rustdesk"
-              type="text"
-              id="rustdesk"
-              class="w-full p-2 border border-gray-400 rounded text-sm bg-gray-100"
-              disabled
-            >
-          </div>
-        </div>
-
-        <MainButton type="submit">Actualizar</MainButton>
-      </form>
-    </div>
-  </div>
-</template>
