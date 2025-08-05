@@ -95,53 +95,52 @@ export default {
       }
     }
 
-  const guardarCambios = async () => {
-  feedback.value = ''
-  feedbackType.value = 'error'
+    const guardarCambios = async () => {
+      feedback.value = ''
+      feedbackType.value = 'error'
 
-  if (!empresa.value.nombre.trim()) {
-    feedback.value = '❌ Debes cargar el nombre de empresa'
-    return
-  }
+      if (!empresa.value.nombre.trim()) {
+        feedback.value = '❌ Debes cargar el nombre de empresa'
+        return
+      }
 
-  if (!empresa.value.email_contacto.trim()) {
-    feedback.value = '❌ Debes ingresar un correo de contacto'
-    return
-  }
+      if (!empresa.value.email_contacto.trim()) {
+        feedback.value = '❌ Debes ingresar un correo de contacto'
+        return
+      }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(empresa.value.email_contacto)) {
-    feedback.value = '❌ El email de contacto no tiene un formato válido'
-    return
-  }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(empresa.value.email_contacto)) {
+        feedback.value = '❌ El email de contacto no tiene un formato válido'
+        return
+      }
 
-  if (!empresa.value.plan_id) {
-    feedback.value = '❌ Debes elegir un plan para la empresa'
-    return
-  }
+      if (!empresa.value.plan_id) {
+        feedback.value = '❌ Debes elegir un plan para la empresa'
+        return
+      }
 
-  if (empresa.value.cuit?.trim()) {
-    const cuitRegex = /^\d{2}-\d{8}-\d{1}$/
-    if (!cuitRegex.test(empresa.value.cuit)) {
-      feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X'
-      return
+      if (empresa.value.cuit?.trim()) {
+        const cuitRegex = /^\d{2}-\d{8}-\d{1}$/
+        if (!cuitRegex.test(empresa.value.cuit)) {
+          feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X'
+          return
+        }
+      }
+
+      try {
+        await updateEmpresa(empresa.value.id, empresa.value)
+        sessionStorage.setItem('empresa_feedback', '✅ Empresa actualizada correctamente')
+        router.push('/abm-empresas')
+      } catch (error) {
+        console.error('Error al actualizar empresa:', error)
+        feedback.value = '❌ Error al actualizar empresa'
+      }
     }
-  }
 
-  try {
-    await updateEmpresa(empresa.value.id, empresa.value)
-    sessionStorage.setItem('empresa_feedback', '✅ Empresa actualizada correctamente')
-    router.push('/abm-empresas')
-  } catch (error) {
-    console.error('Error al actualizar empresa:', error)
-    feedback.value = '❌ Error al actualizar empresa'
-  }
-}
-
-
-    onMounted(() => {
-      cargarEmpresa()
-      cargarPlanes()
+    onMounted(async () => {
+      await cargarPlanes()   // ✅ primero los planes (para poblar el select)
+      await cargarEmpresa()  // ✅ luego la empresa (para aplicar el plan_id al select)
     })
 
     return {
