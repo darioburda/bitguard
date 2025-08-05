@@ -25,6 +25,7 @@
       <template #filtros>
         <FiltrosEntidad
           entidad="usuario"
+          :cantidad="usuariosFiltrados.length"
           :busqueda="busqueda"
           :empresaSeleccionada="empresaSeleccionada"
           :sectorSeleccionado="sectorSeleccionado"
@@ -87,21 +88,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsuarios } from '@/composables/useUsuarios.js'
-import { useLoader } from '@/composables/useLoader.js' // ✅ Nuevo
+import { useLoader } from '@/composables/useLoader.js'
+import { useFiltradoEntidad } from '@/composables/useFiltradoEntidad.js'
+
 import AlertMessage from '@/components/AlertMessage.vue'
 import UsuarioCard from '@/components/UsuarioCard.vue'
 import ModalEliminar from '@/components/ModalEliminar.vue'
 import Acciones from '@/components/Acciones.vue'
 import Paginador from '@/components/Paginador.vue'
 import AbmLayout from '@/components/layouts/AbmLayout.vue'
-import FiltrosEntidad from '../components/FiltrosEntidad.vue'
+import FiltrosEntidad from '@/components/FiltrosEntidad.vue'
 import GridLayout from '@/components/layouts/GridLayout.vue'
 import PageContainer from '@/components/layouts/PageContainer.vue'
 import ChatBitButton from '@/components/ChatBitButton.vue'
-
 
 const router = useRouter()
 const route = useRoute()
@@ -119,7 +121,6 @@ const {
   sectoresDisponibles,
   empresasDisponibles,
   planesDisponibles,
-  usuariosPaginados,
   totalPaginas,
   nombreSeleccionado,
   toggleSeleccion,
@@ -127,13 +128,34 @@ const {
   siguientePagina,
 } = useUsuarios()
 
-const { loading, finalizarCarga } = useLoader() // ✅ Usamos el composable
+const { loading, finalizarCarga } = useLoader()
 
 const mostrarTecnicos = ref(false)
 const mostrarModalEliminar = ref(false)
 const animarTarjetas = ref(true)
 const usuariosVisibles = ref([])
 
+const { filtrados: usuariosFiltrados, textoCantidad } = useFiltradoEntidad(
+  usuarios,
+  {
+    busqueda,
+    empresaSeleccionada,
+    sectorSeleccionado,
+    planSeleccionado
+  },
+  ['nombre', 'email'],
+  'usuario'
+)
+
+
+
+// ✅ Nueva paginación sobre usuarios filtrados
+const usuariosPaginados = computed(() => {
+  const start = (paginaActual.value - 1) * 12
+  return usuariosFiltrados.value.slice(start, start + 12)
+})
+
+// 👉 Watch para animación al cambiar página
 watch(usuariosPaginados, async () => {
   animarTarjetas.value = false
   const nuevos = usuariosPaginados.value
@@ -187,7 +209,9 @@ onMounted(async () => {
   }
 
   await cargarUsuarios()
-  finalizarCarga() // ✅ Ocultamos el loader solo cuando todo esté listo
+  finalizarCarga()
 })
 </script>
+
+
 

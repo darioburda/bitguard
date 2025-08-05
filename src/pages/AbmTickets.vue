@@ -23,20 +23,21 @@
 
       <!-- Filtros -->
       <template #filtros>
-        <FiltrosEntidad
-          entidad="ticket"
-          :busqueda="busqueda"
-          :empresaSeleccionada="empresaSeleccionada"
-          :estadoSeleccionado="estadoSeleccionado"
-          :tipoSeleccionado="tipoSeleccionado"
-          :empresas="empresasDisponibles"
-          :estados="estadosDisponibles"
-          :tipos="tiposDisponibles"
-          @update:busqueda="busqueda = $event"
-          @update:empresa="empresaSeleccionada = $event"
-          @update:estado="estadoSeleccionado = $event"
-          @update:tipo="tipoSeleccionado = $event"
-        />
+      <FiltrosEntidad
+        entidad="ticket"
+        :cantidad="ticketsFiltrados.length"
+        :busqueda="busqueda"
+        :empresaSeleccionada="empresaSeleccionada"
+        :estadoSeleccionado="estadoSeleccionado"
+        :tipoSeleccionado="tipoSeleccionado"
+        :empresas="empresasDisponibles"
+        :estados="estadosDisponibles"
+        :tipos="tiposDisponibles"
+        @update:busqueda="busqueda = $event"
+        @update:empresa="empresaSeleccionada = $event"
+        @update:estado="estadoSeleccionado = $event"
+        @update:tipo="tipoSeleccionado = $event"
+      />
       </template>
     </AbmLayout>
 
@@ -98,6 +99,7 @@ import { supabase } from '@/services/supabase'
 import { getAllTickets, eliminarTicket, actualizarTicket } from '@/services/tickets'
 import { getEmpresas } from '@/services/empresas'
 import { useLoader } from '@/composables/useLoader.js'
+import { useFiltradoEntidad } from '@/composables/useFiltradoEntidad.js'
 
 import PageContainer from '@/components/layouts/PageContainer.vue'
 import AbmLayout from '@/components/layouts/AbmLayout.vue'
@@ -110,22 +112,20 @@ import Acciones from '@/components/Acciones.vue'
 import CardTicket from '@/components/CardTicket.vue'
 import ChatBitButton from '@/components/ChatBitButton.vue'
 
-
 const router = useRouter()
+const { loading, finalizarCarga } = useLoader()
 
-const { loading, finalizarCarga } = useLoader() // ✅ loader reutilizable
 const tickets = ref([])
-const ticketsOriginales = ref([])
+const ticketsVisibles = ref([])
 const ticketsSeleccionados = ref(new Set())
+const ticketSeleccionado = ref(null)
+const nombreSeleccionado = ref('')
 
 const feedback = ref('')
 const modalVisible = ref(false)
 const mostrarModalEliminar = ref(false)
-const ticketSeleccionado = ref(null)
-const nombreSeleccionado = ref('')
 const animarTarjetas = ref(false)
 
-// Paginación
 const paginaActual = ref(1)
 const ITEMS_POR_PAGINA = 12
 
@@ -139,67 +139,33 @@ const empresasDisponibles = ref([])
 const estadosDisponibles = ['Abierto', 'Activo', 'Cerrado']
 const tiposDisponibles = ['Remoto', 'Presencial']
 
-const cargarTickets = async () => {
-  try {
-    const data = await getAllTickets()
-    tickets.value = data
-    ticketsOriginales.value = data
-
-    const empresas = await getEmpresas()
-    empresasDisponibles.value = empresas.map(e => ({ id: e.id, nombre: e.nombre }))
-  } catch (error) {
-    console.error('Error al cargar tickets:', error)
-  } finally {
-    ticketsSeleccionados.value.clear()
-    finalizarCarga() // ✅ ocultar loader
-  }
-}
-
-const aplicarFiltros = () => {
-  let filtrados = [...ticketsOriginales.value]
-
-  if (busqueda.value) {
-    const texto = busqueda.value.toLowerCase()
-    filtrados = filtrados.filter(ticket =>
-      ticket.titulo?.toLowerCase().includes(texto) ||
-      ticket.usuario_nombre?.toLowerCase().includes(texto) ||
-      ticket.id?.slice(-8).toLowerCase().includes(texto)
-    )
-  }
-
-  if (empresaSeleccionada.value) {
-    filtrados = filtrados.filter(t => String(t.empresa_id) === String(empresaSeleccionada.value))
-  }
-
-  if (estadoSeleccionado.value) {
-    filtrados = filtrados.filter(t => t.estado === estadoSeleccionado.value)
-  }
-
-  if (tipoSeleccionado.value) {
-    filtrados = filtrados.filter(t => t.tipo === tipoSeleccionado.value)
-  }
-
-  tickets.value = filtrados
-  paginaActual.value = 1
-}
-
-const totalPaginas = computed(() =>
-  Math.ceil(tickets.value.length / ITEMS_POR_PAGINA)
+// ✅ Composable de filtrado reutilizable
+const { filtrados: ticketsFiltrados } = useFiltradoEntidad(
+  tickets,
+  { busqueda, empresaSeleccionada, estadoSeleccionado, tipoSeleccionado },
+  ['titulo', 'usuario_nombre', 'id'],
+  'ticket'
 )
 
-const ticketsVisibles = computed(() => {
+const totalPaginas = computed(() =>
+  Math.ceil(ticketsFiltrados.value.length / ITEMS_POR_PAGINA)
+)
+
+const ticketsPaginados = computed(() => {
   const start = (paginaActual.value - 1) * ITEMS_POR_PAGINA
-  return tickets.value.slice(start, start + ITEMS_POR_PAGINA)
+  return ticketsFiltrados.value.slice(start, start + ITEMS_POR_PAGINA)
 })
 
-// Animar tarjetas
-watch(ticketsVisibles, () => {
+// Animación de tarjetas
+watch(ticketsPaginados, () => {
   animarTarjetas.value = false
   nextTick(() => {
+    ticketsVisibles.value = ticketsPaginados.value
     animarTarjetas.value = true
   })
 })
 
+// Selección
 const toggleSeleccion = (id) => {
   if (ticketsSeleccionados.value.has(id)) {
     ticketsSeleccionados.value.delete(id)
@@ -208,6 +174,7 @@ const toggleSeleccion = (id) => {
   }
 }
 
+// Modal Tomar Ticket
 const abrirModalTomar = (ticket) => {
   ticketSeleccionado.value = ticket
   modalVisible.value = true
@@ -232,12 +199,12 @@ const tomarTicket = async () => {
   }
 }
 
+// Modal Eliminar
 const abrirModalEliminarMultiple = () => {
   mostrarModalEliminar.value = true
-
   if (ticketsSeleccionados.value.size === 1) {
     const id = [...ticketsSeleccionados.value][0]
-    const ticket = tickets.value.find(t => t.id === id)
+    const ticket = ticketsFiltrados.value.find(t => t.id === id)
     nombreSeleccionado.value = `#${ticket?.id?.slice(-8)}`
   } else {
     nombreSeleccionado.value = ''
@@ -263,14 +230,33 @@ const eliminarTicketsSeleccionados = async () => {
   }
 }
 
+// Redirección
 const irAEditar = () => {
   const id = [...ticketsSeleccionados.value][0]
   router.push({ name: 'editar-ticket', params: { id } })
 }
 
-onMounted(cargarTickets)
-watch([busqueda, empresaSeleccionada, estadoSeleccionado, tipoSeleccionado], aplicarFiltros)
+// Carga inicial
+const cargarTickets = async () => {
+  try {
+    const data = await getAllTickets()
+    tickets.value = data
+
+    const empresas = await getEmpresas()
+    empresasDisponibles.value = empresas.map(e => ({ id: e.id, nombre: e.nombre }))
+  } catch (error) {
+    console.error('Error al cargar tickets:', error)
+  } finally {
+    ticketsSeleccionados.value.clear()
+    finalizarCarga()
+  }
+}
+
+onMounted(async () => {
+  await cargarTickets()
+})
 </script>
+
 
 <style scoped>
 .tarjeta-animada {

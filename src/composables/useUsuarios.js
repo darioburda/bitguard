@@ -33,7 +33,13 @@ export function useUsuarios() {
   })
 
   const empresasDisponibles = computed(() => {
-    return [...new Set(usuarios.value.map(u => u.empresa_nombre).filter(Boolean))]
+    const mapa = new Map()
+    for (const u of usuarios.value) {
+      if (u.empresa_id && u.empresa_nombre) {
+        mapa.set(u.empresa_id, u.empresa_nombre)
+      }
+    }
+    return [...mapa.entries()].map(([id, nombre]) => ({ id, nombre }))
   })
 
   const planesDisponibles = computed(() => {

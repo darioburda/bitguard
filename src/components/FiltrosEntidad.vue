@@ -3,19 +3,26 @@ import { computed } from 'vue'
 import { XCircleIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 
 const props = defineProps({
+  margenInferior: {
+  type: String,
+  default: 'mb-[0px]' // Admin por defecto
+  },
   busqueda: String,
   empresaSeleccionada: [String, Number],
   sectorSeleccionado: String,
   planSeleccionado: String,
   estadoSeleccionado: String,
   tipoSeleccionado: String,
-
+  cantidad: Number, // ✅ nueva prop para mostrar chip con cantidad
+  mostrarToggle: {
+    type: Boolean,
+    default: true // ✅ permite ocultar el botón toggle
+  },
   empresas: Array,
   sectores: Array,
   planes: Array,
   estados: Array,
   tipos: Array,
-
   mostrarDetalles: Boolean,
   mostrarGraficos: Boolean,
   entidad: String
@@ -72,10 +79,16 @@ function limpiarFiltros() {
 <template>
   <transition name="fade">
     <div class="mb-6 w-full">
-      <div
-        class="flex flex-wrap justify-between items-center gap-4 w-full pb-5"
-        :class="(empresaSeleccionada || sectorSeleccionado || planSeleccionado || estadoSeleccionado || tipoSeleccionado) ? '' : 'mb-[28px]'"
-      >
+      <!-- Búsqueda y filtros -->
+      <!-- Búsqueda y filtros -->
+        <div
+          :class="[
+            'flex flex-wrap justify-between items-center gap-4 w-full pb-5',
+            (empresaSeleccionada || sectorSeleccionado || planSeleccionado || estadoSeleccionado || tipoSeleccionado)
+              ? ''
+              : margenInferior
+          ]"
+        >
         <!-- Izquierda -->
         <div class="flex flex-wrap items-center gap-4">
           <!-- Búsqueda -->
@@ -181,99 +194,113 @@ function limpiarFiltros() {
           </div>
         </div>
 
-        <!-- Toggle -->
-        <div>
-          <button
-            v-if="entidad === 'usuario'"
-            @click="$emit('toggle')"
-            class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
-          >
-            <EyeIcon v-if="!mostrarDetalles" class="w-4 h-4" />
-            <EyeOffIcon v-else class="w-4 h-4" />
-            <span class="whitespace-nowrap">
-              {{ mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos' }}
-            </span>
-          </button>
+<!-- Toggle alineado a la derecha -->
+<div v-if="mostrarToggle" class="ml-auto flex items-center">
+  <button
+    v-if="entidad === 'usuario'"
+    @click="$emit('toggle')"
+    class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline transition"
+  >
+    <EyeIcon v-if="!mostrarDetalles" class="w-4 h-4" />
+    <EyeOffIcon v-else class="w-4 h-4" />
+    <span class="whitespace-nowrap">
+      {{ mostrarDetalles ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos' }}
+    </span>
+  </button>
 
-          <button
-            v-if="entidad === 'empresa'"
-            @click="$emit('toggleGraficos')"
-            class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline focus:outline-none transition min-w-fit w-[210px] justify-start"
-          >
-            <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
-            <EyeOffIcon v-else class="w-4 h-4" />
-            <span class="whitespace-nowrap">
-              {{ mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes' }}
-            </span>
-          </button>
-        </div>
+  <button
+    v-if="entidad === 'empresa'"
+    @click="$emit('toggleGraficos')"
+    class="flex items-center gap-1 text-sm text-[#01C38E] hover:underline transition"
+  >
+    <EyeIcon v-if="!mostrarGraficos" class="w-4 h-4" />
+    <EyeOffIcon v-else class="w-4 h-4" />
+    <span class="whitespace-nowrap">
+      {{ mostrarGraficos ? 'Ocultar consumo de planes' : 'Ver consumo de planes' }}
+    </span>
+  </button>
+</div>
+
       </div>
 
-      <!-- Chips -->
-      <div class="flex flex-wrap items-center gap-2">
-        <span
-          v-if="empresaSeleccionada"
-          class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
-        >
-          Empresa: {{ empresaNombreSeleccionada }}
-          <XCircleIcon
-            @click="$emit('update:empresa', '')"
-            class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
-          />
-        </span>
+      <!-- Chips activos -->
+<!-- Chips activos -->
+<div class="flex flex-wrap items-center gap-2 justify-between w-full">
+  <div class="flex flex-wrap items-center gap-2">
+    <!-- Chips de filtros individuales -->
+    <span
+      v-if="empresaSeleccionada"
+      class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
+    >
+      Empresa: {{ empresaNombreSeleccionada }}
+      <XCircleIcon
+        @click="$emit('update:empresa', '')"
+        class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
+      />
+    </span>
 
-        <span
-          v-if="sectorSeleccionado"
-          class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
-        >
-          Sector: {{ sectorSeleccionado }}
-          <XCircleIcon
-            @click="$emit('update:sector', '')"
-            class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
-          />
-        </span>
+    <span
+      v-if="sectorSeleccionado"
+      class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
+    >
+      Sector: {{ sectorSeleccionado }}
+      <XCircleIcon
+        @click="$emit('update:sector', '')"
+        class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
+      />
+    </span>
 
-        <span
-          v-if="planSeleccionado"
-          class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
-        >
-          Plan: {{ planSeleccionado }}
-          <XCircleIcon
-            @click="$emit('update:plan', '')"
-            class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
-          />
-        </span>
+    <span
+      v-if="planSeleccionado"
+      class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
+    >
+      Plan: {{ planSeleccionado }}
+      <XCircleIcon
+        @click="$emit('update:plan', '')"
+        class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
+      />
+    </span>
 
-        <span
-          v-if="estadoSeleccionado"
-          class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
-        >
-          Estado: {{ estadoSeleccionado }}
-          <XCircleIcon
-            @click="$emit('update:estado', '')"
-            class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
-          />
-        </span>
+    <span
+      v-if="estadoSeleccionado"
+      class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
+    >
+      Estado: {{ estadoSeleccionado }}
+      <XCircleIcon
+        @click="$emit('update:estado', '')"
+        class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
+      />
+    </span>
 
-        <span
-          v-if="tipoSeleccionado"
-          class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
-        >
-          Tipo: {{ tipoSeleccionado }}
-          <XCircleIcon
-            @click="$emit('update:tipo', '')"
-            class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
-          />
-        </span>
+    <span
+      v-if="tipoSeleccionado"
+      class="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm group hover:bg-red-100 transition"
+    >
+      Tipo: {{ tipoSeleccionado }}
+      <XCircleIcon
+        @click="$emit('update:tipo', '')"
+        class="w-5 h-5 text-gray-500 group-hover:text-red-500 cursor-pointer"
+      />
+    </span>
 
-        <button
-          v-if="empresaSeleccionada || sectorSeleccionado || planSeleccionado || estadoSeleccionado || tipoSeleccionado"
-          @click="limpiarFiltros"
-          class="text-gray-500 underline hover:text-gray-700 text-sm"
-        >
-          Quitar todos
-        </button>
-      </div>
+    <button
+      v-if="empresaSeleccionada || sectorSeleccionado || planSeleccionado || estadoSeleccionado || tipoSeleccionado"
+      @click="limpiarFiltros"
+      class="text-gray-500 underline hover:text-gray-700 text-sm"
+    >
+      Quitar todos
+    </button>
+  </div>
+
+  <!-- Chip de cantidad -->
+  <span
+    v-if="cantidad !== undefined"
+    class="bg-white border border-gray-300 px-3 py-1 rounded-full text-sm text-gray-600 whitespace-nowrap"
+  >
+    {{ cantidad }} {{ entidad }}{{ cantidad === 1 ? '' : 's' }}
+  </span>
+</div>
+
     </div>
   </transition>
 </template>

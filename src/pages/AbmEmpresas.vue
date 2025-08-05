@@ -23,16 +23,17 @@
 
       <!-- Filtros -->
       <template #filtros>
-        <FiltrosEntidad
-          entidad="empresa"
-          :busqueda="busqueda"
-          :planSeleccionado="planSeleccionado"
-          :planes="planesDisponibles.map(p => p.nombre)"
-          :mostrarGraficos="mostrarGraficos"
-          @update:busqueda="busqueda = $event"
-          @update:plan="planSeleccionado = $event"
-          @toggleGraficos="mostrarGraficos = !mostrarGraficos"
-        />
+      <FiltrosEntidad
+        entidad="empresa"
+        :cantidad="empresasFiltradas.length"
+        :busqueda="busqueda"
+        :planSeleccionado="planSeleccionado"
+        :planes="planesDisponibles.map(p => p.nombre)"
+        :mostrarGraficos="mostrarGraficos"
+        @update:busqueda="busqueda = $event"
+        @update:plan="planSeleccionado = $event"
+        @toggleGraficos="mostrarGraficos = !mostrarGraficos"
+      />
       </template>
     </AbmLayout>
 
@@ -86,11 +87,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllEmpresas, deleteEmpresaById } from '@/services/empresas'
 import { getAllPlanes } from '@/services/planes'
 import { useLoader } from '@/composables/useLoader.js'
+import { useFiltradoEntidad } from '@/composables/useFiltradoEntidad.js'
 
 import Acciones from '@/components/Acciones.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
@@ -101,10 +103,8 @@ import AbmLayout from '@/components/layouts/AbmLayout.vue'
 import GridLayout from '@/components/layouts/GridLayout.vue'
 import ChatBitButton from '@/components/ChatBitButton.vue'
 
-
 const router = useRouter()
-
-const { loading, finalizarCarga } = useLoader() // ✅ loader reusable
+const { loading, finalizarCarga } = useLoader()
 
 const empresas = ref([])
 const empresasVisibles = ref([])
@@ -118,18 +118,15 @@ const busqueda = ref('')
 const planSeleccionado = ref('')
 const planesDisponibles = ref([])
 
-const empresasFiltradas = computed(() => {
-  return empresas.value.filter(e => {
-    const coincideBusqueda =
-      busqueda.value === '' ||
-      e.nombre?.toLowerCase().includes(busqueda.value.toLowerCase())
-    const coincidePlan =
-      planSeleccionado.value === '' ||
-      e.plan_nombre?.toLowerCase() === planSeleccionado.value.toLowerCase()
-    return coincideBusqueda && coincidePlan
-  })
-})
+// ✅ Nuevo filtrado universal
+const { filtrados: empresasFiltradas } = useFiltradoEntidad(
+  empresas,
+  { busqueda, planSeleccionado },
+  ['nombre'],
+  'empresa'
+)
 
+// ✅ Watch con animación
 watch([busqueda, planSeleccionado], async () => {
   animarTarjetas.value = false
   const nuevas = empresasFiltradas.value
@@ -150,7 +147,7 @@ const cargarEmpresas = async () => {
     console.error('Error al cargar empresas:', error)
   } finally {
     empresasSeleccionadas.value.clear()
-    finalizarCarga() // ✅ ocultar loader cuando termina todo
+    finalizarCarga()
   }
 }
 
@@ -224,6 +221,7 @@ onMounted(async () => {
   empresasVisibles.value = empresasFiltradas.value
 })
 </script>
+
 
 <style scoped>
 .tarjeta-animada {
