@@ -55,10 +55,10 @@ export default {
 
         <template v-if="user.id !== null">
           <li v-if="user.is_admin">
-            <RouterLink to="/abm-usuarios" class="px-4 py-2 text-white hover:underline">Usuarios</RouterLink>
+            <RouterLink to="/abm-empresas" class="px-4 py-2 text-white hover:underline">Empresas</RouterLink>
           </li>
           <li v-if="user.is_admin">
-            <RouterLink to="/abm-empresas" class="px-4 py-2 text-white hover:underline">Empresas</RouterLink>
+            <RouterLink to="/abm-usuarios" class="px-4 py-2 text-white hover:underline">Usuarios</RouterLink>
           </li>
           <li v-if="user.is_admin">
             <RouterLink to="/abm-tickets" class="px-4 py-2 text-white hover:underline">Tickets</RouterLink>
