@@ -54,10 +54,12 @@ const estadosOrdenados = computed(() => ordenarArray(props.estados))
 const tiposOrdenados = computed(() => ordenarArray(props.tipos))
 
 const placeholderBusqueda = computed(() => {
-  if (props.entidad === 'empresa') return 'Buscar por empresa...'
-  if (props.entidad === 'ticket') return 'Buscar por ticket o título...'
+  if (props.entidad === 'empresa') return 'Buscar por empresa'
+  if (props.entidad === 'ticket') return 'Buscar por ticket o título'
+  if (props.entidad === 'contacto') return 'Buscar contacto, email o interno'
   return 'Buscar por usuario o email...'
 })
+
 
 const empresaNombreSeleccionada = computed(() => {
   if (!props.empresas || !props.empresaSeleccionada) return ''

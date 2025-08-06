@@ -10,8 +10,6 @@ import UserProfile from '../pages/UserProfile.vue';
 import PrivateChat from '../pages/PrivateChat.vue';
 import Publicaciones from '../pages/Publicaciones.vue';
 import MyProfileEditFoto from '../pages/MyProfileEditFoto.vue';
-// import ContactosEmpresa from '../pages/ContactosEmpresa.vue';
-
 
 const routes = [
   { path: '/', component: Home, name: 'home' },
@@ -21,17 +19,30 @@ const routes = [
   { path: '/publicaciones', component: Publicaciones, meta: { requiresAuth: true }, name: 'publicaciones' },
   { path: '/chat', component: GlobalChat, meta: { requiresAuth: true }, name: 'global-chat' },
   { path: '/mi-perfil', component: MyProfile, meta: { requiresAuth: true }, name: 'my-profile' },
-  { path: '/mis-tickets', name: 'MisTickets',
-  component: () => import('@/pages/MisTickets.vue'),
-  meta: { requiresAuth: true },
-},
-  { path: '/empresa/contactos', name: 'ContactosEmpresa', component: () => import('@/pages/ContactosEmpresa.vue'), meta: { requiresAuth: true }},
   { path: '/mi-perfil/editar', component: MyProfileEdit, meta: { requiresAuth: true }, name: 'my-profile.edit' },
   { path: '/mi-perfil/editar/imagen', component: MyProfileEditFoto, meta: { requiresAuth: true }, name: 'my-profile.edit.foto' },
   { path: '/usuario/:id', component: UserProfile, meta: { requiresAuth: true }, name: 'user-profile' },
   { path: '/usuario/:id/chat', component: PrivateChat, meta: { requiresAuth: true }, name: 'private-chat' },
- 
 
+  // Rutas para usuarios comunes
+  {
+    path: '/mis-tickets',
+    name: 'MisTickets',
+    component: () => import('@/pages/MisTickets.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/mis-tickets/:id/editar',
+    name: 'editar-ticket-user',
+    component: () => import('@/pages/EditarTicketUser.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/empresa/contactos',
+    name: 'ContactosEmpresa',
+    component: () => import('@/pages/ContactosEmpresa.vue'),
+    meta: { requiresAuth: true }
+  },
 
   // Rutas solo para admins
   {
@@ -52,11 +63,11 @@ const routes = [
     component: () => import('@/pages/AgregarUsuario.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
-    {
-  path: '/abm-empresas',
-  name: 'AbmEmpresas',
-  component: () => import('@/pages/AbmEmpresas.vue'),
-  meta: { requiresAuth: true, requiresAdmin: true },
+  {
+    path: '/abm-empresas',
+    name: 'AbmEmpresas',
+    component: () => import('@/pages/AbmEmpresas.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/empresas/agregar',
@@ -77,19 +88,17 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
-      path: '/tickets/crear',
-      name: 'CrearTicket',
-      component: () => import('@/pages/CrearTicket.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true},
+    path: '/tickets/crear',
+    name: 'CrearTicket',
+    component: () => import('@/pages/CrearTicket.vue'),
+    meta: { requiresAuth: true }, // ya no requiere admin
   },
   {
-  path: '/tickets/:id/editar',
-  name: 'editar-ticket',
-  component: () => import('@/pages/EditarTicket.vue'),
-  props: true
-}
-
-
+    path: '/tickets/:id/editar',
+    name: 'editar-ticket',
+    component: () => import('@/pages/EditarTicket.vue'),
+    props: true
+  }
 ];
 
 const router = createRouter({
@@ -119,7 +128,7 @@ router.beforeEach((to, from) => {
   }
 
   if (to.meta.requiresAdmin && !isAdmin) {
-    return '/'; // Redirigir a home o donde quieras
+    return '/';
   }
 });
 

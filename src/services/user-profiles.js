@@ -17,13 +17,26 @@ export async function createUserProfile(data) {
 }
 
 export async function updateUserProfile(id, data) {
+  // ✅ Filtrar solo los campos válidos para user_profiles
+  const camposPermitidos = [
+    'display_name', 'sector', 'equipo', 'rustdesk', 'is_admin',
+    'sistema_operativo', 'microprocesador', 'tipo_memoria', 'tamano_memoria',
+    'tipo_disco', 'tamano_disco', 'ip_pc', 'ip_telefono', 'interno_telefono',
+    'notas', 'photo', 'empresa_id'
+  ]
+
+  const datosFiltrados = Object.fromEntries(
+    Object.entries(data).filter(([key]) => camposPermitidos.includes(key))
+  )
+
   const { error } = await supabase
     .from('user_profiles')
-    .update(data)
+    .update(datosFiltrados)
     .eq('id', id)
 
   if (error) {
     console.error('[user-profiles.js updateUserProfile] Error al actualizar el perfil de usuario:', error)
+    console.error('[Detalles error]', error?.message || error)
     throw error
   }
 }

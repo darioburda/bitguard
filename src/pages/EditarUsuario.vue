@@ -28,7 +28,7 @@
           <FormularioUsuario
             v-if="usuario"
             v-model:form="usuario"
-            :editing="false"
+            :editing="true"
             modo="edicion"
           />
         </FormularioLayout>
@@ -49,6 +49,7 @@ import DetailLayout from '@/components/layouts/DetailLayout.vue'
 import AccionesDetalle from '@/components/AccionesDetalle.vue'
 import FormularioLayout from '@/components/layouts/FormularioLayout.vue'
 import FormularioUsuario from '@/components/FormularioUsuario.vue'
+import { syncUserMetadata } from '@/services/sync-user-metadata'
 
 export default {
   name: 'EditarUsuario',
@@ -94,7 +95,17 @@ export default {
     const guardarCambios = async () => {
       try {
         await updateUserProfile(usuario.value.id, usuario.value)
-        router.push({ path: '/abm-usuarios', query: { success: '✅ Perfil actualizado correctamente' } })
+
+        // Sincronizar metadata con Edge Function
+        await syncUserMetadata(usuario.value.id, {
+          is_admin: usuario.value.is_admin,
+          display_name: usuario.value.display_name
+        })
+
+        router.push({
+          path: '/abm-usuarios',
+          query: { success: '✅ Perfil actualizado correctamente' }
+        })
       } catch (e) {
         error.value = '❌ Error al guardar los cambios.'
       }

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '@/services/supabase'
 
 import DetailContainer from '@/components/layouts/DetailContainer.vue'
 import DetailLayout from '@/components/layouts/DetailLayout.vue'
@@ -8,7 +9,6 @@ import AccionesDetalle from '@/components/AccionesDetalle.vue'
 import FormularioLayout from '@/components/layouts/FormularioLayout.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
 import MainButton from '@/components/MainButton.vue'
-
 import FormularioTicket from '@/components/FormularioTicket.vue'
 
 import { getAllEmpresas } from '@/services/empresas'
@@ -19,12 +19,13 @@ const router = useRouter()
 
 const cargando = ref(false)
 const feedback = ref('')
-const feedbackType = ref('danger') // para controlar color error o éxito
+const feedbackType = ref('danger')
 
 const empresas = ref([])
 const usuarios = ref([])
 const todosUsuarios = ref([])
 const tecnicos = ref([])
+const esAdmin = ref(false)
 
 const ticket = ref({
   empresa_id: '',
@@ -39,11 +40,30 @@ const ticket = ref({
 const cargarDatos = async () => {
   cargando.value = true
   try {
-    empresas.value = await getAllEmpresas()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return router.push('/')
+
+    const perfil = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    esAdmin.value = perfil.data?.is_admin || false
+
     const perfiles = await getAllUserProfiles()
     todosUsuarios.value = perfiles
-    usuarios.value = []
     tecnicos.value = perfiles.filter(u => u.is_admin)
+
+    if (esAdmin.value) {
+      empresas.value = await getAllEmpresas()
+      usuarios.value = []
+    } else {
+      const usuario = perfil.data
+      ticket.value.usuario_id = usuario.id
+      ticket.value.empresa_id = usuario.empresa_id
+    }
+
   } catch (error) {
     console.error(error)
   } finally {
@@ -70,11 +90,11 @@ const guardarTicket = async () => {
   feedback.value = ''
   feedbackType.value = 'danger'
 
-  if (!ticket.value.empresa_id) {
+  if (esAdmin.value && !ticket.value.empresa_id) {
     feedback.value = '❌ Debes seleccionar una empresa.'
     return
   }
-  if (!ticket.value.usuario_id) {
+  if (esAdmin.value && !ticket.value.usuario_id) {
     feedback.value = '❌ Debes seleccionar un usuario solicitante.'
     return
   }
@@ -94,10 +114,14 @@ const guardarTicket = async () => {
       tecnico_id: ticket.value.tecnico_id || null,
       estado: ticket.value.tecnico_id ? 'Activo' : 'Abierto',
     }
+
     await crearTicket(payload)
+
     feedbackType.value = 'success'
     feedback.value = '✅ Ticket creado correctamente'
-    router.push({ name: 'AbmTickets' })
+
+    const destino = esAdmin.value ? 'AbmTickets' : 'MisTickets'
+    router.push({ name: destino })
   } catch (error) {
     console.error(error)
     feedback.value = '❌ Error al crear ticket'
@@ -111,7 +135,11 @@ const guardarTicket = async () => {
   <DetailContainer :loading="cargando">
     <DetailLayout titulo="Crear Ticket">
       <AccionesDetalle>
-        <MainButton to="/abm-tickets" variant="volver" :showIcon="true">
+        <MainButton
+          :to="esAdmin ? '/abm-tickets' : '/mis-tickets'"
+          variant="volver"
+          :showIcon="true"
+        >
           Volver
         </MainButton>
 
@@ -139,6 +167,7 @@ const guardarTicket = async () => {
           :usuarios="usuarios"
           :tecnicos="tecnicos"
           :todos-usuarios="todosUsuarios"
+          :es-admin="esAdmin"
         />
       </FormularioLayout>
     </DetailLayout>

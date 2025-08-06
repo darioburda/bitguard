@@ -30,12 +30,12 @@ serve(async (req) => {
       ticket_id,
       tecnico_id,
       descripcion,
-      minutos_usados,
-      fue_visita,
+      minutos_usados = 0,
+      fue_visita = false,
       estado_ticket
     } = await req.json();
 
-    if (!ticket_id || !tecnico_id || !descripcion || !minutos_usados) {
+    if (!ticket_id || !tecnico_id || !descripcion) {
       return new Response(JSON.stringify({ error: "Faltan campos obligatorios" }), {
         status: 400,
         headers: corsHeaders
@@ -89,21 +89,23 @@ serve(async (req) => {
       });
     }
 
-    // 4. Actualizar empresa
-    const { error: rpcError } = await supabase.rpc("incrementar_consumos_empresa", {
-      empresa_id_input: perfil.empresa_id,
-      minutos_input: minutos_usados,
-      sumar_visita: fue_visita
-    });
-
-    if (rpcError) {
-      return new Response(JSON.stringify({
-        error: "Error al actualizar consumo de empresa",
-        detalle: rpcError.message
-      }), {
-        status: 500,
-        headers: corsHeaders
+    // 4. Actualizar empresa solo si minutos > 0 o fue_visita es true
+    if (minutos_usados > 0 || fue_visita) {
+      const { error: rpcError } = await supabase.rpc("incrementar_consumos_empresa", {
+        empresa_id_input: perfil.empresa_id,
+        minutos_input: minutos_usados,
+        sumar_visita: fue_visita
       });
+
+      if (rpcError) {
+        return new Response(JSON.stringify({
+          error: "Error al actualizar consumo de empresa",
+          detalle: rpcError.message
+        }), {
+          status: 500,
+          headers: corsHeaders
+        });
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {

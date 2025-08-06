@@ -174,15 +174,10 @@ const cargarDatos = async () => {
     const user = session?.user
     esAdmin.value = user?.user_metadata?.is_admin === true
 
-    console.log('👤 Usuario actual:', user)
-    console.log('🔐 esAdmin:', esAdmin.value)
-
     const data = await getTicketById(id)
     ticket.value = data
     tipoOriginal.value = data.tipo
     estadoOriginal.value = data.estado
-
-    console.log('🎫 Ticket cargado:', data)
 
     const perfiles = await getAllUserProfiles()
     usuarios.value = perfiles
@@ -190,10 +185,8 @@ const cargarDatos = async () => {
 
     empresas.value = await getAllEmpresas()
     actualizaciones.value = await getActualizacionesPorTicketId(id)
-
-    console.log('📋 Actualizaciones:', actualizaciones.value)
   } catch (error) {
-    console.error('❌ Error al cargar datos del ticket:', error)
+    console.error('Error al cargar datos del ticket:', error)
   } finally {
     loading.value = false
   }

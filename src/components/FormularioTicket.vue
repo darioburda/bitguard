@@ -1,9 +1,7 @@
 <template>
   <div class="space-y-4">
-
-
-    <!-- Usuario solicitante (solo edición, readonly) -->
-    <div v-if="ticket.id">
+    <!-- Usuario solicitante (solo edición, readonly, solo admin) -->
+    <div v-if="esAdmin && ticket.id">
       <label class="block font-medium text-sm mb-1 mt-5">Usuario solicitante</label>
       <input
         type="text"
@@ -13,16 +11,30 @@
       />
     </div>
 
-        <!-- Empresa (solo lectura) -->
-    <div>
+    <!-- Empresa (select si es nuevo, solo admin) -->
+    <div v-if="esAdmin">
       <label class="block font-medium text-sm mb-1">Empresa</label>
-      <input
-        type="text"
-        :value="nombreEmpresa"
-        disabled
-        class="w-full px-4 py-2 border rounded-md bg-gray-100 text-sm text-gray-700"
-      />
+      <template v-if="!ticket.id">
+        <select
+          v-model="ticket.empresa_id"
+          class="w-full px-4 py-2 border rounded-md text-sm"
+        >
+          <option disabled value="">Seleccionar empresa</option>
+          <option v-for="emp in empresas" :key="emp.id" :value="emp.id">
+            {{ emp.nombre }}
+          </option>
+        </select>
+      </template>
+      <template v-else>
+        <input
+          type="text"
+          :value="nombreEmpresa"
+          disabled
+          class="w-full px-4 py-2 border rounded-md bg-gray-100 text-sm text-gray-700"
+        />
+      </template>
     </div>
+
 
     <!-- Título -->
     <div>
@@ -35,19 +47,36 @@
       />
     </div>
 
-    <!-- Tema de ayuda -->
+    <!-- Tema de ayuda como select -->
     <div>
       <label class="block font-medium text-sm mb-1">Tema de ayuda</label>
-      <input
-        type="text"
-        v-model="ticket.tema_ayuda"
+      <select
+        v-model="temaSeleccionado"
         class="w-full px-4 py-2 border rounded-md text-sm"
+        :disabled="!puedeEditar"
+      >
+        <option disabled value="">Seleccionar tema</option>
+        <option value="No hay internet">No hay internet</option>
+        <option value="No imprime">No imprime</option>
+        <option value="PC lenta">PC lenta</option>
+        <option value="Error de login">Error de login</option>
+        <option value="Problema con sistema de gestión">Problema con sistema de gestión</option>
+        <option value="Otro">Otro (especificar)</option>
+      </select>
+
+      <!-- Input visible solo si elige "Otro" -->
+      <input
+        v-if="temaSeleccionado === 'Otro'"
+        v-model="ticket.tema_ayuda"
+        type="text"
+        placeholder="Especificar tema"
+        class="w-full px-4 py-2 border rounded-md text-sm mt-2"
         :disabled="!puedeEditar"
       />
     </div>
 
-    <!-- Tipo de soporte -->
-    <div>
+    <!-- Tipo de soporte (solo admin) -->
+    <div v-if="esAdmin">
       <label class="block font-medium text-sm mb-1">Tipo de soporte</label>
       <select
         v-model="ticket.tipo"
@@ -59,8 +88,8 @@
       </select>
     </div>
 
-    <!-- Técnico asignado -->
-    <div>
+    <!-- Técnico asignado (solo admin) -->
+    <div v-if="esAdmin">
       <label class="block font-medium text-sm mb-1">Técnico asignado</label>
       <select
         v-model="ticket.tecnico_id"
@@ -87,7 +116,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
   ticket: {
@@ -105,6 +134,10 @@ const props = defineProps({
   todosUsuarios: {
     type: Array,
     required: true
+  },
+  esAdmin: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -125,4 +158,30 @@ const nombreEmpresa = computed(() => {
   const emp = props.empresas.find((e) => e.id === props.ticket.empresa_id)
   return emp?.nombre || 'Empresa no encontrada'
 })
+
+// Select dinámico para tema_ayuda
+const opcionesTemas = [
+  'No hay internet',
+  'No imprime',
+  'PC lenta',
+  'Error de login',
+  'Problema con sistema de gestión'
+]
+
+const temaSeleccionado = ref('')
+
+watch(temaSeleccionado, (nuevo) => {
+  if (nuevo !== 'Otro') {
+    props.ticket.tema_ayuda = nuevo
+  } else {
+    props.ticket.tema_ayuda = ''
+  }
+})
+
+// Inicializa correctamente al editar
+onMounted(() => {
+  const actual = props.ticket.tema_ayuda
+  temaSeleccionado.value = opcionesTemas.includes(actual) ? actual : 'Otro'
+})
 </script>
+

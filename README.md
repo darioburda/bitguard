@@ -59,7 +59,8 @@
 - ✅ Composable `useFiltradoEntidad.js` para filtrar cualquier lista con campos personalizables y filtros múltiples (empresa, sector, plan, estado, tipo, etc.)  
 - ✅ Contador de resultados como chip a la derecha del layout  
 - ✅ Búsqueda por nombre, email y número de interno en ContactosEmpresa.vue  
-- ✅ Soporte para filtros reactivos en todas las vistas principales (usuarios, empresas, contactos, tickets)
+- ✅ Soporte para filtros reactivos en todas las vistas principales (usuarios, empresas, contactos, tickets)  
+- ✅ Modal de confirmación al activar rol administrador incluso en edición (`FormularioUsuario.vue`)
 
 ---
 
@@ -86,35 +87,35 @@
 
 ## 🧱 Tecnologías utilizadas
 
-| Categoría       | Herramientas                                     |
-|-----------------|--------------------------------------------------|
-| **Frontend**    | Vue 3 + Vite + TailwindCSS                       |
-| **Backend**     | Supabase (Auth, Database, Storage, Edge Functions) |
-| **Base de datos** | PostgreSQL (gestionado desde Supabase)        |
-| **Realtime**    | Supabase Realtime Channels                       |
-| **Storage**     | Supabase Buckets (profile-picture, post-image)   |
-| **Estilo**      | Tailwind + clases personalizadas                 |
-| **Gráficos**    | vue-chartjs + chart.js                           |
-| **Animaciones** | SweetAlert2, TransitionExpand, animaciones CSS   |
+| Categoría         | Herramientas                                       |
+|-------------------|----------------------------------------------------|
+| **Frontend**      | Vue 3 + Vite + TailwindCSS                         |
+| **Backend**       | Supabase (Auth, Database, Storage, Edge Functions) |
+| **Base de datos** | PostgreSQL (gestionado desde Supabase)            |
+| **Realtime**      | Supabase Realtime Channels                         |
+| **Storage**       | Supabase Buckets (profile-picture, post-image)     |
+| **Estilo**        | Tailwind + clases personalizadas                   |
+| **Gráficos**      | vue-chartjs + chart.js                             |
+| **Animaciones**   | SweetAlert2, TransitionExpand, animaciones CSS     |
 
 ---
 
 ## 📁 Estructura del proyecto (parcial)
 
 src/
-├── assets/ # Imágenes y recursos estáticos
-├── components/ # Componentes reutilizables (botones, alerts, loaders, etc.)
+├── assets/
+├── components/
 │ ├── MainButton.vue
 │ ├── Acciones.vue
 │ ├── CheckboxSeleccion.vue
 │ ├── FiltrosUsuarios.vue
-│ ├── FiltrosEntidad.vue # ✅ Nuevo componente reutilizable
+│ ├── FiltrosEntidad.vue
 │ ├── Paginador.vue
 │ ├── SoporteChart.vue
 │ ├── VisitasChart.vue
 │ ├── TransitionExpand.vue
-│ ├── ChatBitButton.vue # ✅ Botón flotante con animación
-├── pages/ # Vistas principales (Home, Login, ABM, etc.)
+│ ├── ChatBitButton.vue
+├── pages/
 ├── modules/
 │ ├── home/
 │ ├── publicaciones/
@@ -123,7 +124,7 @@ src/
 │ ├── pedidos/
 │ └── tickets/
 ├── composables/
-│ └── useUsuarios.js
+│ ├── useUsuarios.js
 │ └── useFiltradoEntidad.js
 ├── services/
 ├── styles/
@@ -137,37 +138,31 @@ Editar
 
 ## 🔐 Seguridad y control de acceso
 
-- Rutas protegidas según el estado de sesión y el rol (`is_admin`)
-- Verificación en tiempo real mediante `subscribeToAuthState`
-- Vistas administrativas accesibles solo para usuarios con permisos (`abm-usuarios`, `abm-empresas`, `abm-tickets`)
+- Rutas protegidas según el estado de sesión y el rol (`is_admin`)  
+- Verificación en tiempo real mediante `subscribeToAuthState`  
+- Vistas administrativas accesibles solo para usuarios con permisos (`abm-usuarios`, `abm-empresas`, `abm-tickets`)  
 
 ---
 
 ## 🧩 Gestión de empresas y planes
 
 Cada empresa contiene:  
-`nombre`, `email_contacto`, `telefono`, `direccion`, `cuit`, `plan_id`,  
-`visitas_consumidas`, `minutos_consumidos`, `minutos_excedidos`, `updated_at`
+`nombre`, `email_contacto`, `telefono`, `direccion`, `cuit`, `plan_id`, `visitas_consumidas`, `minutos_consumidos`, `minutos_excedidos`, `updated_at`
 
-**Validaciones**:
-- Nombre obligatorio  
-- Email con formato válido  
-- CUIT con formato XX-XXXXXXXX-X  
-- Plan obligatorio  
-
-**Visualización y consumo**:
+**Visualización**:
 - Cards con `BadgePlan` y datos de consumo  
 - Botón toggle para mostrar/ocultar métricas  
-- Gráfico tipo torta (`vue-chartjs`): usados, restantes, excedidos (violeta)  
+- Gráfico tipo torta (`vue-chartjs`)  
 - Tooltips personalizados y formato 1h 20m / 5h 0m  
-- Altura mínima y transiciones suaves  
-- Filtros por nombre, sector y plan (reutilizando `FiltrosEntidad.vue`)  
+
+**Filtros**:
+- Por nombre, sector y plan (`FiltrosEntidad.vue`)
 
 ---
 
 ## 🆘 Gestión de tickets de soporte
 
-ABM completo: listado, creación, edición y eliminación
+ABM completo: listado, creación, edición y eliminación.
 
 **Campos**: empresa, usuario solicitante, técnico asignado, tipo, minutos usados, fue_visita, estado
 
@@ -176,21 +171,22 @@ ABM completo: listado, creación, edición y eliminación
 - Modal de confirmación  
 - Estado intermedio "Activo"  
 - Validaciones al editar (minutos y técnico según estado)  
-- Actualización automática de `updated_at`
+- Actualización automática de `updated_at`  
+- Vista de historial técnico con `ticket_updates`  
 
 ---
 
 ## 👤 Vista para usuarios no administradores
 
-- `MyProfile.vue`: datos personales, `BadgePlan`, `interno_telefono` no editable, gráficos, sin enlace RustDesk  
-- `ContactosEmpresa.vue`: lista de compañeros con foto, nombre, email, interno y sector  
+- `MyProfile.vue`: datos personales, plan, sector, internos, gráficos  
+- `ContactosEmpresa.vue`: lista de compañeros con info técnica básica  
 
 ---
 
 ## 🔭 Próximas funcionalidades
 
-- Separación de equipos IT como entidad independiente del usuario  
-- Comentarios técnicos por ticket (tabla `ticket_comentarios`)  
+- Separación de equipos IT como entidad independiente  
+- Comentarios técnicos por ticket (`ticket_comentarios`)  
 - Registro automático de sesiones remotas (RustDesk)  
 - Subida de documentos técnicos (Supabase Storage)  
 - Asignación de locales y vendedores para pedidos  
@@ -201,7 +197,7 @@ ABM completo: listado, creación, edición y eliminación
 ## ⚙️ Scripts útiles
 
 ```bash
-# Clonar el proyecto y correr localmente
+# Clonar y ejecutar el proyecto
 git clone https://github.com/darioburda/bitguard.git
 cd bitguard
 npm install
@@ -212,7 +208,3 @@ supabase functions deploy registrar-actualizacion-ticket
 👥 Autores
 Darío Burda
 Nicolás Burda
-
-yaml
-Copiar
-Editar

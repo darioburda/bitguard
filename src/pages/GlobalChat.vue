@@ -1,28 +1,29 @@
 <script>
-import { nextTick } from 'vue';
-import MainH1 from '../components/MainH1.vue';
-import MainLoader from '../components/MainLoader.vue';
-import MainButton from '../components/MainButton.vue';
+import { nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import MainH1 from '../components/MainH1.vue'
+import MainLoader from '../components/MainLoader.vue'
+import MainButton from '../components/MainButton.vue'
 import {
   receiveGlobalChatMessages,
   saveGlobalChatMessage,
   getGlobalChatLastMessages
-} from '../services/global-chat';
+} from '../services/global-chat'
 import {
   receivePrivateChatMessages,
   savePrivateChatMessage,
   getPrivateChatLastMessages
-} from '../services/private-chat';
-import { subscribeToAuthState } from '../services/auth';
-import { getAllUserProfiles, getUserProfileById } from '../services/user-profiles';
+} from '../services/private-chat'
+import { subscribeToAuthState } from '../services/auth'
+import { getAllUserProfiles, getUserProfileById } from '../services/user-profiles'
 import {
   getRespuestas,
   agregarRespuesta,
   subscribeToRespuestas
-} from '../services/respuestas';
+} from '../services/respuestas'
 
-let privateChatSubscription = null;
-let globalChatChannel = null;
+let privateChatSubscription = null
+let globalChatChannel = null
 
 export default {
   name: 'GlobalChat',
@@ -35,224 +36,244 @@ export default {
         email: null,
         display_name: null,
         bio: null,
-        career: null,
+        career: null
       },
       users: [],
       messages: [],
       loadingMessages: false,
       newMessage: {
-        body: '',
+        body: ''
       },
       selectedUser: null,
       privateMessages: [],
       loadingPrivateMessages: false,
-    };
+      route: useRoute(),
+      readyToShow: false
+    }
   },
 
   methods: {
     async sendMessage() {
-      if (!this.newMessage.body.trim()) return;
+      if (!this.newMessage.body.trim()) return
 
       try {
         if (this.selectedUser) {
-          await savePrivateChatMessage(this.user.id, this.selectedUser.id, this.newMessage.body);
+          await savePrivateChatMessage(this.user.id, this.selectedUser.id, this.newMessage.body)
         } else {
           await saveGlobalChatMessage({
             sender_id: this.user.id,
             email: this.user.email,
-            body: this.newMessage.body,
-          });
+            body: this.newMessage.body
+          })
         }
 
-        this.newMessage.body = '';
-        await nextTick();
+        this.newMessage.body = ''
+        await nextTick()
         requestAnimationFrame(() => {
-          this.scrollToBottom(false);
-        });
+          this.scrollToBottom(false)
+        })
       } catch (error) {
-        console.error("Error al enviar el mensaje:", error);
+        console.error('Error al enviar el mensaje:', error)
       }
     },
 
     async sendRespuesta(message) {
-      const comment = message.newComment.trim();
-      if (!comment) return;
+      const comment = message.newComment.trim()
+      if (!comment) return
 
       if (!message.id) {
-        console.error('El mensaje no tiene un ID definido.');
-        return;
+        console.error('El mensaje no tiene un ID definido.')
+        return
       }
 
       try {
-        const parsedId = Number(message.id);
+        const parsedId = Number(message.id)
         if (!parsedId || isNaN(parsedId)) {
-          throw new Error(`El ID del mensaje no es un número válido: ${message.id}`);
+          throw new Error(`El ID del mensaje no es un número válido: ${message.id}`)
         }
 
         await agregarRespuesta({
           global_chat_id: parsedId,
           sender_id: this.user.id,
           comment
-        });
-        message.newComment = '';
+        })
+        message.newComment = ''
       } catch (error) {
-        console.error('Error al enviar respuesta:', error);
+        console.error('Error al enviar respuesta:', error)
       }
     },
 
     async cargarRespuestasParaMensaje(message) {
       try {
-        const respuestas = await getRespuestas(message.id);
-        message.comments = respuestas;
+        const respuestas = await getRespuestas(message.id)
+        message.comments = respuestas
       } catch (error) {
-        console.error('Error cargando respuestas:', error);
+        console.error('Error cargando respuestas:', error)
       }
     },
 
     async handleSelectUser(user) {
-      this.selectedUser = user;
-      this.loadingPrivateMessages = true;
-      this.privateMessages = [];
+      this.selectedUser = user
+      this.loadingPrivateMessages = true
+      this.privateMessages = []
 
       try {
-        const messages = await getPrivateChatLastMessages(this.user.id, user.id);
-        this.privateMessages = messages;
+        const messages = await getPrivateChatLastMessages(this.user.id, user.id)
+        this.privateMessages = messages
 
-        await nextTick();
+        await nextTick()
         requestAnimationFrame(() => {
-          this.scrollToBottom(false);
-        });
+          this.scrollToBottom(false)
+        })
 
         if (privateChatSubscription?.unsubscribe) {
-          console.log('[Chat] Canal privado cerrado');
-          privateChatSubscription.unsubscribe();
+          console.log('[Chat] Canal privado cerrado')
+          privateChatSubscription.unsubscribe()
         }
 
         if (globalChatChannel?.unsubscribe) {
-          console.log('[Chat] Canal global cerrado');
-          globalChatChannel.unsubscribe();
-          globalChatChannel = null;
+          console.log('[Chat] Canal global cerrado')
+          globalChatChannel.unsubscribe()
+          globalChatChannel = null
         }
 
-        privateChatSubscription = receivePrivateChatMessages(this.user.id, user.id, async (newMsg) => {
-          this.privateMessages.push(newMsg);
-          await nextTick();
-          requestAnimationFrame(() => {
-            this.scrollToBottom(false);
-          });
-        });
+        privateChatSubscription = receivePrivateChatMessages(
+          this.user.id,
+          user.id,
+          async (newMsg) => {
+            this.privateMessages.push(newMsg)
+            await nextTick()
+            requestAnimationFrame(() => {
+              this.scrollToBottom(false)
+            })
+          }
+        )
       } catch (error) {
-        console.error("Error cargando mensajes privados:", error);
+        console.error('Error cargando mensajes privados:', error)
       }
 
-      this.loadingPrivateMessages = false;
+      this.loadingPrivateMessages = false
     },
 
     async handleGlobalChat() {
       if (privateChatSubscription?.unsubscribe) {
-        console.log('[Chat] Canal privado cerrado');
-        privateChatSubscription.unsubscribe();
-        privateChatSubscription = null;
+        console.log('[Chat] Canal privado cerrado')
+        privateChatSubscription.unsubscribe()
+        privateChatSubscription = null
       }
-      this.selectedUser = null;
+      this.selectedUser = null
       if (globalChatChannel?.unsubscribe) {
-        console.log('[Chat] Canal global cerrado');
-        globalChatChannel.unsubscribe();
-        globalChatChannel = null;
+        console.log('[Chat] Canal global cerrado')
+        globalChatChannel.unsubscribe()
+        globalChatChannel = null
       }
-      this.setupGlobalChatListener();
-      await nextTick();
+      this.setupGlobalChatListener()
+      await nextTick()
       requestAnimationFrame(() => {
-        this.scrollToBottom(false);
-      });
+        this.scrollToBottom(false)
+      })
     },
 
     setupGlobalChatListener() {
-      if (globalChatChannel) return;
-      globalChatChannel = receiveGlobalChatMessages(async newReceivedMessage => {
+      if (globalChatChannel) return
+      globalChatChannel = receiveGlobalChatMessages(async (newReceivedMessage) => {
         if (!this.selectedUser) {
           if (!newReceivedMessage?.id) {
-            console.warn("Mensaje global recibido sin ID, ignorado.");
-            return;
+            console.warn('Mensaje global recibido sin ID, ignorado.')
+            return
           }
 
           const newMessageWithComments = {
             ...newReceivedMessage,
             comments: [],
             newComment: ''
-          };
+          }
 
-          this.messages.push(newMessageWithComments);
-          await this.cargarRespuestasParaMensaje(newMessageWithComments);
-          await nextTick();
+          this.messages.push(newMessageWithComments)
+          await this.cargarRespuestasParaMensaje(newMessageWithComments)
+          await nextTick()
           requestAnimationFrame(() => {
-            this.scrollToBottom(false);
-          });
+            this.scrollToBottom(false)
+          })
         }
-      });
+      })
     },
 
     scrollToBottom(smooth = false) {
-      const container = this.$refs.chatContainer;
+      const container = this.$refs.chatContainer
       if (container) {
         container.scrollTo({
           top: container.scrollHeight,
-          behavior: smooth ? 'smooth' : 'auto',
-        });
+          behavior: smooth ? 'smooth' : 'auto'
+        })
       }
-    },
+    }
   },
 
   async mounted() {
-    subscribeToAuthState(newUserData => this.user = newUserData);
-
-    this.setupGlobalChatListener();
+    subscribeToAuthState((newUserData) => (this.user = newUserData))
 
     try {
-      this.loadingMessages = true;
-      this.messages = await getGlobalChatLastMessages();
+      this.loadingMessages = true
+      this.messages = await getGlobalChatLastMessages()
       this.messages = await Promise.all(
-        this.messages.map(async msg => {
-          const comentarios = await getRespuestas(msg.id);
+        this.messages.map(async (msg) => {
+          const comentarios = await getRespuestas(msg.id)
           return {
             ...msg,
             comments: comentarios,
             newComment: ''
-          };
+          }
         })
-      );
-      this.loadingMessages = false;
-      await nextTick();
-      requestAnimationFrame(() => {
-        this.scrollToBottom(false);
-      });
+      )
+      this.loadingMessages = false
 
-      const allUsers = await getAllUserProfiles();
-      this.users = allUsers.filter(u => u.id !== this.user.id);
+      const allUsers = await getAllUserProfiles()
+      this.users = allUsers.filter((u) => u.id !== this.user.id)
+
+      const userIdDesdeQuery = this.route.query.usuario
+      if (userIdDesdeQuery) {
+        const target = this.users.find((u) => u.id === userIdDesdeQuery)
+        if (target) {
+          await this.handleSelectUser(target)
+        } else {
+          this.setupGlobalChatListener()
+        }
+      } else {
+        this.setupGlobalChatListener()
+      }
 
       subscribeToRespuestas(async (respuesta) => {
-        const msg = this.messages.find(m => m.id === respuesta.global_chat_id);
+        const msg = this.messages.find((m) => m.id === respuesta.global_chat_id)
         if (msg) {
-          const profile = await getUserProfileById(respuesta.sender_id);
-          respuesta.user_profiles = profile;
-          msg.comments.push(respuesta);
+          const profile = await getUserProfileById(respuesta.sender_id)
+          respuesta.user_profiles = profile
+          msg.comments.push(respuesta)
         }
-      });
+      })
+
+      await nextTick()
+      requestAnimationFrame(() => {
+        this.scrollToBottom(false)
+      })
+
+      this.readyToShow = true
     } catch (error) {
-      console.error("Error cargando mensajes o usuarios:", error);
+      console.error('Error cargando mensajes o usuarios:', error)
     }
   },
 
   beforeUnmount() {
     if (privateChatSubscription?.unsubscribe) {
-      privateChatSubscription.unsubscribe();
+      privateChatSubscription.unsubscribe()
     }
     if (globalChatChannel?.unsubscribe) {
-      globalChatChannel.unsubscribe();
+      globalChatChannel.unsubscribe()
     }
   }
-};
+}
 </script>
+
 
 
 

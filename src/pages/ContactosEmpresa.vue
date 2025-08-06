@@ -4,7 +4,7 @@
       <!-- Filtros -->
       <template #filtros>
         <FiltrosEntidad
-          entidad="usuario"
+          entidad="contacto"
           :busqueda="busqueda"
           :sectorSeleccionado="sectorSeleccionado"
           :sectores="sectoresDisponibles"

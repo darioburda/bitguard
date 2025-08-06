@@ -6,6 +6,14 @@
           <MainButton variant="editar" to="/mi-perfil/editar">
             Editar perfil
           </MainButton>
+
+          <MainButton
+            v-if="esAdmin"
+            variant="actualizar"
+            @click="actualizarMetadatos"
+          >
+            Sinc
+          </MainButton>
         </template>
 
         <template #feedback>
@@ -18,8 +26,6 @@
         </template>
       </AccionesDetalle>
 
-
-
       <CardProfile
         :user="user"
         :empresa="empresa"
@@ -29,8 +35,8 @@
         @toggle-consumo="mostrarConsumo = !mostrarConsumo"
       />
     </DetailLayout>
-    <ChatBitButton />
 
+    <ChatBitButton />
   </DetailContainer>
 </template>
 
@@ -41,12 +47,12 @@ import AccionesDetalle from '@/components/AccionesDetalle.vue'
 import CardProfile from '@/components/CardProfile.vue'
 import MainButton from '@/components/MainButton.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
+import ChatBitButton from '@/components/ChatBitButton.vue'
+
 import { subscribeToAuthState } from '@/services/auth'
 import { getUserProfileById } from '@/services/user-profiles'
 import { getEmpresaConResumen } from '@/services/empresas'
 import { supabase } from '@/services/supabase'
-import ChatBitButton from '@/components/ChatBitButton.vue'
-
 
 export default {
   name: 'MyProfile',
@@ -69,7 +75,7 @@ export default {
         equipo: null,
         rustdesk: null,
         interno_telefono: null,
-        photo: null,
+        photo: null
       },
       loading: true,
       empresa: null,
@@ -79,10 +85,33 @@ export default {
       mostrarConsumo: false,
       feedback: '',
       feedbackType: 'success',
+      esAdmin: false
+    }
+  },
+  methods: {
+    async actualizarMetadatos() {
+      try {
+        const { id, email, display_name } = this.user
+        const { error } = await supabase.auth.updateUser({
+          data: {
+            is_admin: true,
+            display_name
+          }
+        })
+
+        if (error) throw error
+
+        this.feedback = '✅ Metadatos sincronizados correctamente.'
+        this.feedbackType = 'success'
+      } catch (err) {
+        console.error('❌ Error al sincronizar metadatos:', err)
+        this.feedback = '❌ No se pudo sincronizar metadatos.'
+        this.feedbackType = 'error'
+      }
     }
   },
   mounted() {
-    // Mensaje de feedback (si existe)
+    // Feedback desde sesión
     this.feedback = sessionStorage.getItem('perfil_feedback') || ''
     this.feedbackType = sessionStorage.getItem('feedback_type') || 'success'
     sessionStorage.removeItem('perfil_feedback')
@@ -93,6 +122,7 @@ export default {
         try {
           const profile = await getUserProfileById(sessionUser.id)
           this.user = { ...sessionUser, ...profile }
+          this.esAdmin = !!profile.is_admin
 
           const empresaConResumen = await getEmpresaConResumen(profile.empresa_id)
           this.empresa = empresaConResumen
@@ -124,6 +154,6 @@ export default {
         this.mostrarBoton = true
       }, 1500)
     })
-  },
+  }
 }
 </script>

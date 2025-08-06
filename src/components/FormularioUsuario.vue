@@ -11,14 +11,19 @@ const props = defineProps({
 
 const mostrarModalAdmin = ref(false)
 
-const puedeActivarSwitch = computed(() =>
-  form.value.display_name?.trim() &&
-  form.value.email?.trim() &&
-  form.value.password?.trim()
-)
+// ✅ Solo pide password en modo 'creacion'
+const puedeActivarSwitch = computed(() => {
+  if (props.modo === 'edicion') return true
+  return (
+    form.value.display_name?.trim() &&
+    form.value.email?.trim() &&
+    form.value.password?.trim()
+  )
+})
 
+// ✅ Siempre muestra el modal al querer activar admin
 function manejarCambioAdmin(nuevoValor) {
-  if (nuevoValor && !props.editing) {
+  if (nuevoValor) {
     mostrarModalAdmin.value = true
   } else {
     form.value.is_admin = false
@@ -66,8 +71,8 @@ function cancelarAdmin() {
       />
     </div>
 
-    <!-- Contraseña -->
-    <div class="sm:col-span-2">
+    <!-- ✅ Contraseña solo si es creación -->
+    <div class="sm:col-span-2" v-if="props.modo === 'creacion'">
       <label for="password" class="block mb-2 font-semibold cursor-pointer">Contraseña</label>
       <input
         id="password"
@@ -76,7 +81,6 @@ function cancelarAdmin() {
         autocomplete="new-password"
         autocorrect="off"
         spellcheck="false"
-        :disabled="props.editing"
         class="w-full p-2 border rounded text-sm"
         required
       />
@@ -93,7 +97,7 @@ function cancelarAdmin() {
       />
     </div>
 
-    <!-- Campos adicionales solo en edicion -->
+    <!-- Resto de campos solo en edición -->
     <template v-if="props.modo === 'edicion'">
       <div class="sm:col-span-2 border-t pt-6 mt-6">
         <label for="rustdesk" class="block mb-2 font-semibold">Rustdesk</label>
