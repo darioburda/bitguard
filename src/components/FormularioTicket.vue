@@ -102,6 +102,32 @@
       ></textarea>
     </div>
 
+    
+    <!-- Técnico asignado (lectura para todos) -->
+    <div>
+      <label for="tecnico" class="block font-medium text-sm mb-1 cursor-pointer">Técnico asignado</label>
+
+      <select
+        v-if="esAdmin"
+        id="tecnico"
+        v-model="ticket.tecnico_id"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
+      >
+        <option disabled value="">Seleccionar técnico</option>
+        <option v-for="tec in tecnicos" :key="tec.id" :value="tec.id">
+          {{ tec.display_name || tec.email }}
+        </option>
+      </select>
+
+      <input
+        v-else
+        id="tecnico"
+        type="text"
+        :value="nombreTecnicoAsignado"
+        disabled
+        class="w-full px-4 py-2 border rounded-md bg-gray-100 text-sm text-gray-700"
+      />
+    </div>
     <!-- Tipo de soporte (solo admin) -->
     <div v-if="esAdmin">
       <label for="tipo" class="block font-medium text-sm mb-1 cursor-pointer">Tipo de soporte</label>
@@ -113,21 +139,6 @@
         <option disabled value="">Seleccionar tipo</option>
         <option value="Presencial">Presencial</option>
         <option value="Remoto">Remoto</option>
-      </select>
-    </div>
-
-    <!-- Técnico asignado (solo admin) -->
-    <div v-if="esAdmin">
-      <label for="tecnico" class="block font-medium text-sm mb-1 cursor-pointer">Técnico asignado</label>
-      <select
-        id="tecnico"
-        v-model="ticket.tecnico_id"
-        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
-      >
-        <option disabled value="">Seleccionar técnico</option>
-        <option v-for="tec in tecnicos" :key="tec.id" :value="tec.id">
-          {{ tec.display_name || tec.email }}
-        </option>
       </select>
     </div>
   </div>
@@ -165,6 +176,12 @@ const nombreUsuarioSolicitante = computed(() => {
   if (!props.ticket || !props.ticket.usuario_id) return '—'
   const user = props.todosUsuarios.find((u) => u.id === props.ticket.usuario_id)
   return user?.display_name || user?.email || 'Usuario no encontrado'
+})
+
+const nombreTecnicoAsignado = computed(() => {
+  if (!props.ticket || !props.ticket.tecnico_id) return 'No asignado'
+  const tec = props.tecnicos.find(t => t.id === props.ticket.tecnico_id)
+  return tec?.display_name || tec?.email || 'Técnico no encontrado'
 })
 
 // Select dinámico para tema_ayuda

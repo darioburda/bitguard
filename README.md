@@ -209,4 +209,5 @@ npm run dev
 supabase functions deploy registrar-actualizacion-ticket
 👥 Autores
 Darío Burda
+
 Nicolás Burda

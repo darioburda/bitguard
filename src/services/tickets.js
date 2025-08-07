@@ -32,9 +32,8 @@ export async function getAllTickets() {
   }));
 }
 
-
 // 2. Crear nuevo ticket
-export const crearTicket = async (ticketData) => {
+export async function crearTicket(ticketData) {
   const cleaned = {
     ...ticketData,
     estado: ticketData.estado || 'Abierto',
@@ -52,11 +51,10 @@ export const crearTicket = async (ticketData) => {
     console.error('[crearTicket] Error:', error);
     throw error;
   }
-};
-
+}
 
 // 3. Obtener tickets por empresa
-export const getTicketsPorEmpresa = async (empresaId) => {
+export async function getTicketsPorEmpresa(empresaId) {
   const { data, error } = await supabase
     .from('tickets')
     .select('*')
@@ -65,7 +63,7 @@ export const getTicketsPorEmpresa = async (empresaId) => {
 
   if (error) throw error;
   return data;
-};
+}
 
 // 4. Obtener ticket por ID con relaciones
 export async function getTicketById(id) {
@@ -106,10 +104,8 @@ export async function getTicketById(id) {
   return data;
 }
 
-
-
 // 5. Actualizar ticket
-export const actualizarTicket = async (id, updates) => {
+export async function actualizarTicket(id, updates) {
   const { error } = await supabase
     .from('tickets')
     .update(updates)
@@ -119,10 +115,10 @@ export const actualizarTicket = async (id, updates) => {
     console.error('[actualizarTicket] Error:', error);
     throw error;
   }
-};
+}
 
 // 6. Eliminar ticket
-export const eliminarTicket = async (id) => {
+export async function eliminarTicket(id) {
   const { error } = await supabase
     .from('tickets')
     .delete()
@@ -132,26 +128,43 @@ export const eliminarTicket = async (id) => {
     console.error('[eliminarTicket] Error:', error);
     throw error;
   }
-};
+}
 
 // 7. Crear actualización de ticket (via Edge Function Supabase)
-
-export const crearActualizacionTicket = async ({
+export async function crearActualizacionTicket({
   ticket_id,
   tecnico_id,
   descripcion,
   minutos_usados,
   fue_visita,
-  estado_ticket
-}) => {
+  estado_ticket,
+  tipo_evento = 'actualizacion',
+  tipo_soporte = null,
+  nuevo_tecnico_id = null
+}) {
   const {
     data: { session },
     error: sessionError
   } = await supabase.auth.getSession();
 
   if (sessionError || !session?.access_token) {
+    console.error('[crearActualizacionTicket] No se pudo obtener sesión Supabase:', sessionError);
     throw new Error('No se pudo obtener el token de autenticación.');
   }
+
+  const payload = {
+    ticket_id,
+    tecnico_id,
+    descripcion,
+    minutos_usados,
+    fue_visita,
+    estado_ticket,
+    tipo_evento,
+    tipo_soporte,
+    nuevo_tecnico_id
+  };
+
+  console.log('[crearActualizacionTicket] Enviando payload:', payload);
 
   const response = await fetch('https://yjqstwwltjefqtsxlbsa.supabase.co/functions/v1/registrar-actualizacion-ticket', {
     method: 'POST',
@@ -159,34 +172,32 @@ export const crearActualizacionTicket = async ({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${session.access_token}`
     },
-    body: JSON.stringify({
-      ticket_id,
-      tecnico_id,
-      descripcion,
-      minutos_usados,
-      fue_visita,
-      estado_ticket
-    })
+    body: JSON.stringify(payload)
   });
+
+  const rawText = await response.text();
+  console.log('[crearActualizacionTicket] HTTP Status:', response.status);
+  console.log('[crearActualizacionTicket] Respuesta RAW:', rawText);
 
   let result;
   try {
-    result = await response.json();
-  } catch {
-    throw new Error('Error inesperado al procesar la respuesta del servidor.');
+    result = JSON.parse(rawText);
+  } catch (e) {
+    console.error('[crearActualizacionTicket] No se pudo parsear JSON:', rawText);
+    throw new Error('Respuesta inválida del servidor.');
   }
 
   if (!response.ok) {
-    console.error('[crearActualizacionTicket] Error:', result.error || result);
+    console.error('[crearActualizacionTicket] Error HTTP:', response.status);
+    console.error('[crearActualizacionTicket] Detalle:', result);
     throw new Error(result.error || 'Error al registrar actualización');
   }
 
   return result;
-};
-
+}
 
 // 8. Obtener actualizaciones de un ticket
-export const getActualizacionesPorTicketId = async (ticketId) => {
+export async function getActualizacionesPorTicketId(ticketId) {
   const { data, error } = await supabase
     .from('ticket_updates')
     .select(`
@@ -195,8 +206,11 @@ export const getActualizacionesPorTicketId = async (ticketId) => {
       minutos_usados,
       fue_visita,
       estado_ticket,
+      tipo_evento,
+      tipo_soporte,
+      nuevo_tecnico_id,
       created_at,
-      tecnico:user_profiles ( display_name )
+      tecnico:user_profiles!ticket_updates_tecnico_id_fkey ( display_name )
     `)
     .eq('ticket_id', ticketId)
     .order('created_at', { ascending: true });
@@ -210,4 +224,90 @@ export const getActualizacionesPorTicketId = async (ticketId) => {
     ...a,
     tecnico_nombre: a.tecnico?.display_name || 'Técnico desconocido'
   }));
-};
+}
+
+// 9. Registrar cambios importantes (tipo, técnico, estado)
+export async function registrarCambiosTicket(ticketAnterior, ticketNuevo, userId, eventoForzado = null) {
+  const cambios = [];
+
+  if (eventoForzado === 'cierre_ticket') {
+    cambios.push({
+      tipo_evento: 'cierre_ticket',
+      descripcion: `El ticket fue cerrado.`
+    });
+  }
+
+  if (ticketAnterior.tipo !== ticketNuevo.tipo) {
+    cambios.push({
+      tipo_evento: 'cambio_tipo_soporte',
+      tipo_soporte: ticketNuevo.tipo,
+      descripcion: `Cambio de tipo de soporte a ${ticketNuevo.tipo}`
+    });
+  }
+
+  if (ticketAnterior.tecnico_id !== ticketNuevo.tecnico_id && ticketNuevo.tecnico_id) {
+    let nuevoTecnico = null;
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('display_name')
+        .eq('id', ticketNuevo.tecnico_id)
+        .single();
+      if (!error) {
+        nuevoTecnico = data.display_name;
+      }
+    } catch (e) {
+      console.warn('No se pudo obtener el nombre del nuevo técnico:', e);
+    }
+
+    cambios.push({
+      tipo_evento: 'cambio_tecnico',
+      nuevo_tecnico_id: ticketNuevo.tecnico_id,
+      descripcion: `Ticket reasignado al técnico: ${nuevoTecnico || 'Nuevo técnico'}`
+    });
+  }
+
+  if (cambios.length === 0) return;
+
+  const {
+    data: { session },
+    error: sessionError
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session?.access_token) {
+    throw new Error('No se pudo obtener el token de autenticación.');
+  }
+
+  for (const cambio of cambios) {
+    try {
+      const response = await fetch('https://yjqstwwltjefqtsxlbsa.supabase.co/functions/v1/registrar-actualizacion-ticket', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          ticket_id: ticketNuevo.id,
+          tecnico_id: userId,
+          descripcion: cambio.descripcion,
+          minutos_usados: 0,
+          fue_visita: false,
+          estado_ticket: ticketNuevo.estado,
+          tipo_evento: cambio.tipo_evento,
+          tipo_soporte: cambio.tipo_soporte || null,
+          nuevo_tecnico_id: cambio.nuevo_tecnico_id || null
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('[registrarCambiosTicket] Error:', result.error || result);
+        throw new Error(result.error || 'Error al registrar cambio en ticket');
+      }
+    } catch (err) {
+      console.error('[registrarCambiosTicket] Error de red o de función:', err);
+      throw err;
+    }
+  }
+}

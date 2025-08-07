@@ -54,6 +54,7 @@ import FormularioLayout from '@/components/layouts/FormularioLayout.vue'
 import FormularioUsuario from '@/components/FormularioUsuario.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
 
+
 export default {
   name: 'EditarUsuario',
   components: {
