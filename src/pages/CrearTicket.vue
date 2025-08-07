@@ -34,7 +34,7 @@ const ticket = ref({
   tema_ayuda: '',
   descripcion: '',
   usuario_id: '',
-  tecnico_id: '',
+  tecnico_id: null // ✅ corregido: null en lugar de string vacía
 })
 
 const cargarDatos = async () => {
@@ -94,16 +94,29 @@ const guardarTicket = async () => {
     feedback.value = '❌ Debes seleccionar una empresa.'
     return
   }
+
   if (esAdmin.value && !ticket.value.usuario_id) {
     feedback.value = '❌ Debes seleccionar un usuario solicitante.'
     return
   }
-  if (!ticket.value.titulo.trim()) {
+
+  if (!ticket.value.tema_ayuda || !ticket.value.tema_ayuda.trim()) {
+    feedback.value = '❌ Debes seleccionar o especificar un tema de ayuda.'
+    return
+  }
+
+  if (!ticket.value.titulo || !ticket.value.titulo.trim()) {
     feedback.value = '❌ Debes ingresar un título para el ticket.'
     return
   }
-  if (!ticket.value.descripcion.trim()) {
+
+  if (!ticket.value.descripcion || !ticket.value.descripcion.trim()) {
     feedback.value = '❌ Debes ingresar una descripción.'
+    return
+  }
+
+  if (esAdmin.value && !ticket.value.tipo) {
+    feedback.value = '❌ Debes seleccionar un tipo de soporte.'
     return
   }
 
@@ -129,6 +142,7 @@ const guardarTicket = async () => {
     cargando.value = false
   }
 }
+
 </script>
 
 <template>

@@ -225,6 +225,12 @@ function updateUser(data) {
     ...user,
     ...data,
   };
+
+  // ✅ Aseguramos que is_admin sea booleano válido
+  if (typeof user.is_admin !== 'boolean') {
+    user.is_admin = false;
+  }
+
   notifyAll();
 
   if (user.id !== null) {
@@ -233,3 +239,4 @@ function updateUser(data) {
     localStorage.removeItem('user');
   }
 }
+

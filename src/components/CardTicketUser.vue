@@ -21,6 +21,13 @@
       />
     </div>
 
+    <!-- Checkbox de selección -->
+    <CheckboxSeleccion
+      class="absolute bottom-3 left-3"
+      :checked="seleccionados.has(ticket.id)"
+      @update:checked="$emit('toggleSeleccion', ticket.id)"
+    />
+
     <!-- Contenido -->
     <div class="mb-2 mt-6">
       <h2 class="text-lg font-bold text-[#01C38E] truncate">
@@ -32,12 +39,10 @@
     </div>
 
     <!-- Detalles -->
-    <div class="mb-1 text-sm text-gray-600 mt-2 space-y-1">
+    <div class="mb-5 text-sm text-gray-600 mt-2 space-y-1">
       <p v-if="ticket.tecnico">
         <strong>Técnico: </strong>
-        <span>
-          {{ ticket.tecnico.display_name }}
-        </span>
+        <span>{{ ticket.tecnico.display_name }}</span>
       </p>
       <p><strong>Fecha:</strong> {{ formatDate(ticket.created_at) }}</p>
     </div>
@@ -48,10 +53,14 @@
 import { useRouter } from 'vue-router'
 import BadgeEstado from '@/components/BadgeEstado.vue'
 import BadgeTicket from '@/components/BadgeTicket.vue'
+import CheckboxSeleccion from '@/components/CheckboxSeleccion.vue'
 
 const props = defineProps({
-  ticket: Object
+  ticket: Object,
+  seleccionados: Object // Set con IDs seleccionados
 })
+
+const emit = defineEmits(['toggleSeleccion'])
 
 const router = useRouter()
 

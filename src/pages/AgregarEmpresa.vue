@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { crearEmpresa } from '@/services/empresas'
+import { crearEmpresa, getAllEmpresas } from '@/services/empresas'
 import { getAllPlanes } from '@/services/planes'
 
 import DetailContainer from '@/components/layouts/DetailContainer.vue'
@@ -26,16 +26,18 @@ const form = ref({
 })
 
 const planes = ref([])
+const empresasExistentes = ref([])
 const cargando = ref(false)
 const feedback = ref('')
-const feedbackType = ref('danger') // 'success' o 'danger'
+const feedbackType = ref('danger')
 
-// Cargar los planes disponibles
+// Cargar planes y empresas para validación
 onMounted(async () => {
   try {
     planes.value = await getAllPlanes()
+    empresasExistentes.value = await getAllEmpresas()
   } catch (error) {
-    console.error('Error al cargar planes:', error)
+    console.error('Error al cargar datos:', error)
   }
 })
 
@@ -44,21 +46,40 @@ const guardarEmpresa = async () => {
   feedback.value = ''
   feedbackType.value = 'danger'
 
-  if (!form.value.nombre.trim()) {
+  const nombre = form.value.nombre.trim()
+  const email = form.value.email_contacto.trim()
+  const cuit = form.value.cuit.trim()
+
+  if (!nombre) {
     feedback.value = '❌ Debes cargar el nombre de empresa'
     return
   }
 
-  // Email obligatorio y válido
-  if (!form.value.email_contacto.trim()) {
+  const nombreExistente = empresasExistentes.value.some(
+    (e) => e.nombre.toLowerCase() === nombre.toLowerCase()
+  )
+  if (nombreExistente) {
+    feedback.value = '❌ Ya existe una empresa con ese nombre'
+    return
+  }
+
+  if (!email) {
     feedback.value = '❌ Debes cargar un email de contacto'
     return
-  } else {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(form.value.email_contacto)) {
-      feedback.value = '❌ El email de contacto no tiene un formato válido'
-      return
-    }
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    feedback.value = '❌ El email de contacto no tiene un formato válido'
+    return
+  }
+
+  const emailExistente = empresasExistentes.value.some(
+    (e) => e.email_contacto?.toLowerCase() === email.toLowerCase()
+  )
+  if (emailExistente) {
+    feedback.value = '❌ Ese email ya está asociado a otra empresa'
+    return
   }
 
   if (!form.value.plan_id) {
@@ -66,12 +87,9 @@ const guardarEmpresa = async () => {
     return
   }
 
-  if (form.value.cuit.trim()) {
-    const cuitRegex = /^\d{2}-\d{8}-\d{1}$/
-    if (!cuitRegex.test(form.value.cuit)) {
-      feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X'
-      return
-    }
+  if (cuit && !/^\d{2}-\d{8}-\d{1}$/.test(cuit)) {
+    feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X'
+    return
   }
 
   try {

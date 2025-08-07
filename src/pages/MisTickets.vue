@@ -11,9 +11,16 @@
     <AbmLayout titulo="Mis Tickets">
       <!-- Acciones -->
       <template #acciones>
-        <MainButton icon="plus" @click="router.push('/tickets/crear')">
-          Crear Ticket
-        </MainButton>
+      <Acciones
+        :seleccionados="ticketsSeleccionados"
+        :mostrarAgregar="true"
+        :mostrarEditar="true"
+        :mostrarEliminar="false"
+        nombreEntidad="Ticket"
+        @agregar="router.push('/tickets/crear')"
+        @editar="editarTicketSeleccionado"
+        @deseleccionarTodos="ticketsSeleccionados = new Set()"
+      />
       </template>
 
       <!-- Filtros -->
@@ -39,8 +46,9 @@
         v-for="ticket in ticketsVisibles"
         :key="ticket.id"
         :ticket="ticket"
-        :class="{ 'tarjeta-animada': animarTarjetas }"
-      ></CardTicketUser>
+        :seleccionados="ticketsSeleccionados"
+        @toggleSeleccion="toggleSeleccion"
+      />
       <div v-if="ticketsVisibles.length === 0" :key="'placeholder'" class="invisible h-0">.</div>
     </GridLayout>
 
@@ -73,7 +81,7 @@ import GridLayout from '@/components/layouts/GridLayout.vue'
 import Paginador from '@/components/Paginador.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
 import FiltrosEntidad from '@/components/FiltrosEntidad.vue'
-import MainButton from '@/components/MainButton.vue'
+import Acciones from '@/components/Acciones.vue'
 import CardTicketUser from '@/components/CardTicketUser.vue'
 import ChatBitButton from '@/components/ChatBitButton.vue'
 
@@ -83,7 +91,6 @@ const { loading, finalizarCarga } = useLoader()
 const tickets = ref([])
 const ticketsVisibles = ref([])
 const feedback = ref('')
-
 const paginaActual = ref(1)
 const ITEMS_POR_PAGINA = 12
 const animarTarjetas = ref(false)
@@ -92,10 +99,10 @@ const animarTarjetas = ref(false)
 const busqueda = ref('')
 const estadoSeleccionado = ref(null)
 const tipoSeleccionado = ref(null)
-
 const estadosDisponibles = ['Abierto', 'Activo', 'Cerrado']
 const tiposDisponibles = ['Remoto', 'Presencial']
 
+// Filtrado
 const { filtrados: ticketsFiltrados } = useFiltradoEntidad(
   tickets,
   { busqueda, estadoSeleccionado, tipoSeleccionado },
@@ -112,6 +119,7 @@ const ticketsPaginados = computed(() => {
   return ticketsFiltrados.value.slice(start, start + ITEMS_POR_PAGINA)
 })
 
+// Animación
 watch(ticketsPaginados, () => {
   animarTarjetas.value = false
   nextTick(() => {
@@ -120,6 +128,25 @@ watch(ticketsPaginados, () => {
   })
 })
 
+// Selección (Set)
+const ticketsSeleccionados = ref(new Set())
+
+const toggleSeleccion = (ticketId) => {
+  if (ticketsSeleccionados.value.has(ticketId)) {
+    ticketsSeleccionados.value.delete(ticketId)
+  } else {
+    ticketsSeleccionados.value.add(ticketId)
+  }
+}
+
+const editarTicketSeleccionado = () => {
+  if (ticketsSeleccionados.value.size === 1) {
+    const id = [...ticketsSeleccionados.value][0]
+    router.push(`/tickets/${id}/editar`)
+  }
+}
+
+// Carga de tickets propios
 const cargarTickets = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser()
@@ -139,10 +166,7 @@ const cargarTickets = async () => {
   }
 }
 
-
-onMounted(async () => {
-  await cargarTickets()
-})
+onMounted(cargarTickets)
 </script>
 
 <style scoped>

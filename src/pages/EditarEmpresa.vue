@@ -39,7 +39,11 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getEmpresaById, updateEmpresa } from '@/services/empresas'
+import {
+  getEmpresaById,
+  updateEmpresa,
+  getAllEmpresas
+} from '@/services/empresas'
 import { getAllPlanes } from '@/services/planes'
 
 import DetailContainer from '@/components/layouts/DetailContainer.vue'
@@ -59,21 +63,24 @@ export default {
     FormularioLayout,
     MainButton,
     AlertMessage,
-    FormularioEmpresa,
+    FormularioEmpresa
   },
   setup() {
     const route = useRoute()
     const router = useRouter()
+
     const empresa = ref({
       nombre: '',
       email_contacto: '',
       telefono: '',
       direccion: '',
       cuit: '',
-      plan_id: null,
+      plan_id: null
     })
-    const loading = ref(true)
+
     const planes = ref([])
+    const empresasExistentes = ref([])
+    const loading = ref(true)
     const feedback = ref('')
     const feedbackType = ref('success')
 
@@ -95,23 +102,56 @@ export default {
       }
     }
 
+    const cargarEmpresas = async () => {
+      try {
+        empresasExistentes.value = await getAllEmpresas()
+      } catch (error) {
+        console.error('Error al cargar empresas existentes:', error)
+      }
+    }
+
     const guardarCambios = async () => {
       feedback.value = ''
       feedbackType.value = 'error'
 
-      if (!empresa.value.nombre.trim()) {
+      const nombre = empresa.value.nombre.trim()
+      const email = empresa.value.email_contacto.trim()
+      const cuit = empresa.value.cuit.trim()
+      const idActual = empresa.value.id
+
+      if (!nombre) {
         feedback.value = '❌ Debes cargar el nombre de empresa'
         return
       }
 
-      if (!empresa.value.email_contacto.trim()) {
+      const nombreExistente = empresasExistentes.value.some(
+        (e) =>
+          e.nombre.toLowerCase() === nombre.toLowerCase() &&
+          e.id !== idActual
+      )
+      if (nombreExistente) {
+        feedback.value = '❌ Ya existe una empresa con ese nombre'
+        return
+      }
+
+      if (!email) {
         feedback.value = '❌ Debes ingresar un correo de contacto'
         return
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(empresa.value.email_contacto)) {
+      if (!emailRegex.test(email)) {
         feedback.value = '❌ El email de contacto no tiene un formato válido'
+        return
+      }
+
+      const emailExistente = empresasExistentes.value.some(
+        (e) =>
+          e.email_contacto?.toLowerCase() === email.toLowerCase() &&
+          e.id !== idActual
+      )
+      if (emailExistente) {
+        feedback.value = '❌ Ese email ya está asociado a otra empresa'
         return
       }
 
@@ -120,17 +160,27 @@ export default {
         return
       }
 
-      if (empresa.value.cuit?.trim()) {
-        const cuitRegex = /^\d{2}-\d{8}-\d{1}$/
-        if (!cuitRegex.test(empresa.value.cuit)) {
-          feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X'
-          return
-        }
+      if (cuit && !/^\d{2}-\d{8}-\d{1}$/.test(cuit)) {
+        feedback.value = '❌ El CUIT debe tener el formato XX-XXXXXXXX-X'
+        return
+      }
+
+      const cuitExistente = empresasExistentes.value.some(
+        (e) =>
+          e.cuit?.toLowerCase() === cuit.toLowerCase() &&
+          e.id !== idActual
+      )
+      if (cuit && cuitExistente) {
+        feedback.value = '❌ Ese CUIT ya está en uso por otra empresa'
+        return
       }
 
       try {
         await updateEmpresa(empresa.value.id, empresa.value)
-        sessionStorage.setItem('empresa_feedback', '✅ Empresa actualizada correctamente')
+        sessionStorage.setItem(
+          'empresa_feedback',
+          '✅ Empresa actualizada correctamente'
+        )
         router.push('/abm-empresas')
       } catch (error) {
         console.error('Error al actualizar empresa:', error)
@@ -139,8 +189,9 @@ export default {
     }
 
     onMounted(async () => {
-      await cargarPlanes()   // ✅ primero los planes (para poblar el select)
-      await cargarEmpresa()  // ✅ luego la empresa (para aplicar el plan_id al select)
+      await cargarPlanes()
+      await cargarEmpresa()
+      await cargarEmpresas()
     })
 
     return {
@@ -149,8 +200,8 @@ export default {
       loading,
       feedback,
       feedbackType,
-      guardarCambios,
+      guardarCambios
     }
-  },
+  }
 }
 </script>

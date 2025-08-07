@@ -35,19 +35,25 @@ export async function getAllTickets() {
 
 // 2. Crear nuevo ticket
 export const crearTicket = async (ticketData) => {
+  const cleaned = {
+    ...ticketData,
+    estado: ticketData.estado || 'Abierto',
+    created_at: new Date().toISOString(),
+    empresa_id: ticketData.empresa_id || null,
+    usuario_id: ticketData.usuario_id || null,
+    tecnico_id: ticketData.tecnico_id || null,
+  };
+
   const { error } = await supabase
     .from('tickets')
-    .insert([{
-      ...ticketData,
-      estado: ticketData.estado || 'Abierto',
-      created_at: new Date().toISOString()
-    }]);
+    .insert([cleaned]);
 
   if (error) {
     console.error('[crearTicket] Error:', error);
     throw error;
   }
 };
+
 
 // 3. Obtener tickets por empresa
 export const getTicketsPorEmpresa = async (empresaId) => {

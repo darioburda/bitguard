@@ -2,20 +2,25 @@
   <DetailContainer :loading="loading">
     <template v-if="!loading">
       <DetailLayout titulo="Editar Ticket">
-        <AccionesDetalle>
-          <MainButton to="/abm-tickets" variant="volver" :showIcon="true">
-            Volver
-          </MainButton>
+      <AccionesDetalle>
+        <MainButton
+          @click="volverALista"
+          variant="volver"
+          :showIcon="true"
+        >
+          Volver
+        </MainButton>
 
-          <MainButton
-            type="submit"
-            variant="actualizar"
-            :disabled="loading"
-            @click="submitForm"
-          >
-            Guardar Cambios
-          </MainButton>
-        </AccionesDetalle>
+        <MainButton
+          type="submit"
+          variant="actualizar"
+          :disabled="loading"
+          @click="submitForm"
+        >
+          Guardar Cambios
+        </MainButton>
+      </AccionesDetalle>
+
 
         <FormularioLayout>
           <template #badges>
@@ -118,6 +123,11 @@ import MainButton from '@/components/MainButton.vue'
 import BadgeTicket from '@/components/BadgeTicket.vue'
 import BadgeEstado from '@/components/BadgeEstado.vue'
 
+const volverALista = () => {
+  const ruta = esAdmin.value ? { name: 'AbmTickets' } : { name: 'MisTickets' }
+  router.push(ruta)
+}
+
 import {
   getTicketById,
   actualizarTicket,
@@ -172,7 +182,14 @@ const cargarDatos = async () => {
 
     const { data: session } = await supabase.auth.getUser()
     const user = session?.user
-    esAdmin.value = user?.user_metadata?.is_admin === true
+
+    const { data: perfil } = await supabase
+      .from('user_profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+
+    esAdmin.value = perfil?.is_admin === true
 
     console.log('👤 Usuario actual:', user)
     console.log('🔐 esAdmin:', esAdmin.value)
@@ -210,7 +227,9 @@ const submitForm = async () => {
     await actualizarTicket(ticket.value.id, ticket.value)
     estadoOriginal.value = ticket.value.estado
     tipoOriginal.value = ticket.value.tipo
-    router.push({ name: 'AbmTickets' })
+
+    const destino = esAdmin.value ? 'AbmTickets' : 'MisTickets'
+    router.push({ name: destino })
   } catch (error) {
     console.error('[EditarTicket] Error:', error)
     alert('❌ Error al actualizar ticket')
@@ -271,3 +290,4 @@ const agregarActualizacion = async (desdeCerrarTicket = false) => {
 
 onMounted(cargarDatos)
 </script>
+

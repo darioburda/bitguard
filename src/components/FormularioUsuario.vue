@@ -1,27 +1,45 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import MainSwitch from './MainSwitch.vue'
 import ModalConfirmar from '@/components/ModalConfirmar.vue'
 
 const form = defineModel('form')
+const emit = defineEmits(['error'])
 const props = defineProps({
   editing: Boolean,
   modo: String, // 'creacion' o 'edicion'
+  empresas: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const mostrarModalAdmin = ref(false)
 
-// ✅ Solo pide password en modo 'creacion'
 const puedeActivarSwitch = computed(() => {
   if (props.modo === 'edicion') return true
   return (
     form.value.display_name?.trim() &&
     form.value.email?.trim() &&
-    form.value.password?.trim()
+    form.value.password?.trim() &&
+    form.value.empresa_id
   )
 })
 
-// ✅ Siempre muestra el modal al querer activar admin
+// Emitir error si faltan campos obligatorios en creación
+watch(
+  () => [form.value.display_name, form.value.email, form.value.password, form.value.empresa_id],
+  ([nombre, email, password, empresa]) => {
+    if (props.modo === 'creacion') {
+      if (!nombre || !email || !password || !empresa) {
+        emit('error', '❌ Todos los campos obligatorios deben completarse.')
+      } else {
+        emit('error', '')
+      }
+    }
+  }
+)
+
 function manejarCambioAdmin(nuevoValor) {
   if (nuevoValor) {
     mostrarModalAdmin.value = true
@@ -43,14 +61,13 @@ function cancelarAdmin() {
 
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- Nombre completo -->
+    <!-- Nombre -->
     <div class="sm:col-span-2">
       <label for="display_name" class="block mb-2 font-semibold cursor-pointer">Nombre completo</label>
       <input
         id="display_name"
         v-model="form.display_name"
-        :disabled="props.editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
         required
       />
     </div>
@@ -62,16 +79,12 @@ function cancelarAdmin() {
         id="email"
         v-model="form.email"
         type="email"
-        autocomplete="off"
-        autocorrect="off"
-        spellcheck="false"
-        :disabled="props.editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
         required
       />
     </div>
 
-    <!-- ✅ Contraseña solo si es creación -->
+    <!-- Contraseña solo en creación -->
     <div class="sm:col-span-2" v-if="props.modo === 'creacion'">
       <label for="password" class="block mb-2 font-semibold cursor-pointer">Contraseña</label>
       <input
@@ -79,11 +92,25 @@ function cancelarAdmin() {
         v-model="form.password"
         type="password"
         autocomplete="new-password"
-        autocorrect="off"
-        spellcheck="false"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
         required
       />
+    </div>
+
+    <!-- Empresa -->
+    <div class="sm:col-span-2">
+      <label for="empresa_id" class="block mb-2 font-semibold cursor-pointer">Empresa</label>
+      <select
+        id="empresa_id"
+        v-model="form.empresa_id"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
+        required
+      >
+        <option disabled value="">Seleccionar empresa</option>
+        <option v-for="empresa in props.empresas" :key="empresa.id" :value="empresa.id">
+          {{ empresa.nombre }}
+        </option>
+      </select>
     </div>
 
     <!-- Switch admin -->
@@ -97,31 +124,36 @@ function cancelarAdmin() {
       />
     </div>
 
-    <!-- Resto de campos solo en edición -->
+    <!-- Campos técnicos solo en edición -->
     <template v-if="props.modo === 'edicion'">
       <div class="sm:col-span-2 border-t pt-6 mt-6">
-        <label for="rustdesk" class="block mb-2 font-semibold">Rustdesk</label>
-        <input v-model="form.rustdesk" id="rustdesk" class="w-full p-2 border rounded text-sm" />
+        <label for="rustdesk" class="block mb-2 font-semibold cursor-pointer">Rustdesk</label>
+        <input id="rustdesk" v-model="form.rustdesk" class="w-full p-2 border rounded text-sm cursor-pointer" />
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Equipo</label>
-        <input v-model="form.equipo" class="w-full p-2 border rounded text-sm" />
+        <label for="equipo" class="block mb-2 font-semibold cursor-pointer">Equipo</label>
+        <input id="equipo" v-model="form.equipo" class="w-full p-2 border rounded text-sm cursor-pointer" />
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">IP PC</label>
-        <input v-model="form.ip_pc" class="w-full p-2 border rounded text-sm" />
+        <label for="ip_pc" class="block mb-2 font-semibold cursor-pointer">IP PC</label>
+        <input id="ip_pc" v-model="form.ip_pc" class="w-full p-2 border rounded text-sm cursor-pointer" />
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Interno Telefónico</label>
-        <input v-model="form.interno_telefono" class="w-full p-2 border rounded text-sm" />
+        <label for="interno_telefono" class="block mb-2 font-semibold cursor-pointer">Interno Telefónico</label>
+        <input id="interno_telefono" v-model="form.interno_telefono" class="w-full p-2 border rounded text-sm cursor-pointer" />
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">IP Teléfono</label>
-        <input v-model="form.ip_telefono" class="w-full p-2 border rounded text-sm" />
+        <label for="ip_telefono" class="block mb-2 font-semibold cursor-pointer">IP Teléfono</label>
+        <input id="ip_telefono" v-model="form.ip_telefono" class="w-full p-2 border rounded text-sm cursor-pointer" />
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Sistema Operativo</label>
-        <select v-model="form.sistema_operativo" class="w-full p-2 border rounded text-sm">
+        <label for="sistema_operativo" class="block mb-2 font-semibold cursor-pointer">Sistema Operativo</label>
+        <select id="sistema_operativo" v-model="form.sistema_operativo" class="w-full p-2 border rounded text-sm cursor-pointer">
           <option disabled value="">Seleccionar</option>
           <option>Windows 7</option>
           <option>Windows 10</option>
@@ -130,9 +162,10 @@ function cancelarAdmin() {
           <option>Windows Server 2022</option>
         </select>
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Microprocesador</label>
-        <select v-model="form.microprocesador" class="w-full p-2 border rounded text-sm">
+        <label for="microprocesador" class="block mb-2 font-semibold cursor-pointer">Microprocesador</label>
+        <select id="microprocesador" v-model="form.microprocesador" class="w-full p-2 border rounded text-sm cursor-pointer">
           <option disabled value="">Seleccionar</option>
           <option>I3</option>
           <option>I5</option>
@@ -140,9 +173,10 @@ function cancelarAdmin() {
           <option>Otro</option>
         </select>
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Tipo de Memoria</label>
-        <select v-model="form.tipo_memoria" class="w-full p-2 border rounded text-sm">
+        <label for="tipo_memoria" class="block mb-2 font-semibold cursor-pointer">Tipo de Memoria</label>
+        <select id="tipo_memoria" v-model="form.tipo_memoria" class="w-full p-2 border rounded text-sm cursor-pointer">
           <option disabled value="">Seleccionar</option>
           <option>DDR3</option>
           <option>DDR4</option>
@@ -150,9 +184,10 @@ function cancelarAdmin() {
           <option>SODIMM</option>
         </select>
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Tamaño de Memoria (GB)</label>
-        <select v-model="form.tamano_memoria" class="w-full p-2 border rounded text-sm">
+        <label for="tamano_memoria" class="block mb-2 font-semibold cursor-pointer">Tamaño de Memoria (GB)</label>
+        <select id="tamano_memoria" v-model="form.tamano_memoria" class="w-full p-2 border rounded text-sm cursor-pointer">
           <option disabled value="">Seleccionar</option>
           <option>4</option>
           <option>8</option>
@@ -160,17 +195,19 @@ function cancelarAdmin() {
           <option>32</option>
         </select>
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Tipo de Disco</label>
-        <select v-model="form.tipo_disco" class="w-full p-2 border rounded text-sm">
+        <label for="tipo_disco" class="block mb-2 font-semibold cursor-pointer">Tipo de Disco</label>
+        <select id="tipo_disco" v-model="form.tipo_disco" class="w-full p-2 border rounded text-sm cursor-pointer">
           <option disabled value="">Seleccionar</option>
           <option>SSD</option>
           <option>Mecánico</option>
         </select>
       </div>
+
       <div>
-        <label class="block mb-2 font-semibold">Tamaño de Disco (GB)</label>
-        <select v-model="form.tamano_disco" class="w-full p-2 border rounded text-sm">
+        <label for="tamano_disco" class="block mb-2 font-semibold cursor-pointer">Tamaño de Disco (GB)</label>
+        <select id="tamano_disco" v-model="form.tamano_disco" class="w-full p-2 border rounded text-sm cursor-pointer">
           <option disabled value="">Seleccionar</option>
           <option>120</option>
           <option>250</option>
@@ -178,14 +215,19 @@ function cancelarAdmin() {
           <option>1000</option>
         </select>
       </div>
+
       <div class="sm:col-span-2">
-        <label class="block mb-2 font-semibold">Notas</label>
-        <textarea v-model="form.notas" class="w-full p-2 border rounded text-sm resize-none h-24"></textarea>
+        <label for="notas" class="block mb-2 font-semibold cursor-pointer">Notas</label>
+        <textarea
+          id="notas"
+          v-model="form.notas"
+          class="w-full p-2 border rounded text-sm resize-none h-24 cursor-pointer"
+        ></textarea>
       </div>
     </template>
   </div>
 
-  <!-- Modal Confirmar acceso admin -->
+  <!-- Modal confirmar admin -->
   <ModalConfirmar
     v-if="mostrarModalAdmin"
     :visible="true"

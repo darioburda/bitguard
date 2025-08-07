@@ -3,16 +3,20 @@
     <!-- Botones + contador -->
     <div class="w-[90%] mx-auto flex flex-col items-center gap-3 sm:w-auto sm:mx-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start">
       <transition-group name="fade-button" tag="div" class="flex flex-col sm:flex-row flex-wrap gap-4 w-full sm:w-auto">
+
+        <!-- Botón Crear -->
         <MainButton
-          key="agregar"
+          v-if="mostrarAgregar"
+          key="crear"
           @click="$emit('agregar')"
           variant="agregar"
         >
-          Agregar {{ nombreEntidad }}
+          Crear {{ nombreEntidad }}
         </MainButton>
 
+        <!-- Botón Borrar -->
         <MainButton
-          v-if="seleccionados.size > 0"
+          v-if="mostrarEliminar && seleccionados.size > 0"
           key="borrar"
           variant="borrar"
           @click="$emit('borrar')"
@@ -20,8 +24,9 @@
           Borrar {{ nombreEntidad }}{{ seleccionados.size > 1 ? 's' : '' }}
         </MainButton>
 
+        <!-- Botón Editar -->
         <MainButton
-          v-if="seleccionados.size === 1"
+          v-if="mostrarEditar && seleccionados.size === 1"
           key="editar"
           variant="editar"
           @click="$emit('editar')"
@@ -58,6 +63,18 @@ defineProps({
   nombreEntidad: {
     type: String,
     default: 'Elemento'
+  },
+  mostrarAgregar: {
+    type: Boolean,
+    default: true
+  },
+  mostrarEditar: {
+    type: Boolean,
+    default: true
+  },
+  mostrarEliminar: {
+    type: Boolean,
+    default: true
   }
 })
 

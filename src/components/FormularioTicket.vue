@@ -1,9 +1,44 @@
 <template>
   <div class="space-y-4">
-    <!-- Usuario solicitante (solo edición, readonly, solo admin) -->
+    <!-- Empresa (solo admin y solo si es nuevo) -->
+    <div v-if="esAdmin && !ticket.id">
+      <label for="empresa" class="block font-medium text-sm mb-1 cursor-pointer">Empresa</label>
+      <select
+        id="empresa"
+        v-model="ticket.empresa_id"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
+      >
+        <option disabled value="">Seleccionar empresa</option>
+        <option v-for="emp in empresas" :key="emp.id" :value="emp.id">
+          {{ emp.nombre }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Usuario (solo admin y solo si es nuevo) -->
+    <div v-if="esAdmin && !ticket.id">
+      <label for="usuario" class="block font-medium text-sm mb-1 cursor-pointer">Usuario solicitante</label>
+      <select
+        id="usuario"
+        v-model="ticket.usuario_id"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
+      >
+        <option disabled value="">Seleccionar usuario</option>
+        <option
+          v-for="user in todosUsuarios.filter(u => u.empresa_id === ticket.empresa_id)"
+          :key="user.id"
+          :value="user.id"
+        >
+          {{ user.display_name || user.email }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Usuario (solo admin y edición) -->
     <div v-if="esAdmin && ticket.id">
-      <label class="block font-medium text-sm mb-1 mt-5">Usuario solicitante</label>
+      <label for="usuario-lectura" class="block font-medium text-sm mb-1 mt-5 cursor-pointer">Usuario solicitante</label>
       <input
+        id="usuario-lectura"
         type="text"
         :value="nombreUsuarioSolicitante"
         disabled
@@ -11,49 +46,14 @@
       />
     </div>
 
-    <!-- Empresa (select si es nuevo, solo admin) -->
-    <div v-if="esAdmin">
-      <label class="block font-medium text-sm mb-1">Empresa</label>
-      <template v-if="!ticket.id">
-        <select
-          v-model="ticket.empresa_id"
-          class="w-full px-4 py-2 border rounded-md text-sm"
-        >
-          <option disabled value="">Seleccionar empresa</option>
-          <option v-for="emp in empresas" :key="emp.id" :value="emp.id">
-            {{ emp.nombre }}
-          </option>
-        </select>
-      </template>
-      <template v-else>
-        <input
-          type="text"
-          :value="nombreEmpresa"
-          disabled
-          class="w-full px-4 py-2 border rounded-md bg-gray-100 text-sm text-gray-700"
-        />
-      </template>
-    </div>
-
-
-    <!-- Título -->
-    <div>
-      <label class="block font-medium text-sm mb-1">Título del problema</label>
-      <input
-        type="text"
-        v-model="ticket.titulo"
-        class="w-full px-4 py-2 border rounded-md text-sm"
-        :disabled="!puedeEditar"
-      />
-    </div>
-
     <!-- Tema de ayuda como select -->
     <div>
-      <label class="block font-medium text-sm mb-1">Tema de ayuda</label>
+      <label for="tema-ayuda" class="block font-medium text-sm mb-1 cursor-pointer">Tema de ayuda</label>
       <select
+        id="tema-ayuda"
         v-model="temaSeleccionado"
-        class="w-full px-4 py-2 border rounded-md text-sm"
-        :disabled="!puedeEditar"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
+        :disabled="ticket.id"
       >
         <option disabled value="">Seleccionar tema</option>
         <option value="No hay internet">No hay internet</option>
@@ -65,22 +65,50 @@
       </select>
 
       <!-- Input visible solo si elige "Otro" -->
+      <div v-if="temaSeleccionado === 'Otro'">
+        <label for="tema-especifico" class="block font-medium text-sm mb-1 mt-2 cursor-pointer">Especificar tema</label>
+        <input
+          id="tema-especifico"
+          v-model="ticket.tema_ayuda"
+          type="text"
+          placeholder="Especificar tema"
+          class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
+          :disabled="ticket.id"
+        />
+      </div>
+    </div>
+
+    <!-- Título del problema -->
+    <div>
+      <label for="titulo" class="block font-medium text-sm mb-1 cursor-pointer">Título del problema</label>
       <input
-        v-if="temaSeleccionado === 'Otro'"
-        v-model="ticket.tema_ayuda"
+        id="titulo"
         type="text"
-        placeholder="Especificar tema"
-        class="w-full px-4 py-2 border rounded-md text-sm mt-2"
-        :disabled="!puedeEditar"
+        v-model="ticket.titulo"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
+        :disabled="ticket.id"
       />
+    </div>
+
+    <!-- Descripción -->
+    <div>
+      <label for="descripcion" class="block font-medium text-sm mb-1 cursor-pointer">Descripción</label>
+      <textarea
+        id="descripcion"
+        v-model="ticket.descripcion"
+        rows="4"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
+        :disabled="ticket.id"
+      ></textarea>
     </div>
 
     <!-- Tipo de soporte (solo admin) -->
     <div v-if="esAdmin">
-      <label class="block font-medium text-sm mb-1">Tipo de soporte</label>
+      <label for="tipo" class="block font-medium text-sm mb-1 cursor-pointer">Tipo de soporte</label>
       <select
+        id="tipo"
         v-model="ticket.tipo"
-        class="w-full px-4 py-2 border rounded-md text-sm"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
       >
         <option disabled value="">Seleccionar tipo</option>
         <option value="Presencial">Presencial</option>
@@ -90,27 +118,17 @@
 
     <!-- Técnico asignado (solo admin) -->
     <div v-if="esAdmin">
-      <label class="block font-medium text-sm mb-1">Técnico asignado</label>
+      <label for="tecnico" class="block font-medium text-sm mb-1 cursor-pointer">Técnico asignado</label>
       <select
+        id="tecnico"
         v-model="ticket.tecnico_id"
-        class="w-full px-4 py-2 border rounded-md text-sm"
+        class="w-full px-4 py-2 border rounded-md text-sm cursor-pointer"
       >
         <option disabled value="">Seleccionar técnico</option>
         <option v-for="tec in tecnicos" :key="tec.id" :value="tec.id">
           {{ tec.display_name || tec.email }}
         </option>
       </select>
-    </div>
-
-    <!-- Descripción -->
-    <div>
-      <label class="block font-medium text-sm mb-1">Descripción</label>
-      <textarea
-        v-model="ticket.descripcion"
-        rows="4"
-        class="w-full px-4 py-2 border rounded-md text-sm"
-        :disabled="!puedeEditar"
-      ></textarea>
     </div>
   </div>
 </template>
@@ -143,20 +161,10 @@ const props = defineProps({
 
 const emit = defineEmits(['update:ticket'])
 
-const puedeEditar = computed(() => {
-  return !props.ticket.id || props.ticket.estado === 'Abierto'
-})
-
 const nombreUsuarioSolicitante = computed(() => {
   if (!props.ticket || !props.ticket.usuario_id) return '—'
   const user = props.todosUsuarios.find((u) => u.id === props.ticket.usuario_id)
   return user?.display_name || user?.email || 'Usuario no encontrado'
-})
-
-const nombreEmpresa = computed(() => {
-  if (!props.ticket || !props.ticket.empresa_id) return '—'
-  const emp = props.empresas.find((e) => e.id === props.ticket.empresa_id)
-  return emp?.nombre || 'Empresa no encontrada'
 })
 
 // Select dinámico para tema_ayuda
@@ -178,10 +186,8 @@ watch(temaSeleccionado, (nuevo) => {
   }
 })
 
-// Inicializa correctamente al editar
 onMounted(() => {
   const actual = props.ticket.tema_ayuda
   temaSeleccionado.value = opcionesTemas.includes(actual) ? actual : 'Otro'
 })
 </script>
-

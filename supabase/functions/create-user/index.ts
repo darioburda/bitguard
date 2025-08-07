@@ -25,9 +25,17 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password, display_name, equipo, sector, is_admin = false } = await req.json();
+    const {
+      email,
+      password,
+      display_name,
+      equipo,
+      sector,
+      is_admin = false,
+      empresa_id
+    } = await req.json();
 
-    if (!email || !password || !display_name) {
+    if (!email || !password || !display_name || !empresa_id) {
       return jsonResponse({ error: "Faltan campos obligatorios" }, 400);
     }
 
@@ -36,7 +44,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // ✅ Crear usuario en Auth con user_metadata
+    // ✅ Crear usuario en Auth con metadata
     const { data: userData, error: userError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -55,7 +63,7 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
-    // ✅ Insertar en user_profiles
+    // ✅ Insertar en user_profiles con empresa_id
     const { error: profileError } = await supabase.from("user_profiles").insert({
       id: userId,
       email,
@@ -63,6 +71,7 @@ serve(async (req) => {
       equipo,
       sector,
       is_admin,
+      empresa_id
     });
 
     if (profileError) {

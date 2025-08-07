@@ -60,7 +60,9 @@
 - ✅ Contador de resultados como chip a la derecha del layout  
 - ✅ Búsqueda por nombre, email y número de interno en ContactosEmpresa.vue  
 - ✅ Soporte para filtros reactivos en todas las vistas principales (usuarios, empresas, contactos, tickets)  
-- ✅ Modal de confirmación al activar rol administrador incluso en edición (`FormularioUsuario.vue`)
+- ✅ Modal de confirmación al activar rol administrador incluso en edición (`FormularioUsuario.vue`)  
+- ✅ Redirección por rol tras editar ticket reparada (`EditarTicket.vue`) usando router.push dinámico  
+- ✅ Valor booleano forzado para `is_admin` al restaurar sesión (`auth.js`), evitando errores en router
 
 ---
 

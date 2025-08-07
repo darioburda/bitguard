@@ -1,30 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { subscribeToAuthState } from '../services/auth';
+
 import Home from '../pages/Home.vue';
-import GlobalChat from '../pages/GlobalChat.vue';
 import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
-import MyProfile from '../pages/MyProfile.vue';
-import MyProfileEdit from '../pages/MyProfileEdit.vue';
-import UserProfile from '../pages/UserProfile.vue';
-import PrivateChat from '../pages/PrivateChat.vue';
-import Publicaciones from '../pages/Publicaciones.vue';
-import MyProfileEditFoto from '../pages/MyProfileEditFoto.vue';
 
 const routes = [
   { path: '/', component: Home, name: 'home' },
   { path: '/ingresar', component: Login, name: 'login' },
   { path: '/crear-cuenta', component: Register, name: 'register' },
 
-  { path: '/publicaciones', component: Publicaciones, meta: { requiresAuth: true }, name: 'publicaciones' },
-  { path: '/chat', component: GlobalChat, meta: { requiresAuth: true }, name: 'global-chat' },
-  { path: '/mi-perfil', component: MyProfile, meta: { requiresAuth: true }, name: 'my-profile' },
-  { path: '/mi-perfil/editar', component: MyProfileEdit, meta: { requiresAuth: true }, name: 'my-profile.edit' },
-  { path: '/mi-perfil/editar/imagen', component: MyProfileEditFoto, meta: { requiresAuth: true }, name: 'my-profile.edit.foto' },
-  { path: '/usuario/:id', component: UserProfile, meta: { requiresAuth: true }, name: 'user-profile' },
-  { path: '/usuario/:id/chat', component: PrivateChat, meta: { requiresAuth: true }, name: 'private-chat' },
+  { path: '/publicaciones', component: () => import('@/pages/Publicaciones.vue'), meta: { requiresAuth: true }, name: 'publicaciones' },
+  { path: '/chat', component: () => import('@/pages/GlobalChat.vue'), meta: { requiresAuth: true }, name: 'global-chat' },
+  { path: '/mi-perfil', component: () => import('@/pages/MyProfile.vue'), meta: { requiresAuth: true }, name: 'my-profile' },
+  { path: '/mi-perfil/editar', component: () => import('@/pages/MyProfileEdit.vue'), meta: { requiresAuth: true }, name: 'my-profile.edit' },
+  { path: '/mi-perfil/editar/imagen', component: () => import('@/pages/MyProfileEditFoto.vue'), meta: { requiresAuth: true }, name: 'my-profile.edit.foto' },
+  { path: '/usuario/:id', component: () => import('@/pages/UserProfile.vue'), meta: { requiresAuth: true }, name: 'user-profile' },
+  { path: '/usuario/:id/chat', component: () => import('@/pages/PrivateChat.vue'), meta: { requiresAuth: true }, name: 'private-chat' },
 
-  // Rutas para usuarios comunes
   {
     path: '/mis-tickets',
     name: 'MisTickets',
@@ -44,7 +37,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
-  // Rutas solo para admins
   {
     path: '/abm-usuarios',
     name: 'AbmUsuarios',
@@ -91,45 +83,44 @@ const routes = [
     path: '/tickets/crear',
     name: 'CrearTicket',
     component: () => import('@/pages/CrearTicket.vue'),
-    meta: { requiresAuth: true }, // ya no requiere admin
+    meta: { requiresAuth: true },
   },
   {
     path: '/tickets/:id/editar',
     name: 'editar-ticket',
     component: () => import('@/pages/EditarTicket.vue'),
-    props: true
+    meta: { requiresAuth: true }
   }
 ];
 
 const router = createRouter({
-  routes,
   history: createWebHistory(),
+  routes,
 });
 
-// Estado del usuario sincronizado
+// 🔐 Control de acceso sincronizado con auth
 let user = {
   id: null,
-  email: null,
-  display_name: null,
-  is_admin: false,
+  is_admin: false
 };
 
-subscribeToAuthState(newUserData => {
-  user = newUserData;
+subscribeToAuthState(newUser => {
+  user = newUser;
 });
 
-// Protección de rutas
 router.beforeEach((to, from) => {
   const isAuthenticated = user.id !== null;
   const isAdmin = user.is_admin === true;
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    return '/ingresar';
+    return { name: 'login' };
   }
 
   if (to.meta.requiresAdmin && !isAdmin) {
-    return '/';
+    return { name: 'home' };
   }
+
+  return true;
 });
 
 export default router;

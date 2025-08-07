@@ -1,6 +1,6 @@
-<!-- NUEVO CardTicket.vue -->
 <template>
   <div class="relative overflow-hidden bg-white border border-[#01C38E] shadow-sm rounded-2xl p-6 flex flex-col justify-between w-full min-w-[300px]">
+    <!-- Badge Estado -->
     <BadgeEstado :value="ticket.estado" class="top-2 left-2" />
 
     <!-- Botón tomar o ver -->
@@ -43,6 +43,7 @@
       <p class="text-sm text-gray-800 mt-1 line-clamp-3">{{ ticket.descripcion }}</p>
     </div>
 
+    <!-- Detalles -->
     <div class="mb-5 text-sm text-gray-600 mt-2 space-y-1">
       <p><strong>Empresa:</strong> {{ ticket.empresa_nombre }}</p>
       <p><strong>Solicitante:</strong> {{ ticket.usuario_nombre }}</p>

@@ -1,5 +1,5 @@
 <script setup>
-import { defineModel, defineProps } from 'vue'
+import { defineModel, defineProps, watch } from 'vue'
 
 const form = defineModel('form')
 
@@ -8,16 +8,18 @@ defineProps({
   editing: Boolean
 })
 
-function formatearCUIT() {
-  let digits = form.value.cuit?.replace(/\D/g, '') || ''
-  if (digits.length > 2 && digits.length <= 10) {
-    form.value.cuit = digits.replace(/^(\d{2})(\d+)/, '$1-$2')
-  } else if (digits.length > 10) {
+// Formatear CUIT al volar caracteres no numéricos y limitar a 11 dígitos
+watch(() => form.value.cuit, (nuevo) => {
+  let digits = nuevo?.replace(/\D/g, '').slice(0, 11) || '' // Limita a 11 dígitos
+
+  if (digits.length === 11) {
     form.value.cuit = digits.replace(/^(\d{2})(\d{8})(\d)/, '$1-$2-$3')
+  } else if (digits.length > 2 && digits.length <= 10) {
+    form.value.cuit = digits.replace(/^(\d{2})(\d+)/, '$1-$2')
   } else {
     form.value.cuit = digits
   }
-}
+})
 </script>
 
 
@@ -30,7 +32,7 @@ function formatearCUIT() {
         id="nombre"
         v-model="form.nombre"
         :disabled="editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
         required
       />
     </div>
@@ -46,7 +48,7 @@ function formatearCUIT() {
         autocorrect="off"
         spellcheck="false"
         :disabled="editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
         placeholder="correo@dominio.com"
       />
     </div>
@@ -59,7 +61,7 @@ function formatearCUIT() {
         v-model="form.telefono"
         type="text"
         :disabled="editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
       />
     </div>
 
@@ -71,7 +73,7 @@ function formatearCUIT() {
         v-model="form.direccion"
         type="text"
         :disabled="editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
       />
     </div>
 
@@ -84,7 +86,7 @@ function formatearCUIT() {
         type="text"
         placeholder="20-12345678-1"
         :disabled="editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
       />
     </div>
 
@@ -95,7 +97,7 @@ function formatearCUIT() {
         id="plan_id"
         v-model="form.plan_id"
         :disabled="editing"
-        class="w-full p-2 border rounded text-sm"
+        class="w-full p-2 border rounded text-sm cursor-pointer"
         required
       >
         <option disabled value="">Selecciona un plan</option>
