@@ -34,24 +34,49 @@ export async function getAllTickets() {
 
 // 2. Crear nuevo ticket
 export async function crearTicket(ticketData) {
+  // 1) Sesión
+  const { data: { user }, error: sessErr } = await supabase.auth.getUser()
+  if (sessErr || !user) throw new Error('Sesión no válida')
+
+  // 2) usuario_id (si no vino del form)
+  const usuarioId = ticketData.usuario_id || user.id
+
+  // 3) empresa_id (si no vino del form → lo saco del perfil)
+  let empresaId = ticketData.empresa_id ?? null
+  if (!empresaId) {
+    const { data: perfil, error: perfilErr } = await supabase
+      .from('user_profiles')
+      .select('empresa_id')
+      .eq('id', usuarioId)
+      .single()
+    if (perfilErr) throw perfilErr
+    empresaId = perfil?.empresa_id ?? null
+  }
+
+  // 4) Validaciones finales (evita 23502)
+  if (!usuarioId) throw new Error('usuario_id requerido')
+  if (!empresaId) throw new Error('empresa_id requerido')
+
+  // 5) Insert limpio
   const cleaned = {
-    ...ticketData,
-    estado: ticketData.estado || 'Abierto',
-    created_at: new Date().toISOString(),
-    empresa_id: ticketData.empresa_id || null,
-    usuario_id: ticketData.usuario_id || null,
+    empresa_id: empresaId,
+    tipo: ticketData.tipo || 'Remoto',
+    titulo: (ticketData.titulo || '').trim(),
+    tema_ayuda: (ticketData.tema_ayuda || '').trim(),
+    descripcion: (ticketData.descripcion || '').trim(),
+    usuario_id: usuarioId,
     tecnico_id: ticketData.tecnico_id || null,
-  };
+    estado: ticketData.tecnico_id ? 'Activo' : 'Abierto',
+    created_at: new Date().toISOString(),
+  }
 
-  const { error } = await supabase
-    .from('tickets')
-    .insert([cleaned]);
-
+  const { error } = await supabase.from('tickets').insert([cleaned])
   if (error) {
-    console.error('[crearTicket] Error:', error);
-    throw error;
+    console.error('[crearTicket] Error:', error)
+    throw error
   }
 }
+
 
 // 3. Obtener tickets por empresa
 export async function getTicketsPorEmpresa(empresaId) {
@@ -196,12 +221,15 @@ export async function crearActualizacionTicket({
   return result;
 }
 
-// 8. Obtener actualizaciones de un ticket
-export async function getActualizacionesPorTicketId(ticketId) {
+
+// 8. Obtener actualizaciones de un ticket (foto y rol del AUTOR de la actualización)
+export const getActualizacionesPorTicketId = async (ticketId) => {
   const { data, error } = await supabase
     .from('ticket_updates')
     .select(`
       id,
+      ticket_id,
+      tecnico_id,
       descripcion,
       minutos_usados,
       fue_visita,
@@ -210,7 +238,11 @@ export async function getActualizacionesPorTicketId(ticketId) {
       tipo_soporte,
       nuevo_tecnico_id,
       created_at,
-      tecnico:user_profiles!ticket_updates_tecnico_id_fkey ( display_name )
+      autor:user_profiles!ticket_updates_tecnico_id_fkey (
+        display_name,
+        photo,
+        is_admin
+      )
     `)
     .eq('ticket_id', ticketId)
     .order('created_at', { ascending: true });
@@ -220,11 +252,17 @@ export async function getActualizacionesPorTicketId(ticketId) {
     throw error;
   }
 
-  return data.map(a => ({
+  return (data ?? []).map(a => ({
     ...a,
-    tecnico_nombre: a.tecnico?.display_name || 'Técnico desconocido'
+    actor_nombre: a.autor?.display_name || 'Usuario',
+    actor_avatar_url: a.autor?.photo || null,
+    actor_is_admin: !!a.autor?.is_admin,
   }));
-}
+};
+
+
+
+
 
 // 9. Registrar cambios importantes (tipo, técnico, estado)
 export async function registrarCambiosTicket(ticketAnterior, ticketNuevo, userId, eventoForzado = null) {

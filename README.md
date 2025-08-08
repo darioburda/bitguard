@@ -62,7 +62,7 @@
 - ✅ Soporte para filtros reactivos en todas las vistas principales (usuarios, empresas, contactos, tickets)  
 - ✅ Modal de confirmación al activar rol administrador incluso en edición (`FormularioUsuario.vue`)  
 - ✅ Redirección por rol tras editar ticket reparada (`EditarTicket.vue`) usando router.push dinámico  
-- ✅ Valor booleano forzado para `is_admin` al restaurar sesión (`auth.js`), evitando errores en router
+- ✅ Valor booleano forzado para `is_admin` al restaurar sesión (`auth.js`), evitando errores en router  
 
 ---
 
@@ -104,37 +104,33 @@
 
 ## 📁 Estructura del proyecto (parcial)
 
-src/
-├── assets/
-├── components/
-│ ├── MainButton.vue
-│ ├── Acciones.vue
-│ ├── CheckboxSeleccion.vue
-│ ├── FiltrosUsuarios.vue
-│ ├── FiltrosEntidad.vue
-│ ├── Paginador.vue
-│ ├── SoporteChart.vue
-│ ├── VisitasChart.vue
-│ ├── TransitionExpand.vue
-│ ├── ChatBitButton.vue
-├── pages/
-├── modules/
-│ ├── home/
-│ ├── publicaciones/
-│ ├── usuarios/
-│ ├── empresas/
-│ ├── pedidos/
-│ └── tickets/
-├── composables/
-│ ├── useUsuarios.js
-│ └── useFiltradoEntidad.js
-├── services/
-├── styles/
-└── router/
-
-yaml
-Copiar
-Editar
+src/  
+├── assets/  
+├── components/  
+│ ├── MainButton.vue  
+│ ├── Acciones.vue  
+│ ├── CheckboxSeleccion.vue  
+│ ├── FiltrosUsuarios.vue  
+│ ├── FiltrosEntidad.vue  
+│ ├── Paginador.vue  
+│ ├── SoporteChart.vue  
+│ ├── VisitasChart.vue  
+│ ├── TransitionExpand.vue  
+│ ├── ChatBitButton.vue  
+├── pages/  
+├── modules/  
+│ ├── home/  
+│ ├── publicaciones/  
+│ ├── usuarios/  
+│ ├── empresas/  
+│ ├── pedidos/  
+│ └── tickets/  
+├── composables/  
+│ ├── useUsuarios.js  
+│ └── useFiltradoEntidad.js  
+├── services/  
+├── styles/  
+└── router/  
 
 ---
 
@@ -209,5 +205,4 @@ npm run dev
 supabase functions deploy registrar-actualizacion-ticket
 👥 Autores
 Darío Burda
-
 Nicolás Burda

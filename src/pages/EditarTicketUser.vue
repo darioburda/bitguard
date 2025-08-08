@@ -2,21 +2,14 @@
   <DetailContainer :loading="loading">
     <template v-if="!loading">
       <DetailLayout titulo="Editar Ticket">
+        <!-- Acciones (solo Volver) -->
         <AccionesDetalle>
-          <MainButton to="/abm-tickets" variant="volver" :showIcon="true">
+          <MainButton to="/mis-tickets" variant="volver" :showIcon="true">
             Volver
-          </MainButton>
-
-          <MainButton
-            type="submit"
-            variant="actualizar"
-            :disabled="loading"
-            @click="submitForm"
-          >
-            Guardar Cambios
           </MainButton>
         </AccionesDetalle>
 
+        <!-- Formulario (solo lectura para user) -->
         <FormularioLayout>
           <template #badges>
             <BadgeEstado
@@ -24,7 +17,6 @@
               :value="estadoOriginal"
               class="absolute top-2 left-2 z-10"
             />
-
             <BadgeTicket
               v-if="tipoOriginal"
               :tipo="tipoOriginal"
@@ -37,25 +29,53 @@
           <FormularioTicket
             v-model:ticket="ticket"
             :empresas="empresas"
-            :usuarios="usuarios"
-            :tecnicos="tecnicos"
+            :tecnicos="usuarios"
             :todos-usuarios="usuarios"
-            :es-admin="esAdmin"
-          />
+            :es-admin="false"
+          >
+          </FormularioTicket>
         </FormularioLayout>
 
         <!-- Historial de actualizaciones -->
         <div v-if="actualizaciones?.length" class="bg-white shadow-md rounded-2xl p-6 border my-6">
           <h2 class="text-lg font-bold mb-4">Historial de Actualizaciones</h2>
           <ul class="space-y-4">
-            <li v-for="act in actualizaciones" :key="act.id" class="border-b pb-2">
-              <div class="text-sm text-gray-600">
-                <strong>{{ act.tecnico_nombre }}</strong> - {{ formatDate(act.created_at) }}
+            <li
+              v-for="act in actualizaciones"
+              :key="act.id"
+              :class="[
+                'border-b pb-2 flex items-start gap-4',
+                esSoporte(act) ? 'flex-row' : 'flex-row-reverse justify-between'
+              ]"
+            >
+              <!-- Foto -->
+              <img
+                :src="act.actor_avatar_url || '/default-avatar.png'"
+                class="w-10 h-10 rounded-full border border-gray-300 flex-shrink-0"
+                :alt="act.actor_nombre || (esSoporte(act) ? 'Soporte' : 'Usuario')"
+              />
+
+              <!-- Contenido -->
+              <div
+                :class="[
+                  'flex-1 text-sm',
+                  esSoporte(act) ? 'text-left items-start' : 'text-right items-end'
+                ]"
+              >
+                <div class="text-gray-600">
+                  <strong>{{ act.actor_nombre }}</strong> - {{ formatDate(act.created_at) }}
+                </div>
+
+                <!-- Limito ancho para que se vea “burbuja” y no pegue contra el avatar -->
+                <p class="mt-1 text-gray-800 whitespace-pre-line inline-block max-w-[80%]">
+                  {{ act.descripcion }}
+                </p>
+
+                <p class="text-gray-500 italic" v-if="act.minutos_usados">
+                  {{ act.minutos_usados }} min · {{ act.fue_visita ? 'Visita presencial' : 'Remoto' }} ·
+                  Estado: {{ act.estado_ticket }}
+                </p>
               </div>
-              <p class="mt-1 text-gray-800 whitespace-pre-line">{{ act.descripcion }}</p>
-              <p class="text-gray-500 italic" v-if="act.minutos_usados">
-                {{ act.minutos_usados }} min · {{ act.fue_visita ? 'Visita presencial' : 'Remoto' }} · Estado: {{ act.estado_ticket }}
-              </p>
             </li>
           </ul>
         </div>
@@ -64,38 +84,32 @@
         <div class="bg-white rounded-xl shadow p-6 mb-6">
           <h2 class="text-lg font-semibold mb-4 text-[#01C38E]">Agregar actualización</h2>
 
+          <!-- Feedback -->
+          <div ref="alertRef">
+            <AlertMessage
+              v-if="feedbackActualizacion"
+              :message="feedbackActualizacion"
+              :type="feedbackTypeActualizacion"
+              :autoDismiss="feedbackTypeActualizacion !== 'danger'"
+              class="mb-4"
+              @dismiss="feedbackActualizacion = ''"
+            />
+          </div>
+
           <div class="space-y-4">
             <div>
               <label class="block font-medium mb-1 text-sm">Descripción del trabajo</label>
-              <textarea v-model="nuevaActualizacion" rows="3" class="w-full px-4 py-2 border rounded-md text-sm"></textarea>
+              <textarea
+                v-model="nuevaActualizacion"
+                rows="3"
+                class="w-full px-4 py-2 border rounded-md text-sm"
+              ></textarea>
             </div>
 
-            <div v-if="esAdmin" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block font-medium mb-1 text-sm">Minutos utilizados</label>
-                <input type="number" v-model="minutosUsados" class="w-full px-4 py-2 border rounded-md text-sm" min="1" />
-              </div>
-              <div class="flex items-center mt-6">
-                <input type="checkbox" v-model="fueVisita" id="fueVisita" class="accent-[#01C38E] w-5 h-5" />
-                <label for="fueVisita" class="ml-2 text-sm">¿Fue una visita presencial?</label>
-              </div>
-            </div>
-
+            <!-- Solo Guardar actualización -->
             <div class="mt-4 flex gap-4">
-              <MainButton
-                variant="actualizar"
-                @click="agregarActualizacion"
-              >
+              <MainButton variant="actualizar" @click="agregarActualizacion">
                 Guardar actualización
-              </MainButton>
-
-              <MainButton
-                variant="editar"
-                :disabled="!puedeCerrarTicket"
-                :class="!puedeCerrarTicket ? 'bg-gray-300 cursor-not-allowed text-white' : ''"
-                @click="cerrarTicket"
-              >
-                Cerrar Ticket
               </MainButton>
             </div>
           </div>
@@ -106,8 +120,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, computed, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 
 import DetailContainer from '@/components/layouts/DetailContainer.vue'
 import DetailLayout from '@/components/layouts/DetailLayout.vue'
@@ -117,10 +131,10 @@ import AccionesDetalle from '@/components/AccionesDetalle.vue'
 import MainButton from '@/components/MainButton.vue'
 import BadgeTicket from '@/components/BadgeTicket.vue'
 import BadgeEstado from '@/components/BadgeEstado.vue'
+import AlertMessage from '@/components/AlertMessage.vue'
 
 import {
   getTicketById,
-  actualizarTicket,
   getActualizacionesPorTicketId,
   crearActualizacionTicket
 } from '@/services/tickets'
@@ -129,29 +143,28 @@ import { getAllEmpresas } from '@/services/empresas'
 import { supabase } from '@/services/supabase'
 
 const route = useRoute()
-const router = useRouter()
 
 const ticket = ref({})
 const tipoOriginal = ref('')
 const estadoOriginal = ref('')
-const tecnicos = ref([])
 const usuarios = ref([])
 const empresas = ref([])
 const actualizaciones = ref([])
+
 const nuevaActualizacion = ref('')
-const minutosUsados = ref(0)
-const fueVisita = ref(false)
 const loading = ref(true)
-const esAdmin = ref(false)
 
-const tieneActualizacionPendiente = computed(() =>
-  nuevaActualizacion.value.trim().length > 0 && (!esAdmin.value || minutosUsados.value > 0)
+// Feedback + scroll
+const feedbackActualizacion = ref('')
+const feedbackTypeActualizacion = ref('')
+const alertRef = ref(null)
+
+// ✅ técnicos derivados de usuarios (evita undefined en el hijo)
+const tecnicos = computed(() =>
+  (usuarios.value || []).filter(u => u.is_admin) // ajustá si tu flag de soporte es otro
 )
 
-const puedeCerrarTicket = computed(() =>
-  (ticket.value.estado === 'Abierto' || ticket.value.estado === 'Activo') &&
-  (tieneActualizacionPendiente.value || actualizaciones.value.length > 0)
-)
+const tieneActualizacionPendiente = computed(() => nuevaActualizacion.value.trim().length > 0)
 
 const formatDate = (fecha) => {
   if (!fecha) return '—'
@@ -166,99 +179,81 @@ const formatDate = (fecha) => {
   }).replace(',', '')
 }
 
+/**
+ * Devuelve true si la actualización la hizo el TÉCNICO asignado (admin) → foto IZQUIERDA.
+ * Si la hizo el usuario → foto DERECHA.
+ * Requiere que cada 'act' tenga 'tecnico_id' (autor) y que 'ticket' tenga 'tecnico_id'.
+ * Si el ticket no tiene técnico, cae al rol del autor (actor_is_admin).
+ */
+const esSoporte = (act) => {
+  if (ticket.value?.tecnico_id) {
+    return act?.tecnico_id === ticket.value.tecnico_id
+  }
+  return !!act?.actor_is_admin
+}
+
 const cargarDatos = async () => {
   try {
     const id = route.params.id
-
-    const { data: session } = await supabase.auth.getUser()
-    const user = session?.user
-    esAdmin.value = user?.user_metadata?.is_admin === true
 
     const data = await getTicketById(id)
     ticket.value = data
     tipoOriginal.value = data.tipo
     estadoOriginal.value = data.estado
 
-    const perfiles = await getAllUserProfiles()
-    usuarios.value = perfiles
-    tecnicos.value = perfiles.filter((u) => u.is_admin)
-
+    usuarios.value = await getAllUserProfiles()
     empresas.value = await getAllEmpresas()
+
+    // getActualizacionesPorTicketId debe devolver: tecnico_id, actor_nombre, actor_avatar_url, actor_is_admin
     actualizaciones.value = await getActualizacionesPorTicketId(id)
   } catch (error) {
-    console.error('Error al cargar datos del ticket:', error)
+    console.error('[EditarTicketUser] Error al cargar datos:', error)
   } finally {
     loading.value = false
   }
 }
 
-const submitForm = async () => {
-  try {
-    if ((ticket.value.estado === 'Activo' || ticket.value.estado === 'Cerrado') &&
-      (!ticket.value.tecnico_id || ticket.value.tecnico_id === '')) {
-      alert('❌ Debes asignar un técnico para continuar.')
-      return
-    }
-
-    await actualizarTicket(ticket.value.id, ticket.value)
-    estadoOriginal.value = ticket.value.estado
-    tipoOriginal.value = ticket.value.tipo
-    router.push({ name: 'AbmTickets' })
-  } catch (error) {
-    console.error('[EditarTicket] Error:', error)
-    alert('❌ Error al actualizar ticket')
-  }
+const scrollToAlert = async () => {
+  await nextTick()
+  alertRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const cerrarTicket = async () => {
-  try {
-    if (tieneActualizacionPendiente.value) {
-      await agregarActualizacion(true)
-    }
-
-    await actualizarTicket(ticket.value.id, { estado: 'Cerrado' })
-    ticket.value.estado = 'Cerrado'
-    estadoOriginal.value = 'Cerrado'
-  } catch (error) {
-    console.error('[cerrarTicket] Error:', error)
-    alert('❌ No se pudo cerrar el ticket.')
-  }
-}
-
-const agregarActualizacion = async (desdeCerrarTicket = false) => {
+const agregarActualizacion = async () => {
+  // Validación: solo descripción obligatoria (usuario común)
   if (!tieneActualizacionPendiente.value) {
-    if (!desdeCerrarTicket) {
-      alert('❌ Debes completar la descripción y minutos.')
-    }
+    feedbackActualizacion.value = '❌ Debes completar la descripción del trabajo.'
+    feedbackTypeActualizacion.value = 'danger'
+    await scrollToAlert()
     return
   }
 
   try {
     const { data: session } = await supabase.auth.getUser()
-    const tecnicoActual = session?.user?.id
-    if (!tecnicoActual) throw new Error('Técnico no autenticado')
-
-    if (!ticket.value.tecnico_id) {
-      await actualizarTicket(ticket.value.id, { tecnico_id: tecnicoActual })
-      ticket.value.tecnico_id = tecnicoActual
-    }
+    const autor = session?.user?.id
+    if (!autor) throw new Error('Usuario no autenticado')
 
     await crearActualizacionTicket({
       ticket_id: ticket.value.id,
-      tecnico_id: tecnicoActual,
+      tecnico_id: autor,                 // autor de la actualización (sea user o admin)
       descripcion: nuevaActualizacion.value.trim(),
-      minutos_usados: esAdmin.value ? minutosUsados.value : 0,
-      fue_visita: esAdmin.value ? fueVisita.value : false,
+      minutos_usados: 0,                 // no aplica para user
+      fue_visita: false,                 // no aplica para user
       estado_ticket: ticket.value.estado
     })
 
+    // Reset + feedback success
     nuevaActualizacion.value = ''
-    minutosUsados.value = 0
-    fueVisita.value = false
+    feedbackActualizacion.value = '✅ Actualización guardada con éxito.'
+    feedbackTypeActualizacion.value = 'success'
+    await scrollToAlert()
+
+    // Refrescar historial
     actualizaciones.value = await getActualizacionesPorTicketId(ticket.value.id)
   } catch (error) {
-    console.error('[AgregarActualizacion] Error:', error)
-    alert('❌ No se pudo agregar la actualización.')
+    console.error('[EditarTicketUser] Error al guardar actualización:', error)
+    feedbackActualizacion.value = '❌ No se pudo agregar la actualización.'
+    feedbackTypeActualizacion.value = 'danger'
+    await scrollToAlert()
   }
 }
 
