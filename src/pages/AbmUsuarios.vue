@@ -143,7 +143,7 @@ const { filtrados: usuariosFiltrados, textoCantidad } = useFiltradoEntidad(
     sectorSeleccionado,
     planSeleccionado
   },
-  ['nombre', 'email'],
+  ['nombre', 'email', 'display_name'],
   'usuario'
 )
 

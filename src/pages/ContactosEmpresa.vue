@@ -26,6 +26,7 @@
         />
       </GridLayout>
     </UserLayout>
+    <ChatBitButton />
   </PageContainer>
 </template>
 
@@ -39,6 +40,7 @@ import GridLayout from '@/components/layouts/GridLayout.vue'
 import CardUserSmall from '@/components/CardUserSmall.vue'
 import FiltrosEntidad from '@/components/FiltrosEntidad.vue'
 import UserLayout from '@/components/layouts/UserLayout.vue'
+import ChatBitButton from '@/components/ChatBitButton.vue'
 
 const companeros = ref([])
 const busqueda = ref('')

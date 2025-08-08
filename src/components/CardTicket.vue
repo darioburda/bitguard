@@ -39,7 +39,7 @@
 
     <!-- Contenido -->
     <div class="mb-2 mt-6">
-      <h2 class="text-lg font-bold text-[#01C38E] truncate">{{ ticket.titulo }}</h2>
+      <h2 class="text-lg font-bold text-[#277AE8] truncate">{{ ticket.titulo }}</h2>
       <p class="text-sm text-gray-800 mt-1 line-clamp-3">{{ ticket.descripcion }}</p>
     </div>
 

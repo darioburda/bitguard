@@ -17,7 +17,13 @@
         class="w-14 h-14 rounded-full object-cover ring-2 ring-[#44d6b4] flex-shrink-0"
       />
       <div>
-        <h2 class="text-lg font-semibold">{{ usuario.display_name || 'Sin nombre' }}</h2>
+        <!-- Después -->
+        <RouterLink
+          :to="{ name: 'global-chat', query: { usuario: usuario.id } }"
+          class="text-lg font-semibold text-[#277AE8] hover:underline"
+        >
+          {{ usuario.display_name || 'Sin nombre' }}
+        </RouterLink>
         <p class="text-sm text-gray-500">{{ usuario.email }}</p>
         <p class="text-sm pt-1 text-[#474747] font-semibold flex items-center gap-1">
           <UsersIcon class="w-4 h-4" />

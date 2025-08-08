@@ -6,14 +6,14 @@
           <MainButton variant="editar" to="/mi-perfil/editar">
             Editar perfil
           </MainButton>
-
+<!-- 
           <MainButton
             v-if="esAdmin"
             variant="actualizar"
             @click="actualizarMetadatos"
           >
             Sinc
-          </MainButton>
+          </MainButton> -->
         </template>
 
         <template #feedback>

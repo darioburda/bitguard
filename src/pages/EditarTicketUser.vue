@@ -11,20 +11,32 @@
 
         <!-- Formulario (solo lectura para user) -->
         <FormularioLayout>
-          <template #badges>
-            <BadgeEstado
-              v-if="estadoOriginal"
-              :value="estadoOriginal"
-              class="absolute top-2 left-2 z-10"
+        <template #badges>
+          <!-- Izquierda: estado -->
+          <BadgeEstado
+            v-if="estadoOriginal"
+            :value="estadoOriginal"
+            class="absolute top-2 left-2 z-10"
+          />
+
+          <!-- Derecha: Empresa (izq) + Ticket (der) -->
+          <div
+            v-if="ticket?.id"
+            class="absolute top-3 right-3 z-10 flex items-center gap-2"
+          >
+            <BadgeEmpresa
+              v-if="empresaNombre"
+              :value="empresaNombre"
             />
             <BadgeTicket
               v-if="tipoOriginal"
               :tipo="tipoOriginal"
               :id="ticket.id"
               :variant="estadoOriginal === 'Abierto' ? 'activo' : ''"
-              class="absolute top-3 right-3 z-10"
             />
-          </template>
+          </div>
+        </template>
+
 
           <FormularioTicket
             v-model:ticket="ticket"
@@ -55,6 +67,7 @@
                 :alt="act.actor_nombre || (esSoporte(act) ? 'Soporte' : 'Usuario')"
               />
 
+              
               <!-- Contenido -->
               <div
                 :class="[
@@ -62,26 +75,56 @@
                   esSoporte(act) ? 'text-left items-start' : 'text-right items-end'
                 ]"
               >
+                <!-- Encabezado: actor + fecha -->
                 <div class="text-gray-600">
                   <strong>{{ act.actor_nombre }}</strong> - {{ formatDate(act.created_at) }}
                 </div>
 
-                <!-- Limito ancho para que se vea “burbuja” y no pegue contra el avatar -->
-                <p class="mt-1 text-gray-800 whitespace-pre-line inline-block max-w-[80%]">
-                  {{ act.descripcion }}
-                </p>
+                <!-- ======== Casos especiales (igual que admin) ======== -->
+                <!-- Cambio de tipo de soporte -->
+                <template v-if="act.tipo_evento === 'cambio_tipo_soporte'">
+                  <p class="text-blue-600 font-medium mt-1">
+                    🛠 Tipo de soporte cambiado a: <strong>{{ act.tipo_soporte }}</strong>
+                  </p>
+                  <p class="text-gray-600">{{ act.descripcion }}</p>
+                </template>
 
-                <p class="text-gray-500 italic" v-if="act.minutos_usados">
-                  {{ act.minutos_usados }} min · {{ act.fue_visita ? 'Visita presencial' : 'Remoto' }} ·
-                  Estado: {{ act.estado_ticket }}
-                </p>
+                <!-- Cambio de técnico -->
+                <template v-else-if="act.tipo_evento === 'cambio_tecnico'">
+                  <p class="text-purple-600 font-medium mt-1">
+                    👤 Técnico reasignado
+                  </p>
+                  <p class="text-gray-600">{{ act.descripcion }}</p>
+                </template>
+
+                <!-- Cierre de ticket (si querés mantenerlo igual que admin) -->
+                <template v-else-if="act.tipo_evento === 'cierre_ticket'">
+                  <p class="text-green-600 font-medium mt-1">
+                    ✅ Ticket cerrado
+                  </p>
+                  <p class="text-gray-600">{{ act.descripcion }}</p>
+                </template>
+
+                <!-- ======== Caso general (actualización normal) ======== -->
+                <template v-else>
+                  <!-- Burbuja de texto -->
+                  <p class="mt-1 text-gray-800 whitespace-pre-line inline-block max-w-[80%]">
+                    {{ act.descripcion }}
+                  </p>
+
+                  <p class="text-gray-500 italic" v-if="act.minutos_usados">
+                    {{ act.minutos_usados }} min · {{ act.fue_visita ? 'Visita presencial' : 'Remoto' }} ·
+                    Estado: {{ act.estado_ticket }}
+                  </p>
+                </template>
               </div>
+
             </li>
           </ul>
         </div>
 
         <!-- Agregar actualización -->
-        <div class="bg-white rounded-xl shadow p-6 mb-6">
+        <div class="bg-white rounded-xl shadow p-6 mb-6 mt-5">
           <h2 class="text-lg font-semibold mb-4 text-[#01C38E]">Agregar actualización</h2>
 
           <!-- Feedback -->
@@ -109,7 +152,7 @@
             <!-- Solo Guardar actualización -->
             <div class="mt-4 flex gap-4">
               <MainButton variant="actualizar" @click="agregarActualizacion">
-                Guardar actualización
+                Actualizar
               </MainButton>
             </div>
           </div>
@@ -132,6 +175,7 @@ import MainButton from '@/components/MainButton.vue'
 import BadgeTicket from '@/components/BadgeTicket.vue'
 import BadgeEstado from '@/components/BadgeEstado.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
+import BadgeEmpresa from '@/components/BadgeEmpresa.vue'
 
 import {
   getTicketById,
@@ -179,17 +223,20 @@ const formatDate = (fecha) => {
   }).replace(',', '')
 }
 
-/**
- * Devuelve true si la actualización la hizo el TÉCNICO asignado (admin) → foto IZQUIERDA.
- * Si la hizo el usuario → foto DERECHA.
- * Requiere que cada 'act' tenga 'tecnico_id' (autor) y que 'ticket' tenga 'tecnico_id'.
- * Si el ticket no tiene técnico, cae al rol del autor (actor_is_admin).
- */
+// Muestra SIEMPRE a la izquierda a cualquiera que sea soporte/admin,
+// incluso si después reasignaste el ticket.
 const esSoporte = (act) => {
-  if (ticket.value?.tecnico_id) {
-    return act?.tecnico_id === ticket.value.tecnico_id
+  if (!act) return false
+
+  // 1) Si viene marcado desde el backend, usarlo
+  if (typeof act.actor_is_admin === 'boolean') {
+    return act.actor_is_admin
   }
-  return !!act?.actor_is_admin
+
+  // 2) Fallback: buscar el rol del autor en memoria
+  const autorId = act.actor_id || act.tecnico_id
+  const perfil = (usuarios.value || []).find(u => u.id === autorId)
+  return !!perfil?.is_admin
 }
 
 const cargarDatos = async () => {
@@ -256,6 +303,20 @@ const agregarActualizacion = async () => {
     await scrollToAlert()
   }
 }
+const usuarioActual = computed(() => {
+  const uid = ticket.value?.usuario_id
+  return (usuarios.value || []).find(u => u.id === uid) || null
+})
+
+const empresaNombre = computed(() => {
+  // 1) si el perfil del usuario ya trae el nombre de empresa, usarlo
+  if (usuarioActual.value?.empresa_nombre) return usuarioActual.value.empresa_nombre
+
+  // 2) fallback por empresa_id del ticket
+  const eid = ticket.value?.empresa_id
+  const emp = (empresas.value || []).find(e => e.id === eid)
+  return emp?.nombre || ''
+})
 
 onMounted(cargarDatos)
 </script>

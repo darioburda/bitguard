@@ -2,8 +2,8 @@
   <div class="relative bg-white shadow-md rounded-2xl p-10 overflow-hidden w-full flex flex-col gap-10 border border-[#01C38E]">
     <!-- Badges -->
     <BadgePlan
-      v-if="empresa?.plan?.nombre"
-      :plan="empresa.plan.nombre"
+      v-if="empresa?.plan?.nombre || empresa?.plan_nombre"
+      :plan="empresa?.plan?.nombre ?? empresa?.plan_nombre"
       class="absolute top-2 left-2"
     />
     <BadgeEmpresa
@@ -75,8 +75,9 @@
           <h2 class="text-xs text-gray-500 mb-1">Soporte</h2>
           <SoporteChart
             class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
-            :usados="empresa.minutos_consumidos ?? 0"
-            :restantes="(empresa.plan?.minutos_incluidos ?? 0) - (empresa.minutos_consumidos ?? 0)"
+            :usados="minUsados"
+            :restantes="minRestantes"
+            :excedidos="minExcedidos"
           />
         </div>
 
@@ -85,8 +86,8 @@
           <h2 class="text-xs text-gray-500 mb-1">Visitas</h2>
           <VisitasChart
             class="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]"
-            :visitasConsumidas="empresa.visitas_consumidas ?? 0"
-            :visitasTotales="empresa.plan?.visitas_incluidas ?? 0"
+            :visitasConsumidas="visitasConsumidas"
+            :visitasTotales="visitasTotales"
           />
         </div>
       </div>
@@ -95,13 +96,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Camera, UsersIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
+import { RouterLink } from 'vue-router'
 import BadgePlan from './BadgePlan.vue'
 import BadgeEmpresa from './BadgeEmpresa.vue'
 import SoporteChart from './SoporteChart.vue'
 import VisitasChart from './VisitasChart.vue'
-import { RouterLink } from 'vue-router'
 
 const props = defineProps({
   user: Object,
@@ -109,4 +110,37 @@ const props = defineProps({
 })
 
 const mostrarConsumo = ref(false)
+
+/**
+ * —— Soporte (minutos) ——
+ * Igual que en EmpresaCard:
+ * - Pasamos usados, restantes y excedidos por props.
+ * - Nunca dejamos valores negativos (restantes ≥ 0).
+ */
+const minIncluidos = computed(() => props.empresa?.plan?.minutos_incluidos ?? 0)
+const minUsados = computed(() => props.empresa?.minutos_consumidos ?? 0)
+
+// Si el backend ya manda estos campos (como en EmpresaCard), los usamos.
+// Si no, los calculamos sin permitir negativos.
+const minRestantes = computed(() => {
+  const backend = props.empresa?.minutos_restantes
+  if (typeof backend === 'number') return Math.max(backend, 0)
+  return Math.max(minIncluidos.value - minUsados.value, 0)
+})
+
+const minExcedidos = computed(() => {
+  const backend = props.empresa?.minutos_excedidos
+  if (typeof backend === 'number') return Math.max(backend, 0)
+  return Math.max(minUsados.value - minIncluidos.value, 0)
+})
+
+/**
+ * —— Visitas ——
+ * EmpresaCard pasa (visitasConsumidas, visitasTotales) y el componente
+ * se encarga de mostrar excedentes en el tooltip si consumidas > incluidas.
+ */
+const visitasConsumidas = computed(() => props.empresa?.visitas_consumidas ?? 0)
+const visitasTotales = computed(() =>
+  (props.empresa?.visitas_incluidas ?? props.empresa?.plan?.visitas_incluidas ?? 0)
+)
 </script>

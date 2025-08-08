@@ -31,6 +31,7 @@
             :editing="true"
             modo="edicion"
             :empresas="empresas"
+            @reset-password="onResetPassword"
           />
         </FormularioLayout>
       </DetailLayout>
@@ -54,6 +55,7 @@ import FormularioLayout from '@/components/layouts/FormularioLayout.vue'
 import FormularioUsuario from '@/components/FormularioUsuario.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
 
+import { supabase } from '@/services/supabase'
 
 export default {
   name: 'EditarUsuario',
@@ -77,6 +79,20 @@ export default {
     const feedbackType = ref('danger')
     const empresas = ref([])
 
+    // ===== Base URL para Edge Functions =====
+    const EDGE_BASE =
+      import.meta.env.VITE_SUPABASE_EDGE_URL?.replace(/\/$/, '') ||
+      import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
+
+    if (!EDGE_BASE) {
+      console.warn(
+        '[BitGuard] No se encontró VITE_SUPABASE_EDGE_URL ni VITE_SUPABASE_URL. ' +
+        'Configurá las variables en .env para poder llamar a Edge Functions.'
+      )
+    }
+
+    const EDGE_FN_RESET_PASSWORD = `${EDGE_BASE}/functions/v1/reset-user-password`
+
     const cargarUsuario = async () => {
       const id = route.params.id
 
@@ -92,7 +108,7 @@ export default {
           feedback.value = '❌ Usuario no encontrado.'
         } else {
           usuario.value = { ...data }
-          usuarioOriginal.value = { ...data } // copia para comparar cambios
+          usuarioOriginal.value = { ...data }
         }
 
         empresas.value = await getAllEmpresas()
@@ -129,7 +145,6 @@ export default {
       const nombreEnUso = todos.some(
         u => u.display_name?.trim().toLowerCase() === nombreNuevo && u.id !== usuario.value.id
       )
-
       if (nombreEnUso) {
         feedback.value = '❌ El nombre ya está en uso por otro usuario.'
         return
@@ -138,7 +153,6 @@ export default {
       const emailEnUso = todos.some(
         u => u.email?.trim().toLowerCase() === emailNuevo && u.id !== usuario.value.id
       )
-
       if (emailEnUso) {
         feedback.value = '❌ El email ya está en uso por otro usuario.'
         return
@@ -146,12 +160,10 @@ export default {
 
       try {
         await updateUserProfile(usuario.value.id, usuario.value)
-
         await syncUserMetadata(usuario.value.id, {
           is_admin: usuario.value.is_admin,
           display_name: usuario.value.display_name
         })
-
         router.push({
           path: '/abm-usuarios',
           query: { success: '✅ Perfil actualizado correctamente' }
@@ -160,6 +172,33 @@ export default {
         feedback.value = '❌ Error al guardar los cambios.'
       }
     }
+
+  // === Reset de contraseña recibido desde FormularioUsuario ===
+  const onResetPassword = async (nuevaClave) => {
+    try {
+      feedback.value = ''
+      feedbackType.value = 'info'
+
+      // Token del admin logueado (opcional: invoke suele enviarlo solo, pero aseguramos)
+      const { data: sessionData, error: sErr } = await supabase.auth.getSession()
+      if (sErr) throw sErr
+      const token = sessionData?.session?.access_token
+      if (!token) throw new Error('No se pudo obtener el token de sesión.')
+
+      const { data, error } = await supabase.functions.invoke('reset-user-password', {
+        body: { userId: usuario.value.id, newPassword: nuevaClave },
+        headers: { Authorization: `Bearer ${token}` } // 👈 importante
+      })
+
+      if (error) throw new Error(error.message || 'Fallo al restablecer la contraseña.')
+
+      feedbackType.value = 'success'
+      feedback.value = '✅ Contraseña actualizada correctamente.'
+    } catch (e) {
+      feedbackType.value = 'danger'
+      feedback.value = `❌ No se pudo restablecer la contraseña. ${e.message || ''}`
+    }
+  }
 
 
     onMounted(() => {
@@ -173,6 +212,7 @@ export default {
       feedbackType,
       guardarCambios,
       empresas,
+      onResetPassword,
     }
   },
 }
