@@ -1,25 +1,13 @@
-# ===========================
-# Nixpacks config for Vue + Vite + Supabase
-# Forces Node.js buildpack and ignores Deno
-# ===========================
+# nixpacks.toml
 
-# 1️⃣ Setup: instalar Node y npm
 [phases.setup]
-nixPkgs = ["nodejs_20", "npm"]
+nixPkgs = ["nodejs_20"]
 
-# 2️⃣ Instalación de dependencias
 [phases.install]
 cmds = ["npm install"]
 
-# 3️⃣ Build de la app (usa Vite)
 [phases.build]
 cmds = ["npm run build"]
 
-# 4️⃣ Arranque en producción
 [start]
-cmd = "npm run preview"
-
-# 5️⃣ Variables opcionales
-[variables]
-PORT = "4173"
-HOST = "0.0.0.0"
+cmd = "npm run start"
