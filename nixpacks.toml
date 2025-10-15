@@ -1,13 +1,22 @@
-# nixpacks.toml
-[phases.install]
-cmds = ["npm install"]
+# nixpacks.toml — configuración personalizada para BitGuard (Vue + Vite)
 
+# 🧱 1️⃣ Fase de instalación
+# Instala dependencias usando npm.
+[phases.install]
+cmds = ["npm install --legacy-peer-deps"]
+
+# 🏗️ 2️⃣ Fase de build
+# Genera la carpeta 'dist' lista para producción.
 [phases.build]
 cmds = ["npm run build"]
 
+# 🚀 3️⃣ Fase de ejecución
+# Sirve la app estática generada por Vite en el puerto 3000.
 [phases.start]
-cmd = "npm run start"
+cmd = "npx serve -s dist -l 3000"
 
+# 💓 4️⃣ Healthcheck
+# Permite a Coolify detectar correctamente que la app está corriendo.
 [healthcheck]
 path = "/"
 port = 3000
@@ -16,5 +25,12 @@ timeout = "10s"
 retries = 3
 start_period = "20s"
 
+# 🌍 5️⃣ Variables de entorno
 [variables]
 NODE_ENV = "production"
+PORT = "3000"
+HOST = "0.0.0.0"
+
+# 🧰 6️⃣ Dependencias extra (útil si Nixpacks no detecta node automáticamente)
+[build]
+providers = ["node"]
