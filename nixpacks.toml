@@ -1,16 +1,18 @@
-# nixpacks.toml — Configuración para BitGuard (Vue + Vite)
-
-[phases.setup]
-nixPkgs = ["nodejs_20", "npm"]
+# nixpacks.toml — Configuración minimalista para Coolify + Vite
 
 [phases.install]
-cmds = ["npm install --legacy-peer-deps"]
+cmds = ["npm install"]
 
 [phases.build]
 cmds = ["npm run build"]
 
 [phases.start]
 cmd = "npx serve -s dist -l 3000"
+
+[variables]
+NODE_ENV = "production"
+PORT = "3000"
+HOST = "0.0.0.0"
 
 [healthcheck]
 path = "/"
@@ -19,8 +21,3 @@ interval = "30s"
 timeout = "10s"
 retries = 3
 start_period = "20s"
-
-[variables]
-NODE_ENV = "production"
-PORT = "3000"
-HOST = "0.0.0.0"
