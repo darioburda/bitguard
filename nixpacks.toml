@@ -1,13 +1,16 @@
 # nixpacks.toml — Configuración minimalista para Coolify + Vite
 
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
 [phases.install]
 cmds = ["npm install"]
 
 [phases.build]
 cmds = ["npm run build"]
 
-[phases.start]
-cmd = "npx serve -s dist -l 3000"
+[start]
+cmd = "npm run start"
 
 [variables]
 NODE_ENV = "production"
