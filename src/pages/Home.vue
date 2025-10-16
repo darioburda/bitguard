@@ -16,7 +16,7 @@
         <!-- Texto y logo -->
         <div class="flex flex-col gap-4 pt-[90px] -mt-[90px] md:mt-0 justify-start items-center md:items-start text-center md:text-left z-10">
           <h1 class="text-2xl sm:text-3xl mr-5 md:text-3xl font-bold text-[#474747] leading-tight">
-            ¡Bienvenido a bitguard!
+            ¡Bienvenido a bitguard-main!
           </h1>
           <img
             :src="logo"
